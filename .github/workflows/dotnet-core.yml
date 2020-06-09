@@ -1,0 +1,21 @@
+name: dotnet-core
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@master
+      - name: Set up .NET core
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 3.1.300
+      - name: Build artifacts
+        run: dotnet publish -f netcoreapp3.1 -c Release src/Orion.Launcher/Orion.Launcher.csproj
+      - name: Publish artifacts
+        uses: actions/upload-artifact@master
+        with:
+          name: Orion.Launcher
+          path: src/Orion.Launcher/bin/Release/netcoreapp3.1/publish
