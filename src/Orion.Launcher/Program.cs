@@ -28,13 +28,16 @@ using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.SystemConsole.Themes;
 
-namespace Orion.Launcher {
+namespace Orion.Launcher
+{
     /// <summary>
     /// Holds the main logic for the launcher.
     /// </summary>
-    public static class Program {
+    public static class Program
+    {
         // Sets up and returns a log.
-        private static ILogger SetupLog() {
+        private static ILogger SetupLog()
+        {
             Directory.CreateDirectory("logs");
 
             Console.InputEncoding = Encoding.UTF8;
@@ -59,7 +62,8 @@ namespace Orion.Launcher {
                 .CreateLogger()
                 .ForContext("Name", "launcher");
 
-            AppDomain.CurrentDomain.UnhandledException += (sender, eventArgs) => {
+            AppDomain.CurrentDomain.UnhandledException += (sender, eventArgs) =>
+            {
                 log.Fatal(eventArgs.ExceptionObject as Exception, Resources.UnhandledExceptionMessage);
             };
 
@@ -67,21 +71,26 @@ namespace Orion.Launcher {
         }
 
         // Sets up plugins.
-        private static void SetupPlugins(OrionKernel kernel) {
+        private static void SetupPlugins(OrionKernel kernel)
+        {
             Directory.CreateDirectory("plugins");
 
-            foreach (var path in Directory.EnumerateFiles("plugins", "*.dll")) {
-                try {
+            foreach (var path in Directory.EnumerateFiles("plugins", "*.dll"))
+            {
+                try
+                {
                     var assembly = Assembly.LoadFile(path);
-                    kernel.LoadFrom(assembly);
-                } catch (BadImageFormatException) { }
+                    kernel.Extensions.Load(assembly);
+                }
+                catch (BadImageFormatException) { }
             }
 
-            kernel.Initialize();
+            kernel.Extensions.Initialize();
         }
 
         // Sets up the language.
-        private static void SetupLanguage() {
+        private static void SetupLanguage()
+        {
             // Save cultures since `LanguageManager.SetLanguage` overrides them if the language is not supported by
             // Terraria.
             var previousCulture = Thread.CurrentThread.CurrentCulture;
@@ -96,13 +105,14 @@ namespace Orion.Launcher {
         /// Acts as the main entry point of the launcher.
         /// </summary>
         /// <param name="args">The arguments supplied to the launcher.</param>
-        public static void Main(string[] args) {
+        public static void Main(string[] args)
+        {
             var log = SetupLog();
             using var kernel = new OrionKernel(log);
             SetupPlugins(kernel);
             SetupLanguage();
 
-            kernel.Raise(new ServerArgsEvent(args), log);
+            kernel.Events.Raise(new ServerArgsEvent(args), log);
 
             using var game = new Terraria.Main();
             game.DedServ();
