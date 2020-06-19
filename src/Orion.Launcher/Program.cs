@@ -75,6 +75,8 @@ namespace Orion.Launcher
         {
             Directory.CreateDirectory("plugins");
 
+            kernel.Extensions.Load(typeof(Program).Assembly);
+
             foreach (var path in Directory.EnumerateFiles("plugins", "*.dll"))
             {
                 try
