@@ -15,31 +15,30 @@
 // You should have received a copy of the GNU General Public License
 // along with Orion.  If not, see <https://www.gnu.org/licenses/>.
 
-using Moq;
-using Orion.Launcher;
-using Serilog;
-using Xunit;
+using System;
+using Destructurama.Attributed;
+using Orion.Core.Npcs;
+using Orion.Launcher.Entities;
 
-namespace Orion.Launcher
+namespace Orion.Launcher.Npcs
 {
-    public class OrionServerTests
+    [LogAsScalar]
+    internal sealed class OrionNpc : OrionEntity<Terraria.NPC>, INpc
     {
-        [Fact]
-        public void Extensions_Get()
-        {
-            var log = Mock.Of<ILogger>();
-            using var server = new OrionServer(log);
+        public OrionNpc(int npcIndex, Terraria.NPC terrariaNpc) : base(npcIndex, terrariaNpc) { }
+        public OrionNpc(Terraria.NPC terrariaNpc) : this(-1, terrariaNpc) { }
 
-            Assert.NotNull(server.Extensions);
+        public override string Name
+        {
+            get => Wrapped.GivenOrTypeName;
+            set => Wrapped._givenName = value ?? throw new ArgumentNullException(nameof(value));
         }
 
-        [Fact]
-        public void Events_Get()
-        {
-            var log = Mock.Of<ILogger>();
-            using var server = new OrionServer(log);
+        public NpcId Id => (NpcId)Wrapped.netID;
 
-            Assert.NotNull(server.Events);
+        public void SetId(NpcId id)
+        {
+            Wrapped.SetDefaults((int)id, Wrapped.GetMatchingSpawnParams());
         }
     }
 }

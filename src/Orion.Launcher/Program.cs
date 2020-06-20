@@ -23,7 +23,7 @@ using System.Threading;
 using Destructurama;
 using Orion.Core;
 using Orion.Core.Events.Server;
-using Orion.Launcher.Impl;
+using Orion.Launcher;
 using Orion.Launcher.Properties;
 using Serilog;
 using Serilog.Events;

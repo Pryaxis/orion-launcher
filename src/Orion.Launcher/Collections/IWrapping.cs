@@ -15,31 +15,11 @@
 // You should have received a copy of the GNU General Public License
 // along with Orion.  If not, see <https://www.gnu.org/licenses/>.
 
-using Moq;
-using Orion.Launcher;
-using Serilog;
-using Xunit;
-
-namespace Orion.Launcher
+namespace Orion.Launcher.Collections
 {
-    public class OrionServerTests
+    // Marks a class as wrapping `TWrapped`. Used to support `WrappedReadOnlyList`.
+    internal interface IWrapping<out TWrapped>
     {
-        [Fact]
-        public void Extensions_Get()
-        {
-            var log = Mock.Of<ILogger>();
-            using var server = new OrionServer(log);
-
-            Assert.NotNull(server.Extensions);
-        }
-
-        [Fact]
-        public void Events_Get()
-        {
-            var log = Mock.Of<ILogger>();
-            using var server = new OrionServer(log);
-
-            Assert.NotNull(server.Events);
-        }
+        TWrapped Wrapped { get; }
     }
 }
