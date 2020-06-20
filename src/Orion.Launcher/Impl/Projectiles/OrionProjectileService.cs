@@ -23,6 +23,7 @@ using Orion.Core.DataStructures;
 using Orion.Core.Events.Projectiles;
 using Orion.Core.Framework;
 using Orion.Core.Projectiles;
+using Orion.Launcher.Impl.Collections;
 using Serilog;
 
 namespace Orion.Launcher.Impl.Projectiles

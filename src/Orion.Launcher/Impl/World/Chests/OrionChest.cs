@@ -25,6 +25,7 @@ using Orion.Core.Entities;
 using Orion.Core.Items;
 using Orion.Core.World.Chests;
 using Orion.Core.World.TileEntities;
+using Orion.Launcher.Impl.Collections;
 
 namespace Orion.Launcher.Impl.World.Chests
 {

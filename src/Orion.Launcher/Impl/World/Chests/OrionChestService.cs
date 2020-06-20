@@ -26,6 +26,7 @@ using Orion.Core.Framework;
 using Orion.Core.Items;
 using Orion.Core.Packets.World.Chests;
 using Orion.Core.World.Chests;
+using Orion.Launcher.Impl.Collections;
 using Serilog;
 
 namespace Orion.Launcher.Impl.World.Chests

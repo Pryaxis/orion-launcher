@@ -31,6 +31,7 @@ using Orion.Core.Packets.Client;
 using Orion.Core.Packets.Modules;
 using Orion.Core.Packets.Players;
 using Orion.Core.Players;
+using Orion.Launcher.Impl.Collections;
 using Serilog;
 
 namespace Orion.Launcher.Impl.Players

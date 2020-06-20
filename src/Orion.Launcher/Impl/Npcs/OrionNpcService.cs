@@ -30,6 +30,7 @@ using Orion.Core.Framework;
 using Orion.Core.Items;
 using Orion.Core.Npcs;
 using Orion.Core.Packets.Npcs;
+using Orion.Launcher.Impl.Collections;
 using Serilog;
 
 namespace Orion.Launcher.Impl.Npcs

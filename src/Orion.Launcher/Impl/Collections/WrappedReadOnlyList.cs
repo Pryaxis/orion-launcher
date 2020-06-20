@@ -21,7 +21,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
-namespace Orion.Launcher.Impl
+namespace Orion.Launcher.Impl.Collections
 {
     // Wraps an array of type `TWrapped` to act as a read-only array of type `T`. This is extremely useful for wrapping
     // Terraria arrays as Orion interface arrays.

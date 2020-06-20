@@ -25,6 +25,7 @@ using Orion.Core.Events.World.Signs;
 using Orion.Core.Framework;
 using Orion.Core.Packets.World.Signs;
 using Orion.Core.World.Signs;
+using Orion.Launcher.Impl.Collections;
 using Serilog;
 
 namespace Orion.Launcher.Impl.World.Signs

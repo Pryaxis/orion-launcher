@@ -23,6 +23,7 @@ using Orion.Core.DataStructures;
 using Orion.Core.Events.Items;
 using Orion.Core.Framework;
 using Orion.Core.Items;
+using Orion.Launcher.Impl.Collections;
 using Serilog;
 
 namespace Orion.Launcher.Impl.Items

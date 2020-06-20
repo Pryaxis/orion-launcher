@@ -20,6 +20,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Contracts;
 using Orion.Core.DataStructures;
 using Orion.Core.Entities;
+using Orion.Launcher.Impl.Collections;
 
 namespace Orion.Launcher.Impl.Entities
 {
