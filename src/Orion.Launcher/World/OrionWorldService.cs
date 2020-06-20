@@ -276,12 +276,6 @@ namespace Orion.Launcher.World
                 set => *((byte*)_tile + 12) = value;
             }
 
-            public int BlockFrames
-            {
-                get => Unsafe.ReadUnaligned<int>(((byte*)_tile) + 5);
-                set => Unsafe.WriteUnaligned(((byte*)_tile) + 5, value);
-            }
-
             // No-ops since these are never used.
             [ExcludeFromCodeCoverage]
             public int collisionType => 0;
@@ -406,7 +400,7 @@ namespace Orion.Launcher.World
                             return false;
                         }
 
-                        if (_tile->BlockId.HasFrames() && BlockFrames != adapter.BlockFrames)
+                        if (_tile->BlockId.HasFrames() && (frameX != adapter.frameX || frameY != adapter.frameY))
                         {
                             return false;
                         }
@@ -480,7 +474,8 @@ namespace Orion.Launcher.World
                 {
                     type = 0;
                     active(false);
-                    BlockFrames = 0;
+                    frameX = 0;
+                    frameY = 0;
                 }
 
                 if ((types & Terraria.DataStructures.TileDataType.TilePaint) != 0)
