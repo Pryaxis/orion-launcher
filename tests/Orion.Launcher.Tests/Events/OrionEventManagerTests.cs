@@ -23,7 +23,7 @@ using Xunit;
 
 namespace Orion.Launcher.Events
 {
-    public class EventManagerTests
+    public class OrionEventManagerTests
     {
         [Fact]
         public void RegisterHandler_NullHandler_ThrowsArgumentNullException()
