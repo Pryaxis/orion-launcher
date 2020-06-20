@@ -17,16 +17,18 @@
 
 using System;
 using System.Linq;
+using Moq;
 using Orion.Core;
 using Orion.Core.Buffs;
 using Orion.Core.DataStructures;
+using Orion.Core.Events;
 using Orion.Core.Events.Npcs;
+using Orion.Core.Events.Packets;
 using Orion.Core.Items;
 using Orion.Core.Npcs;
 using Orion.Core.Packets.Npcs;
 using Orion.Core.Players;
-using Orion.Launcher.Impl.Players;
-using Serilog.Core;
+using Serilog;
 using Xunit;
 
 namespace Orion.Launcher.Impl.Npcs
@@ -35,17 +37,14 @@ namespace Orion.Launcher.Impl.Npcs
     [Collection("TerrariaTestsCollection")]
     public class OrionNpcServiceTests
     {
-        private static readonly byte[] _npcBuffPacketBytes = { 9, 0, 53, 1, 0, 20, 0, 60, 0 };
-        private static readonly byte[] _npcCatchPacketytes = { 6, 0, 70, 1, 0, 5 };
-        private static readonly byte[] _npcFishPacketytes = { 9, 0, 130, 100, 0, 0, 1, 108, 2 };
-
         [Theory]
         [InlineData(-1)]
         [InlineData(10000)]
         public void Npcs_Item_GetInvalidIndex_ThrowsIndexOutOfRangeException(int index)
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var npcService = new OrionNpcService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var npcService = new OrionNpcService(server, log);
 
             Assert.Throws<IndexOutOfRangeException>(() => npcService.Npcs[index]);
         }
@@ -53,8 +52,10 @@ namespace Orion.Launcher.Impl.Npcs
         [Fact]
         public void Npcs_Item_Get()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var npcService = new OrionNpcService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var npcService = new OrionNpcService(server, log);
+
             var npc = npcService.Npcs[1];
 
             Assert.Equal(1, npc.Index);
@@ -64,8 +65,9 @@ namespace Orion.Launcher.Impl.Npcs
         [Fact]
         public void Npcs_Item_GetMultipleTimes_ReturnsSameInstance()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var npcService = new OrionNpcService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var npcService = new OrionNpcService(server, log);
 
             var npc = npcService.Npcs[0];
             var npc2 = npcService.Npcs[0];
@@ -76,8 +78,9 @@ namespace Orion.Launcher.Impl.Npcs
         [Fact]
         public void Npcs_GetEnumerator()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var npcService = new OrionNpcService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var npcService = new OrionNpcService(server, log);
 
             var npcs = npcService.Npcs.ToList();
 
@@ -92,22 +95,21 @@ namespace Orion.Launcher.Impl.Npcs
         [InlineData(NpcId.GreenSlime)]
         public void NpcSetDefaults_EventTriggered(NpcId id)
         {
-            Terraria.Main.npc[0] = new Terraria.NPC { whoAmI = 0 };
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var npcService = new OrionNpcService(server, log);
 
-            using var kernel = new OrionKernel(Logger.None);
-            using var npcService = new OrionNpcService(kernel, Logger.None);
-            var isRun = false;
-            kernel.Events.RegisterHandler<NpcDefaultsEvent>(evt =>
-            {
-                Assert.Same(Terraria.Main.npc[0], ((OrionNpc)evt.Npc).Wrapped);
-                Assert.Equal(id, evt.Id);
-                isRun = true;
-            }, Logger.None);
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(
+                    It.Is<NpcDefaultsEvent>(
+                        evt => ((OrionNpc)evt.Npc).Wrapped == Terraria.Main.npc[0] && evt.Id == id),
+                    log));
 
             Terraria.Main.npc[0].SetDefaults((int)id);
 
-            Assert.True(isRun);
             Assert.Equal(id, (NpcId)Terraria.Main.npc[0].netID);
+
+            Mock.Get(server.Events).VerifyAll();
         }
 
         [Theory]
@@ -115,152 +117,189 @@ namespace Orion.Launcher.Impl.Npcs
         [InlineData(NpcId.BlueSlime, NpcId.None)]
         public void NpcSetDefaults_EventModified(NpcId oldId, NpcId newId)
         {
-            Terraria.Main.npc[0] = new Terraria.NPC { whoAmI = 0 };
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var npcService = new OrionNpcService(server, log);
 
-            using var kernel = new OrionKernel(Logger.None);
-            using var npcService = new OrionNpcService(kernel, Logger.None);
-            kernel.Events.RegisterHandler<NpcDefaultsEvent>(evt => evt.Id = newId, Logger.None);
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(It.IsAny<NpcDefaultsEvent>(), log))
+                .Callback<NpcDefaultsEvent, ILogger>((evt, log) => evt.Id = newId);
 
             Terraria.Main.npc[0].SetDefaults((int)oldId);
 
             Assert.Equal(newId, (NpcId)Terraria.Main.npc[0].netID);
+
+            Mock.Get(server.Events).VerifyAll();
         }
 
         [Fact]
         public void NpcSetDefaults_EventCanceled()
         {
+            // Clear the NPC so that we know it's empty.
             Terraria.Main.npc[0] = new Terraria.NPC { whoAmI = 0 };
 
-            using var kernel = new OrionKernel(Logger.None);
-            using var npcService = new OrionNpcService(kernel, Logger.None);
-            kernel.Events.RegisterHandler<NpcDefaultsEvent>(evt => evt.Cancel(), Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var npcService = new OrionNpcService(server, log);
+
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(It.IsAny<NpcDefaultsEvent>(), log))
+                .Callback<NpcDefaultsEvent, ILogger>((evt, log) => evt.Cancel());
 
             Terraria.Main.npc[0].SetDefaults((int)NpcId.BlueSlime);
 
             Assert.Equal(NpcId.None, (NpcId)Terraria.Main.npc[0].netID);
+
+            Mock.Get(server.Events).VerifyAll();
         }
 
         [Fact]
         public void NpcSpawn_EventTriggered()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var npcService = new OrionNpcService(kernel, Logger.None);
             INpc? evtNpc = null;
-            kernel.Events.RegisterHandler<NpcSpawnEvent>(evt => evtNpc = evt.Npc, Logger.None);
+
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var npcService = new OrionNpcService(server, log);
+
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(It.IsAny<NpcSpawnEvent>(), log))
+                .Callback<NpcSpawnEvent, ILogger>((evt, log) => evtNpc = evt.Npc);
 
             var npcIndex = Terraria.NPC.NewNPC(0, 0, (int)NpcId.BlueSlime);
 
             Assert.NotNull(evtNpc);
             Assert.Same(Terraria.Main.npc[npcIndex], ((OrionNpc)evtNpc!).Wrapped);
+
+            Mock.Get(server.Events).VerifyAll();
         }
 
         [Fact]
         public void NpcSpawn_EventCanceled()
         {
+            // Clear the NPC so that we know it's empty.
             Terraria.Main.npc[0] = new Terraria.NPC { whoAmI = 0 };
 
-            using var kernel = new OrionKernel(Logger.None);
-            using var npcService = new OrionNpcService(kernel, Logger.None);
-            kernel.Events.RegisterHandler<NpcSpawnEvent>(evt => evt.Cancel(), Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var npcService = new OrionNpcService(server, log);
+
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(It.IsAny<NpcSpawnEvent>(), log))
+                .Callback<NpcSpawnEvent, ILogger>((evt, log) => evt.Cancel());
 
             var npcIndex = Terraria.NPC.NewNPC(0, 0, (int)NpcId.BlueSlime);
 
             Assert.Equal(npcService.Npcs.Count, npcIndex);
             Assert.False(Terraria.Main.npc[0].active);
+
+            Mock.Get(server.Events).VerifyAll();
         }
 
         [Fact]
         public void NpcTick_EventTriggered()
         {
+            // Clear the NPC so that we know it's empty.
             Terraria.Main.npc[0] = new Terraria.NPC { whoAmI = 0 };
 
-            using var kernel = new OrionKernel(Logger.None);
-            using var npcService = new OrionNpcService(kernel, Logger.None);
-            var isRun = false;
-            kernel.Events.RegisterHandler<NpcTickEvent>(evt =>
-            {
-                Assert.Same(Terraria.Main.npc[0], ((OrionNpc)evt.Npc).Wrapped);
-                isRun = true;
-            }, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var npcService = new OrionNpcService(server, log);
+
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(
+                    It.Is<NpcTickEvent>(
+                        evt => ((OrionNpc)evt.Npc).Wrapped == Terraria.Main.npc[0]),
+                    log));
 
             Terraria.Main.npc[0].UpdateNPC(0);
 
-            Assert.True(isRun);
+            Mock.Get(server.Events).VerifyAll();
         }
 
         [Fact]
         public void NpcTick_EventCanceled()
         {
-            Terraria.Main.npc[0] = new Terraria.NPC { whoAmI = 0 };
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var npcService = new OrionNpcService(server, log);
 
-            using var kernel = new OrionKernel(Logger.None);
-            using var npcService = new OrionNpcService(kernel, Logger.None);
-            kernel.Events.RegisterHandler<NpcTickEvent>(evt => evt.Cancel(), Logger.None);
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(It.IsAny<NpcTickEvent>(), log))
+                .Callback<NpcTickEvent, ILogger>((evt, log) => evt.Cancel());
 
             Terraria.Main.npc[0].UpdateNPC(0);
+
+            Mock.Get(server.Events).VerifyAll();
         }
 
         [Fact]
         public void NpcKilled_EventTriggered()
         {
-            Terraria.Main.npc[0] = new Terraria.NPC { whoAmI = 0 };
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var npcService = new OrionNpcService(server, log);
 
-            using var kernel = new OrionKernel(Logger.None);
-            using var npcService = new OrionNpcService(kernel, Logger.None);
-            var isRun = false;
-            kernel.Events.RegisterHandler<NpcKilledEvent>(evt =>
-            {
-                Assert.Same(Terraria.Main.npc[0], ((OrionNpc)evt.Npc).Wrapped);
-                isRun = true;
-            }, Logger.None);
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(
+                    It.Is<NpcKilledEvent>(
+                        evt => ((OrionNpc)evt.Npc).Wrapped == Terraria.Main.npc[0]),
+                    log));
+
             Terraria.Main.npc[0].SetDefaults((int)NpcId.BlueSlime);
             Terraria.Main.npc[0].life = 0;
 
             Terraria.Main.npc[0].checkDead();
 
-            Assert.True(isRun);
+            Mock.Get(server.Events).VerifyAll();
         }
 
         [Fact]
         public void NpcLoot_EventTriggered()
         {
-            Terraria.Main.npc[0] = new Terraria.NPC { whoAmI = 0 };
+            // Clear the item so that we know it's empty.
             Terraria.Main.item[0] = new Terraria.Item { whoAmI = 0 };
 
-            using var kernel = new OrionKernel(Logger.None);
-            using var npcService = new OrionNpcService(kernel, Logger.None);
-            var isRun = false;
-            kernel.Events.RegisterHandler<NpcLootEvent>(evt =>
-            {
-                Assert.Same(Terraria.Main.npc[0], ((OrionNpc)evt.Npc).Wrapped);
-                Assert.Equal(ItemId.Gel, evt.Id);
-                Assert.InRange(evt.StackSize, 1, 2);
-                Assert.Equal(ItemPrefix.Random, evt.Prefix);
-                isRun = true;
-            }, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var npcService = new OrionNpcService(server, log);
+
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(
+                    It.Is<NpcLootEvent>(
+                        evt => ((OrionNpc)evt.Npc).Wrapped == Terraria.Main.npc[0] && evt.Id == ItemId.Gel &&
+                            (evt.StackSize >= 1 || evt.StackSize <= 2) && evt.Prefix == ItemPrefix.Random),
+                    log));
+
             Terraria.Main.npc[0].SetDefaults((int)NpcId.BlueSlime);
             Terraria.Main.npc[0].life = 0;
 
             Terraria.Main.npc[0].checkDead();
 
-            Assert.True(isRun);
             Assert.Equal(ItemId.Gel, (ItemId)Terraria.Main.item[0].type);
+
+            Mock.Get(server.Events).VerifyAll();
         }
 
         [Fact]
         public void NpcLoot_EventModified()
         {
-            Terraria.Main.npc[0] = new Terraria.NPC { whoAmI = 0 };
+            // Clear the item so that we know it's empty.
             Terraria.Main.item[0] = new Terraria.Item { whoAmI = 0 };
 
-            using var kernel = new OrionKernel(Logger.None);
-            using var npcService = new OrionNpcService(kernel, Logger.None);
-            kernel.Events.RegisterHandler<NpcLootEvent>(evt =>
-            {
-                evt.Id = ItemId.Sdmg;
-                evt.StackSize = 1;
-                evt.Prefix = ItemPrefix.Unreal;
-            }, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var npcService = new OrionNpcService(server, log);
+
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(It.IsAny<NpcLootEvent>(), log))
+                .Callback<NpcLootEvent, ILogger>((evt, log) =>
+                {
+                    evt.Id = ItemId.Sdmg;
+                    evt.StackSize = 1;
+                    evt.Prefix = ItemPrefix.Unreal;
+                });
+
             Terraria.Main.npc[0].SetDefaults((int)NpcId.BlueSlime);
             Terraria.Main.npc[0].life = 0;
 
@@ -269,169 +308,222 @@ namespace Orion.Launcher.Impl.Npcs
             Assert.Equal(ItemId.Sdmg, (ItemId)Terraria.Main.item[0].type);
             Assert.Equal(1, Terraria.Main.item[0].stack);
             Assert.Equal(ItemPrefix.Unreal, (ItemPrefix)Terraria.Main.item[0].prefix);
+
+            Mock.Get(server.Events).VerifyAll();
         }
 
         [Fact]
         public void NpcLoot_EventCanceled()
         {
-            Terraria.Main.npc[0] = new Terraria.NPC { whoAmI = 0 };
+            // Clear the item so that we know it's empty.
             Terraria.Main.item[0] = new Terraria.Item { whoAmI = 0 };
 
-            using var kernel = new OrionKernel(Logger.None);
-            using var npcService = new OrionNpcService(kernel, Logger.None);
-            kernel.Events.RegisterHandler<NpcLootEvent>(evt => evt.Cancel(), Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var npcService = new OrionNpcService(server, log);
+
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(It.IsAny<NpcLootEvent>(), log))
+                .Callback<NpcLootEvent, ILogger>((evt, log) => evt.Cancel());
+
             Terraria.Main.npc[0].SetDefaults((int)NpcId.BlueSlime);
             Terraria.Main.npc[0].life = 0;
 
             Terraria.Main.npc[0].checkDead();
 
             Assert.NotEqual(ItemId.Gel, (ItemId)Terraria.Main.item[0].type);
+
+            Mock.Get(server.Events).VerifyAll();
         }
 
         [Fact]
-        public void PacketReceive_NpcBuff_EventTriggered()
+        public void PacketReceive_NpcBuffPacket_EventTriggered()
         {
-            // Set `State` to 10 so that the NPC catch packet is not ignored by the server.
-            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5, State = 10 };
-            Terraria.Main.player[5] = new Terraria.Player { whoAmI = 5 };
-            Terraria.Main.npc[1] = new Terraria.NPC { whoAmI = 1 };
+            Action<PacketReceiveEvent<NpcBuffPacket>>? registeredHandler = null;
 
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            using var npcService = new OrionNpcService(kernel, Logger.None);
-            var isRun = false;
-            kernel.Events.RegisterHandler<NpcBuffEvent>(evt =>
-            {
-                Assert.Same(npcService.Npcs[1], evt.Npc);
-                Assert.Same(playerService.Players[5], evt.Player);
-                Assert.Equal(new Buff(BuffId.Poisoned, TimeSpan.FromSeconds(1)), evt.Buff);
-                isRun = true;
-            }, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            Mock.Get(server.Events)
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<NpcBuffPacket>>>(), log))
+                .Callback<Action<PacketReceiveEvent<NpcBuffPacket>>, ILogger>(
+                    (handler, log) => registeredHandler = handler);
 
-            TestUtils.FakeReceiveBytes(5, _npcBuffPacketBytes);
+            using var npcService = new OrionNpcService(server, log);
 
-            Assert.True(isRun);
-            Assert.Equal(BuffId.Poisoned, (BuffId)Terraria.Main.npc[1].buffType[0]);
-            Assert.Equal(60, Terraria.Main.npc[1].buffTime[0]);
+            var packet = new NpcBuffPacket { NpcIndex = 1, Id = BuffId.Poisoned, Ticks = 60 };
+            var sender = Mock.Of<IPlayer>();
+            var evt = new PacketReceiveEvent<NpcBuffPacket>(ref packet, sender);
+
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(
+                    It.Is<NpcBuffEvent>(
+                        evt => evt.Npc == npcService.Npcs[1] && evt.Player == sender &&
+                            evt.Buff == new Buff(BuffId.Poisoned, 60)),
+                    log));
+
+            Assert.NotNull(registeredHandler);
+            registeredHandler!(evt);
+
+            Mock.Get(server.Events).VerifyAll();
         }
 
         [Fact]
-        public void PacketReceive_NpcBuff_EventCanceled()
+        public void PacketReceive_NpcBuffPacket_EventCanceled()
         {
-            // Set `State` to 10 so that the NPC catch packet is not ignored by the server.
-            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5, State = 10 };
-            Terraria.Main.player[5] = new Terraria.Player { whoAmI = 5 };
-            Terraria.Main.npc[1] = new Terraria.NPC { whoAmI = 1 };
+            Action<PacketReceiveEvent<NpcBuffPacket>>? registeredHandler = null;
 
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            using var npcService = new OrionNpcService(kernel, Logger.None);
-            kernel.Events.RegisterHandler<NpcBuffEvent>(evt => evt.Cancel(), Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            Mock.Get(server.Events)
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<NpcBuffPacket>>>(), log))
+                .Callback<Action<PacketReceiveEvent<NpcBuffPacket>>, ILogger>(
+                    (handler, log) => registeredHandler = handler);
 
-            TestUtils.FakeReceiveBytes(5, _npcBuffPacketBytes);
+            using var npcService = new OrionNpcService(server, log);
 
-            Assert.Equal(BuffId.None, (BuffId)Terraria.Main.npc[1].buffType[0]);
+            var packet = new NpcBuffPacket { NpcIndex = 1, Id = BuffId.Poisoned, Ticks = 60 };
+            var sender = Mock.Of<IPlayer>();
+            var evt = new PacketReceiveEvent<NpcBuffPacket>(ref packet, sender);
+
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(It.IsAny<NpcBuffEvent>(), log))
+                .Callback<NpcBuffEvent, ILogger>((evt, log) => evt.Cancel());
+
+            Assert.NotNull(registeredHandler);
+            registeredHandler!(evt);
+
+            Assert.True(evt.IsCanceled);
+
+            Mock.Get(server.Events).VerifyAll();
         }
 
         [Fact]
-        public void PacketReceive_NpcCatch_EventTriggered()
+        public void PacketReceive_NpcCatchPacket_EventTriggered()
         {
-            // Set `State` to 10 so that the NPC catch packet is not ignored by the server.
-            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5, State = 10 };
-            Terraria.Main.player[5] = new Terraria.Player { whoAmI = 5 };
-            Terraria.Main.npc[1] = new Terraria.NPC { whoAmI = 1 };
-            Terraria.Main.npc[1].SetDefaults((int)NpcId.GoldWorm);
-            Terraria.Main.item[0] = new Terraria.Item { whoAmI = 0 };
+            Action<PacketReceiveEvent<NpcCatchPacket>>? registeredHandler = null;
 
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            using var npcService = new OrionNpcService(kernel, Logger.None);
-            var isRun = false;
-            kernel.Events.RegisterHandler<NpcCatchEvent>(evt =>
-            {
-                Assert.Same(npcService.Npcs[1], evt.Npc);
-                Assert.Same(playerService.Players[5], evt.Player);
-                isRun = true;
-            }, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            Mock.Get(server.Events)
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<NpcCatchPacket>>>(), log))
+                .Callback<Action<PacketReceiveEvent<NpcCatchPacket>>, ILogger>(
+                    (handler, log) => registeredHandler = handler);
 
-            TestUtils.FakeReceiveBytes(5, _npcCatchPacketytes);
+            using var npcService = new OrionNpcService(server, log);
 
-            Assert.True(isRun);
-            Assert.Equal(ItemId.GoldWorm, (ItemId)Terraria.Main.item[0].type);
+            var packet = new NpcCatchPacket { NpcIndex = 1 };
+            var sender = Mock.Of<IPlayer>();
+            var evt = new PacketReceiveEvent<NpcCatchPacket>(ref packet, sender);
+
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(It.Is<NpcCatchEvent>(evt => evt.Npc == npcService.Npcs[1]), log));
+
+            Assert.NotNull(registeredHandler);
+            registeredHandler!(evt);
+
+            Mock.Get(server.Events).VerifyAll();
         }
 
         [Fact]
-        public void PacketReceive_NpcCatch_EventCanceled()
+        public void PacketReceive_NpcCatchPacket_EventCanceled()
         {
-            // Set `State` to 10 so that the NPC catch packet is not ignored by the server.
-            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5, State = 10 };
-            Terraria.Main.player[5] = new Terraria.Player { whoAmI = 5 };
-            Terraria.Main.npc[1] = new Terraria.NPC { whoAmI = 1 };
-            Terraria.Main.npc[1].SetDefaults((int)NpcId.GoldWorm);
-            Terraria.Main.item[0] = new Terraria.Item { whoAmI = 0 };
+            Action<PacketReceiveEvent<NpcCatchPacket>>? registeredHandler = null;
 
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            using var npcService = new OrionNpcService(kernel, Logger.None);
-            kernel.Events.RegisterHandler<NpcCatchEvent>(evt => evt.Cancel(), Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            Mock.Get(server.Events)
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<NpcCatchPacket>>>(), log))
+                .Callback<Action<PacketReceiveEvent<NpcCatchPacket>>, ILogger>(
+                    (handler, log) => registeredHandler = handler);
 
-            TestUtils.FakeReceiveBytes(5, _npcCatchPacketytes);
+            using var npcService = new OrionNpcService(server, log);
 
-            Assert.Equal(ItemId.None, (ItemId)Terraria.Main.item[0].type);
+            var packet = new NpcCatchPacket { NpcIndex = 1 };
+            var sender = Mock.Of<IPlayer>();
+            var evt = new PacketReceiveEvent<NpcCatchPacket>(ref packet, sender);
+
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(It.IsAny<NpcCatchEvent>(), log))
+                .Callback<NpcCatchEvent, ILogger>((evt, log) => evt.Cancel());
+
+            Assert.NotNull(registeredHandler);
+            registeredHandler!(evt);
+
+            Assert.True(evt.IsCanceled);
+
+            Mock.Get(server.Events).VerifyAll();
         }
 
         [Fact]
-        public void PacketReceive_NpcFish_EventTriggered()
+        public void PacketReceive_NpcFishPacket_EventTriggered()
         {
-            // Set `State` to 10 so that the NPC fish packet is not ignored by the server.
-            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5, State = 10 };
-            Terraria.Main.player[5] = new Terraria.Player { whoAmI = 5 };
-            Terraria.Main.npc[0] = new Terraria.NPC { whoAmI = 0 };
+            Action<PacketReceiveEvent<NpcFishPacket>>? registeredHandler = null;
 
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            using var npcService = new OrionNpcService(kernel, Logger.None);
-            var isRun = false;
-            kernel.Events.RegisterHandler<NpcFishEvent>(evt =>
-            {
-                Assert.Same(playerService.Players[5], evt.Player);
-                Assert.Equal(100, evt.X);
-                Assert.Equal(256, evt.Y);
-                Assert.Equal(NpcId.HemogoblinShark, evt.Id);
-                isRun = true;
-            }, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            Mock.Get(server.Events)
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<NpcFishPacket>>>(), log))
+                .Callback<Action<PacketReceiveEvent<NpcFishPacket>>, ILogger>(
+                    (handler, log) => registeredHandler = handler);
 
-            TestUtils.FakeReceiveBytes(5, _npcFishPacketytes);
+            using var npcService = new OrionNpcService(server, log);
 
-            Assert.True(isRun);
-            Assert.Equal(NpcId.HemogoblinShark, (NpcId)Terraria.Main.npc[0].type);
+            var packet = new NpcFishPacket { X = 100, Y = 256, Id = NpcId.HemogoblinShark };
+            var sender = Mock.Of<IPlayer>();
+            var evt = new PacketReceiveEvent<NpcFishPacket>(ref packet, sender);
+
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(
+                    It.Is<NpcFishEvent>(
+                        evt => evt.Player == sender && evt.X == 100 && evt.Y == 256 && evt.Id == NpcId.HemogoblinShark),
+                    log));
+
+            Assert.NotNull(registeredHandler);
+            registeredHandler!(evt);
+
+            Mock.Get(server.Events).VerifyAll();
         }
 
         [Fact]
-        public void PacketReceive_NpcFish_EventCanceled()
+        public void PacketReceive_NpcFishPacket_EventCanceled()
         {
-            // Set `State` to 10 so that the NPC fish packet is not ignored by the server.
-            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5, State = 10 };
-            Terraria.Main.player[5] = new Terraria.Player { whoAmI = 5 };
-            Terraria.Main.npc[0] = new Terraria.NPC { whoAmI = 0 };
+            Action<PacketReceiveEvent<NpcFishPacket>>? registeredHandler = null;
 
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            using var npcService = new OrionNpcService(kernel, Logger.None);
-            kernel.Events.RegisterHandler<NpcFishEvent>(evt => evt.Cancel(), Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            Mock.Get(server.Events)
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<NpcFishPacket>>>(), log))
+                .Callback<Action<PacketReceiveEvent<NpcFishPacket>>, ILogger>(
+                    (handler, log) => registeredHandler = handler);
 
-            TestUtils.FakeReceiveBytes(5, _npcFishPacketytes);
+            using var npcService = new OrionNpcService(server, log);
 
-            Assert.Equal(NpcId.None, (NpcId)Terraria.Main.npc[0].type);
+            var packet = new NpcFishPacket { X = 100, Y = 256, Id = NpcId.HemogoblinShark };
+            var sender = Mock.Of<IPlayer>();
+            var evt = new PacketReceiveEvent<NpcFishPacket>(ref packet, sender);
+
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(It.IsAny<NpcFishEvent>(), log))
+                .Callback<NpcFishEvent, ILogger>((evt, log) => evt.Cancel());
+
+            Assert.NotNull(registeredHandler);
+            registeredHandler!(evt);
+
+            Assert.True(evt.IsCanceled);
+
+            Mock.Get(server.Events).VerifyAll();
         }
 
         [Fact]
         public void SpawnNpc()
         {
+            // Clear the NPC so that we know it's empty.
             Terraria.Main.npc[0] = new Terraria.NPC { whoAmI = 0 };
 
-            using var kernel = new OrionKernel(Logger.None);
-            using var npcService = new OrionNpcService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var npcService = new OrionNpcService(server, log);
+
             var npc = npcService.SpawnNpc(NpcId.BlueSlime, Vector2f.Zero);
 
             Assert.NotNull(npc);
@@ -441,13 +533,16 @@ namespace Orion.Launcher.Impl.Npcs
         [Fact]
         public void SpawnNpc_ReturnsNull()
         {
+            // Fill up all of the NPC slots so that the spawn fails.
             for (var i = 0; i < Terraria.Main.maxNPCs; ++i)
             {
                 Terraria.Main.npc[i] = new Terraria.NPC { whoAmI = i, active = true };
             }
 
-            using var kernel = new OrionKernel(Logger.None);
-            using var npcService = new OrionNpcService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var npcService = new OrionNpcService(server, log);
+
             var npc = npcService.SpawnNpc(NpcId.BlueSlime, Vector2f.Zero);
 
             Assert.Null(npc);

@@ -17,7 +17,6 @@
 
 using System;
 using Destructurama.Attributed;
-using Orion.Core.Entities;
 using Orion.Core.Projectiles;
 using Orion.Launcher.Impl.Entities;
 

@@ -19,10 +19,9 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Orion.Core;
-using Orion.Core.Collections;
 using Orion.Core.DataStructures;
 using Orion.Core.Events.Projectiles;
-using Orion.Core.Framework.Extensions;
+using Orion.Core.Framework;
 using Orion.Core.Projectiles;
 using Serilog;
 
@@ -33,7 +32,7 @@ namespace Orion.Launcher.Impl.Projectiles
     {
         private readonly object _lock = new object();
 
-        public OrionProjectileService(OrionKernel kernel, ILogger log) : base(kernel, log)
+        public OrionProjectileService(IServer server, ILogger log) : base(server, log)
         {
             // Construct the `Projectiles` array. Note that the last projectile should be ignored, as it is not a real
             // projectile.
@@ -79,7 +78,7 @@ namespace Orion.Launcher.Impl.Projectiles
 
             var projectile = GetProjectile(terrariaProjectile);
             var evt = new ProjectileDefaultsEvent(projectile) { Id = (ProjectileId)projectileId };
-            Kernel.Events.Raise(evt, Log);
+            Server.Events.Raise(evt, Log);
             if (evt.IsCanceled)
             {
                 return OTAPI.HookResult.Cancel;
@@ -94,7 +93,7 @@ namespace Orion.Launcher.Impl.Projectiles
             Debug.Assert(projectileIndex >= 0 && projectileIndex < Projectiles.Count);
 
             var evt = new ProjectileTickEvent(Projectiles[projectileIndex]);
-            Kernel.Events.Raise(evt, Log);
+            Server.Events.Raise(evt, Log);
             return evt.IsCanceled ? OTAPI.HookResult.Cancel : OTAPI.HookResult.Continue;
         }
 

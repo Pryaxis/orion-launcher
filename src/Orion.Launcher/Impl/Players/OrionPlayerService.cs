@@ -22,12 +22,10 @@ using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using Orion.Core;
-using Orion.Core.Collections;
 using Orion.Core.Events;
 using Orion.Core.Events.Packets;
 using Orion.Core.Events.Players;
-using Orion.Core.Framework.Events;
-using Orion.Core.Framework.Extensions;
+using Orion.Core.Framework;
 using Orion.Core.Packets;
 using Orion.Core.Packets.Client;
 using Orion.Core.Packets.Modules;
@@ -56,12 +54,12 @@ namespace Orion.Launcher.Impl.Players
         private readonly PacketHandler?[] _onSendPacketHandlers = new PacketHandler?[256];
         private readonly PacketHandler?[] _onSendModuleHandlers = new PacketHandler?[65536];
 
-        public OrionPlayerService(OrionKernel kernel, ILogger log) : base(kernel, log)
+        public OrionPlayerService(IServer server, ILogger log) : base(server, log)
         {
             // Construct the `Players` array. Note that the last player should be ignored, as it is not a real player.
             Players = new WrappedReadOnlyList<OrionPlayer, Terraria.Player>(
                 Terraria.Main.player.AsMemory(..^1),
-                (playerIndex, terrariaPlayer) => new OrionPlayer(playerIndex, terrariaPlayer, kernel, log));
+                (playerIndex, terrariaPlayer) => new OrionPlayer(playerIndex, terrariaPlayer, server, log));
 
             // Construct the `_onReceivePacketHandlers` and `_onSendPacketHandlers` arrays ahead of time for the valid
             // `PacketId` instances. The invalid instances are handled by defaulting to `UnknownPacket`.
@@ -87,7 +85,7 @@ namespace Orion.Launcher.Impl.Players
             OTAPI.Hooks.Player.PreUpdate = PreUpdateHandler;
             OTAPI.Hooks.Net.RemoteClient.PreReset = PreResetHandler;
 
-            Kernel.Events.RegisterHandlers(this, Log);
+            Server.Events.RegisterHandlers(this, Log);
 
             PacketHandler MakeOnReceivePacketHandler(Type packetType) =>
                 (PacketHandler)_onReceivePacket
@@ -110,7 +108,7 @@ namespace Orion.Launcher.Impl.Players
             OTAPI.Hooks.Player.PreUpdate = null;
             OTAPI.Hooks.Net.RemoteClient.PreReset = null;
 
-            Kernel.Events.DeregisterHandlers(this, Log);
+            Server.Events.DeregisterHandlers(this, Log);
         }
 
         // =============================================================================================================
@@ -201,7 +199,7 @@ namespace Orion.Launcher.Impl.Players
             Debug.Assert(playerIndex >= 0 && playerIndex < Players.Count);
 
             var evt = new PlayerTickEvent(Players[playerIndex]);
-            Kernel.Events.Raise(evt, Log);
+            Server.Events.Raise(evt, Log);
             return evt.IsCanceled ? OTAPI.HookResult.Cancel : OTAPI.HookResult.Continue;
         }
 
@@ -217,7 +215,7 @@ namespace Orion.Launcher.Impl.Players
             }
 
             var evt = new PlayerQuitEvent(Players[remoteClient.Id]);
-            Kernel.Events.Raise(evt, Log);
+            Server.Events.Raise(evt, Log);
             return OTAPI.HookResult.Continue;
         }
 
@@ -338,7 +336,7 @@ namespace Orion.Launcher.Impl.Players
         // Forwards `evt` as `newEvt`.
         private void ForwardEvent<TEvent>(Event evt, TEvent newEvt) where TEvent : Event
         {
-            Kernel.Events.Raise(newEvt, Log);
+            Server.Events.Raise(newEvt, Log);
             if (newEvt.IsCanceled)
             {
                 evt.Cancel(newEvt.CancellationReason);

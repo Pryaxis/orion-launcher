@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Orion.Core.Launcher.Properties {
+namespace Orion.Launcher.Properties {
     using System;
     
     
@@ -61,11 +61,38 @@ namespace Orion.Core.Launcher.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Initialized {PluginName} v{PluginVersion} by {PluginAuthor}.
+        /// </summary>
+        internal static string InitializedPlugin {
+            get {
+                return ResourceManager.GetString("InitializedPlugin", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Loaded {PluginName}.
+        /// </summary>
+        internal static string LoadedPlugin {
+            get {
+                return ResourceManager.GetString("LoadedPlugin", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unhandled exception.
         /// </summary>
         internal static string UnhandledExceptionMessage {
             get {
                 return ResourceManager.GetString("UnhandledExceptionMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unloaded {PluginName}.
+        /// </summary>
+        internal static string UnloadedPlugin {
+            get {
+                return ResourceManager.GetString("UnloadedPlugin", resourceCulture);
             }
         }
     }

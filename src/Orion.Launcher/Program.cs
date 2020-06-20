@@ -23,101 +23,93 @@ using System.Threading;
 using Destructurama;
 using Orion.Core;
 using Orion.Core.Events.Server;
-using Orion.Core.Launcher.Properties;
+using Orion.Launcher.Impl;
+using Orion.Launcher.Properties;
 using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.SystemConsole.Themes;
 
 namespace Orion.Launcher
 {
-    /// <summary>
-    /// Holds the main logic for the launcher.
-    /// </summary>
-    public static class Program
+    internal static class Program
     {
-        // Sets up and returns a log.
-        private static ILogger SetupLog()
-        {
-            Directory.CreateDirectory("logs");
-
-            Console.InputEncoding = Encoding.UTF8;
-            Console.OutputEncoding = Encoding.UTF8;
-
-            var log = new LoggerConfiguration()
-                .Destructure.UsingAttributes()
-#if DEBUG
-                .MinimumLevel.Is(LogEventLevel.Debug)
-#else
-                .MinimumLevel.Is(LogEventLevel.Information)
-#endif
-                .WriteTo.Console(
-                    outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Name}: {Message:l}{NewLine}{Exception}",
-                    theme: AnsiConsoleTheme.Code)
-                .WriteTo.File(Path.Combine("logs", "log-.txt"),
-                    outputTemplate:
-                        "[{Timestamp:yyyy-MM-dd HH:mm:ss} {Level:u3}] {Name}: {Message:l}{NewLine}{Exception}",
-                    rollingInterval: RollingInterval.Day,
-                    rollOnFileSizeLimit: true,
-                    fileSizeLimitBytes: 2 << 20)
-                .CreateLogger()
-                .ForContext("Name", "launcher");
-
-            AppDomain.CurrentDomain.UnhandledException += (sender, eventArgs) =>
-            {
-                log.Fatal(eventArgs.ExceptionObject as Exception, Resources.UnhandledExceptionMessage);
-            };
-
-            return log;
-        }
-
-        // Sets up plugins.
-        private static void SetupPlugins(OrionKernel kernel)
-        {
-            Directory.CreateDirectory("plugins");
-
-            kernel.Extensions.Load(typeof(Program).Assembly);
-
-            foreach (var path in Directory.EnumerateFiles("plugins", "*.dll"))
-            {
-                try
-                {
-                    var assembly = Assembly.LoadFile(path);
-                    kernel.Extensions.Load(assembly);
-                }
-                catch (BadImageFormatException) { }
-            }
-
-            kernel.Extensions.Initialize();
-        }
-
-        // Sets up the language.
-        private static void SetupLanguage()
-        {
-            // Save cultures since `LanguageManager.SetLanguage` overrides them if the language is not supported by
-            // Terraria.
-            var previousCulture = Thread.CurrentThread.CurrentCulture;
-            var previousUICulture = Thread.CurrentThread.CurrentUICulture;
-            Terraria.Localization.LanguageManager.Instance.SetLanguage(previousUICulture.Name);
-            Terraria.Lang.InitializeLegacyLocalization();
-            Thread.CurrentThread.CurrentCulture = previousCulture;
-            Thread.CurrentThread.CurrentUICulture = previousUICulture;
-        }
-
-        /// <summary>
-        /// Acts as the main entry point of the launcher.
-        /// </summary>
-        /// <param name="args">The arguments supplied to the launcher.</param>
-        public static void Main(string[] args)
+        internal static void Main(string[] args)
         {
             var log = SetupLog();
-            using var kernel = new OrionKernel(log);
-            SetupPlugins(kernel);
+            using var server = new OrionServer(log);
+            SetupPlugins();
             SetupLanguage();
 
-            kernel.Events.Raise(new ServerArgsEvent(args), log);
+            server.Events.Raise(new ServerArgsEvent(args), log);
 
             using var game = new Terraria.Main();
             game.DedServ();
+
+            static void SetupLanguage()
+            {
+                // Save cultures since `LanguageManager.SetLanguage` overrides them if the language is not supported by
+                // Terraria.
+                var previousCulture = Thread.CurrentThread.CurrentCulture;
+                var previousUICulture = Thread.CurrentThread.CurrentUICulture;
+                Terraria.Localization.LanguageManager.Instance.SetLanguage(previousUICulture.Name);
+                Terraria.Lang.InitializeLegacyLocalization();
+                Thread.CurrentThread.CurrentCulture = previousCulture;
+                Thread.CurrentThread.CurrentUICulture = previousUICulture;
+            }
+
+            static ILogger SetupLog()
+            {
+                Directory.CreateDirectory("logs");
+
+                Console.InputEncoding = Encoding.UTF8;
+                Console.OutputEncoding = Encoding.UTF8;
+
+                var log = new LoggerConfiguration()
+                    .Destructure.UsingAttributes()
+#if DEBUG
+                    .MinimumLevel.Is(LogEventLevel.Debug)
+#else
+                    .MinimumLevel.Is(LogEventLevel.Information)
+#endif
+                    .WriteTo.Console(
+                        outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Name}: {Message:l}{NewLine}{Exception}",
+                        theme: AnsiConsoleTheme.Code)
+                    .WriteTo.File(Path.Combine("logs", "log-.txt"),
+                        outputTemplate:
+                            "[{Timestamp:yyyy-MM-dd HH:mm:ss} {Level:u3}] {Name}: {Message:l}{NewLine}{Exception}",
+                        rollingInterval: RollingInterval.Day,
+                        rollOnFileSizeLimit: true,
+                        fileSizeLimitBytes: 2 << 20)
+                    .CreateLogger()
+                    .ForContext("Name", "launcher");
+
+                AppDomain.CurrentDomain.UnhandledException += (sender, eventArgs) =>
+                {
+                    log.Fatal(eventArgs.ExceptionObject as Exception, Resources.UnhandledExceptionMessage);
+                };
+
+                return log;
+            }
+
+            void SetupPlugins()
+            {
+                Directory.CreateDirectory("plugins");
+
+                server.Extensions.Load(typeof(IServer).Assembly);
+                server.Extensions.Load(typeof(OrionServer).Assembly);
+
+                foreach (var path in Directory.EnumerateFiles("plugins", "*.dll"))
+                {
+                    try
+                    {
+                        var assembly = Assembly.LoadFile(path);
+                        server.Extensions.Load(assembly);
+                    }
+                    catch (BadImageFormatException) { }
+                }
+
+                server.Extensions.Initialize();
+            }
         }
     }
 }

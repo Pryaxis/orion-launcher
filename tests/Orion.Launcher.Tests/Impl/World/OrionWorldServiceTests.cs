@@ -15,16 +15,17 @@
 // You should have received a copy of the GNU General Public License
 // along with Orion.  If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using Moq;
 using Orion.Core;
+using Orion.Core.Events;
+using Orion.Core.Events.Packets;
 using Orion.Core.Events.World;
 using Orion.Core.Events.World.Tiles;
-using Orion.Core.Items;
 using Orion.Core.Packets.World.Tiles;
 using Orion.Core.Players;
 using Orion.Core.World.Tiles;
-using Orion.Launcher.Impl.Players;
-using Serilog.Core;
+using Serilog;
 using Xunit;
 
 namespace Orion.Launcher.Impl.World
@@ -58,8 +59,9 @@ namespace Orion.Launcher.Impl.World
         [Fact]
         public void Main_tile_Width_Get()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
 
             Assert.Equal(Terraria.Main.maxTilesX, Terraria.Main.tile.Width);
         }
@@ -67,8 +69,9 @@ namespace Orion.Launcher.Impl.World
         [Fact]
         public void Main_tile_Height_Get()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
 
             Assert.Equal(Terraria.Main.maxTilesY, Terraria.Main.tile.Height);
         }
@@ -76,8 +79,9 @@ namespace Orion.Launcher.Impl.World
         [Fact]
         public void Main_tile_type_Get()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
 
             worldService.World[0, 0] = new Tile { BlockId = BlockId.Stone };
 
@@ -87,8 +91,9 @@ namespace Orion.Launcher.Impl.World
         [Fact]
         public void Main_tile_type_Set()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
 
             Terraria.Main.tile[0, 0].type = (ushort)BlockId.Stone;
 
@@ -98,8 +103,9 @@ namespace Orion.Launcher.Impl.World
         [Fact]
         public void Main_tile_wall_Get()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
 
             worldService.World[0, 0] = new Tile { WallId = WallId.Stone };
 
@@ -109,8 +115,9 @@ namespace Orion.Launcher.Impl.World
         [Fact]
         public void Main_tile_wall_Set()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
 
             Terraria.Main.tile[0, 0].wall = (ushort)WallId.Stone;
 
@@ -120,8 +127,9 @@ namespace Orion.Launcher.Impl.World
         [Fact]
         public void Main_tile_liquid_Get()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
 
             worldService.World[0, 0] = new Tile { LiquidAmount = 100 };
 
@@ -131,8 +139,9 @@ namespace Orion.Launcher.Impl.World
         [Fact]
         public void Main_tile_liquid_Set()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
 
             Terraria.Main.tile[0, 0].liquid = 100;
 
@@ -140,10 +149,11 @@ namespace Orion.Launcher.Impl.World
         }
 
         [Fact]
-        public void Main_tileHeader1_Get()
+        public void Main_tile_sTileHeader_Get()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
 
             worldService.World[0, 0] = new Tile { HeaderPart = 12345 };
 
@@ -151,10 +161,11 @@ namespace Orion.Launcher.Impl.World
         }
 
         [Fact]
-        public void Main_tileHeader1_Set()
+        public void Main_tile_sTileHeader_Set()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
 
             Terraria.Main.tile[0, 0].sTileHeader = 12345;
 
@@ -162,10 +173,11 @@ namespace Orion.Launcher.Impl.World
         }
 
         [Fact]
-        public void Main_tileHeader2_Get()
+        public void Main_tile_bTileHeader_Get()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
 
             worldService.World[0, 0] = new Tile { HeaderPart2 = 100 };
 
@@ -173,10 +185,11 @@ namespace Orion.Launcher.Impl.World
         }
 
         [Fact]
-        public void Main_tileHeader2_Set()
+        public void Main_tile_bTileHeader_Set()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
 
             Terraria.Main.tile[0, 0].bTileHeader = 100;
 
@@ -184,10 +197,11 @@ namespace Orion.Launcher.Impl.World
         }
 
         [Fact]
-        public void Main_tileHeader3_Get()
+        public void Main_tile_bTileHeader3_Get()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
 
             worldService.World[0, 0] = new Tile { HeaderPart3 = 100 };
 
@@ -195,10 +209,11 @@ namespace Orion.Launcher.Impl.World
         }
 
         [Fact]
-        public void Main_tileHeader3_Set()
+        public void Main_tile_bTileHeader3_Set()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
 
             Terraria.Main.tile[0, 0].bTileHeader3 = 100;
 
@@ -208,8 +223,9 @@ namespace Orion.Launcher.Impl.World
         [Fact]
         public void Main_tile_frameX_Get()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
 
             worldService.World[0, 0] = new Tile { BlockFrameX = 12345 };
 
@@ -219,8 +235,9 @@ namespace Orion.Launcher.Impl.World
         [Fact]
         public void Main_tile_frameX_Set()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
 
             Terraria.Main.tile[0, 0].frameX = 12345;
 
@@ -230,8 +247,9 @@ namespace Orion.Launcher.Impl.World
         [Fact]
         public void Main_tile_frameY_Get()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
 
             worldService.World[0, 0] = new Tile { BlockFrameY = 12345 };
 
@@ -241,8 +259,9 @@ namespace Orion.Launcher.Impl.World
         [Fact]
         public void Main_tile_frameY_Set()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
 
             Terraria.Main.tile[0, 0].frameY = 12345;
 
@@ -252,8 +271,9 @@ namespace Orion.Launcher.Impl.World
         [Fact]
         public void Main_tile_color()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
 
             worldService.World[0, 0] = new Tile { BlockColor = PaintColor.Red };
 
@@ -267,8 +287,9 @@ namespace Orion.Launcher.Impl.World
         [Fact]
         public void Main_tile_active()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
 
             worldService.World[0, 0] = new Tile { IsBlockActive = true };
 
@@ -282,8 +303,9 @@ namespace Orion.Launcher.Impl.World
         [Fact]
         public void Main_tile_inActive()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
 
             worldService.World[0, 0] = new Tile { IsBlockActuated = true };
 
@@ -297,8 +319,10 @@ namespace Orion.Launcher.Impl.World
         [Fact]
         public void Main_tile_nactive()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
+
             worldService.World[0, 0] = new Tile { IsBlockActive = true };
 
             Assert.True(Terraria.Main.tile[0, 0].nactive());
@@ -311,8 +335,9 @@ namespace Orion.Launcher.Impl.World
         [Fact]
         public void Main_tile_wire()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
 
             worldService.World[0, 0] = new Tile { HasRedWire = true };
 
@@ -326,8 +351,9 @@ namespace Orion.Launcher.Impl.World
         [Fact]
         public void Main_tile_wire2()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
 
             worldService.World[0, 0] = new Tile { HasBlueWire = true };
 
@@ -341,8 +367,9 @@ namespace Orion.Launcher.Impl.World
         [Fact]
         public void Main_tile_wire3()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
 
             worldService.World[0, 0] = new Tile { HasGreenWire = true };
 
@@ -356,8 +383,9 @@ namespace Orion.Launcher.Impl.World
         [Fact]
         public void Main_tile_halfBrick()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
 
             worldService.World[0, 0] = new Tile { IsBlockHalved = true };
 
@@ -371,8 +399,9 @@ namespace Orion.Launcher.Impl.World
         [Fact]
         public void Main_tile_actuator()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
 
             worldService.World[0, 0] = new Tile { HasActuator = true };
 
@@ -386,8 +415,9 @@ namespace Orion.Launcher.Impl.World
         [Fact]
         public void Main_tile_slope()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
 
             worldService.World[0, 0] = new Tile { Slope = Slope.BottomRight };
 
@@ -401,8 +431,9 @@ namespace Orion.Launcher.Impl.World
         [Fact]
         public void Main_tile_wallColor()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
 
             worldService.World[0, 0] = new Tile { WallColor = PaintColor.Red };
 
@@ -416,8 +447,9 @@ namespace Orion.Launcher.Impl.World
         [Fact]
         public void Main_tile_lava()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
 
             worldService.World[0, 0] = new Tile { Liquid = Liquid.Lava };
 
@@ -435,8 +467,10 @@ namespace Orion.Launcher.Impl.World
         [Fact]
         public void Main_tile_honey()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
+
             worldService.World[0, 0] = new Tile { Liquid = Liquid.Honey };
 
             Assert.True(Terraria.Main.tile[0, 0].honey());
@@ -453,8 +487,10 @@ namespace Orion.Launcher.Impl.World
         [Fact]
         public void Main_tile_liquidType()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
+
             worldService.World[0, 0] = new Tile { Liquid = Liquid.Lava };
 
             Assert.Equal((byte)Liquid.Lava, Terraria.Main.tile[0, 0].liquidType());
@@ -467,8 +503,10 @@ namespace Orion.Launcher.Impl.World
         [Fact]
         public void Main_tile_wire4()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
+
             worldService.World[0, 0] = new Tile { HasYellowWire = true };
 
             Assert.True(Terraria.Main.tile[0, 0].wire4());
@@ -481,8 +519,10 @@ namespace Orion.Launcher.Impl.World
         [Fact]
         public void Main_tile_frameNumber()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
+
             worldService.World[0, 0] = new Tile { BlockFrameNumber = 7 };
 
             Assert.Equal(7, Terraria.Main.tile[0, 0].frameNumber());
@@ -495,8 +535,10 @@ namespace Orion.Launcher.Impl.World
         [Fact]
         public void Main_tile_checkingLiquid()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
+
             worldService.World[0, 0] = new Tile { IsCheckingLiquid = true };
 
             Assert.True(Terraria.Main.tile[0, 0].checkingLiquid());
@@ -509,8 +551,10 @@ namespace Orion.Launcher.Impl.World
         [Fact]
         public void Main_tile_skipLiquid()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
+
             worldService.World[0, 0] = new Tile { ShouldSkipLiquid = true };
 
             Assert.True(Terraria.Main.tile[0, 0].skipLiquid());
@@ -523,8 +567,10 @@ namespace Orion.Launcher.Impl.World
         [Fact]
         public void Main_tile_CopyFrom_NullTile()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
+
             worldService.World[0, 0] = new Tile
             {
                 BlockId = (BlockId)1,
@@ -552,8 +598,10 @@ namespace Orion.Launcher.Impl.World
         [Fact]
         public void Main_tile_CopyFrom_TileAdapter()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
+
             worldService.World[0, 0] = new Tile
             {
                 BlockId = BlockId.Stone,
@@ -581,8 +629,9 @@ namespace Orion.Launcher.Impl.World
         [Fact]
         public void Main_tile_isTheSameAs_NullTile_ReturnsFalse()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
 
             Assert.False(Terraria.Main.tile[0, 0].isTheSameAs(null));
         }
@@ -590,8 +639,10 @@ namespace Orion.Launcher.Impl.World
         [Fact]
         public void Main_tile_isTheSameAs_TileAdapterDifferentHeader_ReturnsFalse()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
+
             worldService.World[0, 0] = new Tile { IsBlockActive = true };
             worldService.World[0, 1] = new Tile();
 
@@ -601,8 +652,10 @@ namespace Orion.Launcher.Impl.World
         [Fact]
         public void Main_tile_isTheSameAs_TileAdapterDifferentHeader2_ReturnsFalse()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
+
             worldService.World[0, 0] = new Tile
             {
                 LiquidAmount = 1,
@@ -620,8 +673,10 @@ namespace Orion.Launcher.Impl.World
         [Fact]
         public void Main_tile_isTheSameAs_TileAdapterDifferentBlockIdAndBlockActive_ReturnsFalse()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
+
             worldService.World[0, 0] = new Tile
             {
                 IsBlockActive = true,
@@ -639,8 +694,10 @@ namespace Orion.Launcher.Impl.World
         [Fact]
         public void Main_tile_isTheSameAs_TileAdapterDifferentBlockIdButNotBlockActive_ReturnsTrue()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
+
             worldService.World[0, 0] = new Tile { BlockId = BlockId.Stone };
             worldService.World[0, 1] = new Tile { BlockId = BlockId.Dirt };
 
@@ -650,8 +707,10 @@ namespace Orion.Launcher.Impl.World
         [Fact]
         public void Main_tile_isTheSameAs_TileAdapterDifferentBlockFrameXAndHasFrames_ReturnsFalse()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
+
             worldService.World[0, 0] = new Tile
             {
                 IsBlockActive = true,
@@ -671,8 +730,10 @@ namespace Orion.Launcher.Impl.World
         [Fact]
         public void Main_tile_isTheSameAs_TileAdapterDifferentBlockFrameYAndHasFrames_ReturnsFalse()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
+
             worldService.World[0, 0] = new Tile
             {
                 IsBlockActive = true,
@@ -692,8 +753,10 @@ namespace Orion.Launcher.Impl.World
         [Fact]
         public void Main_tile_isTheSameAs_TileAdapterDifferentBlockFramesButNotHasFrames_ReturnsTrue()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
+
             worldService.World[0, 0] = new Tile
             {
                 IsBlockActive = true,
@@ -715,8 +778,10 @@ namespace Orion.Launcher.Impl.World
         [Fact]
         public void Main_tile_isTheSameAs_TileAdapterDifferentWallId_ReturnsFalse()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
+
             worldService.World[0, 0] = new Tile { WallId = WallId.Stone };
             worldService.World[0, 1] = new Tile { WallId = WallId.NaturalDirt };
 
@@ -726,8 +791,10 @@ namespace Orion.Launcher.Impl.World
         [Fact]
         public void Main_tile_isTheSameAs_TileAdapterDifferentLiquidAmount_ReturnsFalse()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
+
             worldService.World[0, 0] = new Tile { LiquidAmount = 1 };
             worldService.World[0, 1] = new Tile { LiquidAmount = 2 };
 
@@ -737,8 +804,10 @@ namespace Orion.Launcher.Impl.World
         [Fact]
         public void Main_tile_isTheSameAs_TileAdapterDifferentWallColor_ReturnsFalse()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
+
             worldService.World[0, 0] = new Tile { WallColor = PaintColor.Red };
             worldService.World[0, 1] = new Tile { WallColor = PaintColor.DeepRed };
 
@@ -748,8 +817,10 @@ namespace Orion.Launcher.Impl.World
         [Fact]
         public void Main_tile_isTheSameAs_TileAdapterDifferentYellowWire_ReturnsFalse()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
+
             worldService.World[0, 0] = new Tile { HasYellowWire = true };
             worldService.World[0, 1] = new Tile();
 
@@ -759,8 +830,10 @@ namespace Orion.Launcher.Impl.World
         [Fact]
         public void Main_tile_isTheSameAs_ITileDifferentHeader_ReturnsFalse()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
+
             worldService.World[0, 0] = new Tile { IsBlockActive = true };
             var tile = Mock.Of<OTAPI.Tile.ITile>();
 
@@ -770,8 +843,10 @@ namespace Orion.Launcher.Impl.World
         [Fact]
         public void Main_tile_isTheSameAs_ITileDifferentHeader2_ReturnsFalse()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
+
             worldService.World[0, 0] = new Tile
             {
                 LiquidAmount = 1,
@@ -785,8 +860,10 @@ namespace Orion.Launcher.Impl.World
         [Fact]
         public void Main_tile_isTheSameAs_ITileDifferentBlockIdAndBlockActive_ReturnsFalse()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
+
             worldService.World[0, 0] = new Tile
             {
                 IsBlockActive = true,
@@ -800,8 +877,10 @@ namespace Orion.Launcher.Impl.World
         [Fact]
         public void Main_tile_isTheSameAs_ITileDifferentBlockIdButNotBlockActive_ReturnsTrue()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
+
             worldService.World[0, 0] = new Tile { BlockId = BlockId.Stone };
             var tile = Mock.Of<OTAPI.Tile.ITile>(t => t.type == (ushort)BlockId.Dirt);
 
@@ -811,8 +890,10 @@ namespace Orion.Launcher.Impl.World
         [Fact]
         public void Main_tile_isTheSameAs_ITileDifferentBlockFrameXAndHasFrames_ReturnsFalse()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
+
             worldService.World[0, 0] = new Tile
             {
                 IsBlockActive = true,
@@ -828,8 +909,10 @@ namespace Orion.Launcher.Impl.World
         [Fact]
         public void Main_tile_isTheSameAs_ITileDifferentBlockFrameYAndHasFrames_ReturnsFalse()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
+
             worldService.World[0, 0] = new Tile
             {
                 IsBlockActive = true,
@@ -845,8 +928,10 @@ namespace Orion.Launcher.Impl.World
         [Fact]
         public void Main_tile_isTheSameAs_ITileDifferentBlockFramesButNotHasFrames_ReturnsTrue()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
+
             worldService.World[0, 0] = new Tile
             {
                 IsBlockActive = true,
@@ -863,8 +948,10 @@ namespace Orion.Launcher.Impl.World
         [Fact]
         public void Main_tile_isTheSameAs_ITileDifferentWallId_ReturnsFalse()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
+
             worldService.World[0, 0] = new Tile { WallId = WallId.Stone };
             var tile = Mock.Of<OTAPI.Tile.ITile>(t => t.wall == (ushort)WallId.NaturalDirt);
 
@@ -874,8 +961,10 @@ namespace Orion.Launcher.Impl.World
         [Fact]
         public void Main_tile_isTheSameAs_ITileDifferentLiquidAmount_ReturnsFalse()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
+
             worldService.World[0, 0] = new Tile { LiquidAmount = 1 };
             var tile = Mock.Of<OTAPI.Tile.ITile>(t => t.liquid == 2);
 
@@ -885,8 +974,10 @@ namespace Orion.Launcher.Impl.World
         [Fact]
         public void Main_tile_isTheSameAs_ITileDifferentWallColor_ReturnsFalse()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
+
             worldService.World[0, 0] = new Tile { WallColor = PaintColor.Red };
             var tile = Mock.Of<OTAPI.Tile.ITile>(t => t.bTileHeader == 13);
 
@@ -896,8 +987,10 @@ namespace Orion.Launcher.Impl.World
         [Fact]
         public void Main_tile_isTheSameAs_ITileDifferentYellowWire_ReturnsFalse()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
+
             worldService.World[0, 0] = new Tile { HasYellowWire = true };
             var tile = Mock.Of<OTAPI.Tile.ITile>();
 
@@ -907,8 +1000,10 @@ namespace Orion.Launcher.Impl.World
         [Fact]
         public void Main_tile_ClearEverything()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
+
             worldService.World[0, 0] = new Tile
             {
                 BlockId = BlockId.Stone,
@@ -936,8 +1031,10 @@ namespace Orion.Launcher.Impl.World
         [Fact]
         public void Main_tile_ClearMetadata()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
+
             worldService.World[0, 0] = new Tile
             {
                 BlockId = BlockId.Stone,
@@ -965,8 +1062,10 @@ namespace Orion.Launcher.Impl.World
         [Fact]
         public void Main_tile_ClearTile()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
+
             worldService.World[0, 0] = new Tile
             {
                 Slope = Slope.BottomRight,
@@ -986,8 +1085,10 @@ namespace Orion.Launcher.Impl.World
         [Fact]
         public void Main_tile_Clear_Tile()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
+
             worldService.World[0, 0] = new Tile
             {
                 BlockId = BlockId.Stone,
@@ -1007,12 +1108,11 @@ namespace Orion.Launcher.Impl.World
         [Fact]
         public void Main_tile_Clear_TilePaint()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
-            worldService.World[0, 0] = new Tile
-            {
-                BlockColor = PaintColor.Red
-            };
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
+
+            worldService.World[0, 0] = new Tile { BlockColor = PaintColor.Red };
 
             Terraria.Main.tile[0, 0].Clear(Terraria.DataStructures.TileDataType.TilePaint);
 
@@ -1022,12 +1122,11 @@ namespace Orion.Launcher.Impl.World
         [Fact]
         public void Main_tile_Clear_Wall()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
-            worldService.World[0, 0] = new Tile
-            {
-                WallId = WallId.Dirt
-            };
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
+
+            worldService.World[0, 0] = new Tile { WallId = WallId.Dirt };
 
             Terraria.Main.tile[0, 0].Clear(Terraria.DataStructures.TileDataType.Wall);
 
@@ -1037,12 +1136,11 @@ namespace Orion.Launcher.Impl.World
         [Fact]
         public void Main_tile_Clear_WallPaint()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
-            worldService.World[0, 0] = new Tile
-            {
-                WallColor = PaintColor.Red
-            };
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
+
+            worldService.World[0, 0] = new Tile { WallColor = PaintColor.Red };
 
             Terraria.Main.tile[0, 0].Clear(Terraria.DataStructures.TileDataType.WallPaint);
 
@@ -1052,8 +1150,10 @@ namespace Orion.Launcher.Impl.World
         [Fact]
         public void Main_tile_Clear_Liquid()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
+
             worldService.World[0, 0] = new Tile
             {
                 LiquidAmount = 100,
@@ -1071,8 +1171,10 @@ namespace Orion.Launcher.Impl.World
         [Fact]
         public void Main_tile_Clear_Wiring()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
+
             worldService.World[0, 0] = new Tile
             {
                 HasRedWire = true,
@@ -1092,8 +1194,10 @@ namespace Orion.Launcher.Impl.World
         [Fact]
         public void Main_tile_Clear_Actuator()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
+
             worldService.World[0, 0] = new Tile
             {
                 HasActuator = true,
@@ -1109,8 +1213,10 @@ namespace Orion.Launcher.Impl.World
         [Fact]
         public void Main_tile_Clear_Slope()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
+
             worldService.World[0, 0] = new Tile
             {
                 Slope = Slope.TopLeft,
@@ -1126,8 +1232,10 @@ namespace Orion.Launcher.Impl.World
         [Fact]
         public void Main_tile_ResetToType()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
+
             worldService.World[0, 0] = new Tile
             {
                 BlockId = BlockId.Stone,
@@ -1160,8 +1268,9 @@ namespace Orion.Launcher.Impl.World
         [InlineData(Slope.BottomRight, false)]
         public void Main_tile_topSlope(Slope slope, bool value)
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
 
             worldService.World[0, 0] = new Tile { Slope = slope };
 
@@ -1176,8 +1285,9 @@ namespace Orion.Launcher.Impl.World
         [InlineData(Slope.BottomRight, true)]
         public void Main_tile_bottomSlope(Slope slope, bool value)
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
 
             worldService.World[0, 0] = new Tile { Slope = slope };
 
@@ -1192,8 +1302,9 @@ namespace Orion.Launcher.Impl.World
         [InlineData(Slope.BottomRight, false)]
         public void Main_tile_leftSlope(Slope slope, bool value)
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
 
             worldService.World[0, 0] = new Tile { Slope = slope };
 
@@ -1208,8 +1319,9 @@ namespace Orion.Launcher.Impl.World
         [InlineData(Slope.BottomRight, true)]
         public void Main_tile_rightSlope(Slope slope, bool value)
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
 
             worldService.World[0, 0] = new Tile { Slope = slope };
 
@@ -1219,8 +1331,10 @@ namespace Orion.Launcher.Impl.World
         [Fact]
         public void Main_tile_HasSameSlope()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
+
             worldService.World[0, 0] = new Tile { Slope = Slope.BottomRight };
             worldService.World[0, 1] = new Tile { Slope = Slope.BottomRight };
 
@@ -1234,8 +1348,10 @@ namespace Orion.Launcher.Impl.World
         [Fact]
         public void Main_tile_blockType()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
+
             worldService.World[0, 0] = new Tile();
 
             Assert.Equal(0, Terraria.Main.tile[0, 0].blockType());
@@ -1244,8 +1360,10 @@ namespace Orion.Launcher.Impl.World
         [Fact]
         public void Main_tile_blockType_Halved()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
+
             worldService.World[0, 0] = new Tile { IsBlockHalved = true };
 
             Assert.Equal(1, Terraria.Main.tile[0, 0].blockType());
@@ -1254,8 +1372,10 @@ namespace Orion.Launcher.Impl.World
         [Fact]
         public void Main_tile_blockType_Slope()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
+
             worldService.World[0, 0] = new Tile { Slope = Slope.BottomRight };
 
             Assert.Equal((int)Slope.BottomRight + 1, Terraria.Main.tile[0, 0].blockType());
@@ -1264,846 +1384,954 @@ namespace Orion.Launcher.Impl.World
         [Fact]
         public void WorldSave_EventTriggered()
         {
-            Terraria.IO.WorldFile._tempTime = 0.0;
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
 
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
-
-            var isRun = false;
-            kernel.Events.RegisterHandler<WorldSaveEvent>(evt =>
-            {
-                Assert.Same(worldService.World, evt.World);
-                isRun = true;
-            }, Logger.None);
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(It.Is<WorldSaveEvent>(evt => evt.World == worldService.World), log));
 
             Terraria.IO.WorldFile.SaveWorld(false, true);
 
-            Assert.True(isRun);
             Assert.Equal(13500.0, Terraria.IO.WorldFile._tempTime);
+
+            Mock.Get(server.Events).VerifyAll();
         }
 
         [Fact]
         public void WorldSave_EventCanceled()
         {
+            // Clear the time so we know it's 0.
             Terraria.IO.WorldFile._tempTime = 0.0;
 
-            using var kernel = new OrionKernel(Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var worldService = new OrionWorldService(server, log);
 
-            kernel.Events.RegisterHandler<WorldSaveEvent>(evt => evt.Cancel(), Logger.None);
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(It.IsAny<WorldSaveEvent>(), log))
+                .Callback<WorldSaveEvent, ILogger>((evt, log) => evt.Cancel());
 
             Terraria.IO.WorldFile.SaveWorld(false, true);
 
             Assert.Equal(0.0, Terraria.IO.WorldFile._tempTime);
+
+            Mock.Get(server.Events).VerifyAll();
         }
 
         [Fact]
-        public void PacketReceive_TileModify_BreakBlock_EventTriggered()
+        public void PacketReceive_TileModifyPacket_BreakBlock_EventTriggered()
         {
-            // Set `State` to 10 so that the tile modify packet is not ignored by the server, and mark the relevant
-            // `TileSections` entry so that the tile modify packet is not treated with failure.
-            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5, State = 10 };
-            Terraria.Netplay.Clients[5].TileSections[0, 1] = true;
-            Terraria.Main.player[5] = new Terraria.Player { whoAmI = 5 };
-            Terraria.Main.item[0] = new Terraria.Item { whoAmI = 0 };
+            Action<PacketReceiveEvent<TileModifyPacket>>? registeredHandler = null;
 
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            Mock.Get(server.Events)
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<TileModifyPacket>>>(), log))
+                .Callback<Action<PacketReceiveEvent<TileModifyPacket>>, ILogger>(
+                    (handler, log) => registeredHandler = handler);
 
-            Terraria.Main.tile[100, 256] = new Terraria.Tile();
-            Terraria.Main.tile[100, 256].active(true);
+            using var worldService = new OrionWorldService(server, log);
 
-            var isRun = false;
-            kernel.Events.RegisterHandler<BlockBreakEvent>(evt =>
+            var packet = new TileModifyPacket { X = 100, Y = 256, Modification = TileModification.BreakBlock };
+            var sender = Mock.Of<IPlayer>();
+            var evt = new PacketReceiveEvent<TileModifyPacket>(ref packet, sender);
+
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(
+                    It.Is<BlockBreakEvent>(
+                        evt => evt.World == worldService.World && evt.Player == sender && evt.X == 100 &&
+                            evt.Y == 256 && !evt.IsItemless),
+                    log));
+
+            Assert.NotNull(registeredHandler);
+            registeredHandler!(evt);
+
+            Mock.Get(server.Events).VerifyAll();
+        }
+
+        [Fact]
+        public void PacketReceive_TileModifyPacket_BreakBlock_EventCanceled()
+        {
+            Action<PacketReceiveEvent<TileModifyPacket>>? registeredHandler = null;
+
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            Mock.Get(server.Events)
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<TileModifyPacket>>>(), log))
+                .Callback<Action<PacketReceiveEvent<TileModifyPacket>>, ILogger>(
+                    (handler, log) => registeredHandler = handler);
+
+            using var worldService = new OrionWorldService(server, log);
+
+            var packet = new TileModifyPacket { X = 100, Y = 256, Modification = TileModification.BreakBlock };
+            var sender = Mock.Of<IPlayer>();
+            var evt = new PacketReceiveEvent<TileModifyPacket>(ref packet, sender);
+
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(It.IsAny<BlockBreakEvent>(), log))
+                .Callback<BlockBreakEvent, ILogger>((evt, log) => evt.Cancel());
+
+            Assert.NotNull(registeredHandler);
+            registeredHandler!(evt);
+
+            Assert.True(evt.IsCanceled);
+
+            Mock.Get(server.Events).VerifyAll();
+        }
+
+        [Fact]
+        public void PacketReceive_TileModifyPacket_BreakBlockFailure_EventNotTriggered()
+        {
+            for (var i = 0; i < Terraria.Sign.maxSigns; ++i)
             {
-                Assert.Same(worldService.World, evt.World);
-                Assert.Same(playerService.Players[5], evt.Player);
-                Assert.Equal(100, evt.X);
-                Assert.Equal(256, evt.Y);
-                Assert.False(evt.IsItemless);
-                isRun = true;
-            }, Logger.None);
-
-            TestUtils.FakeReceiveBytes(5, _breakBlockBytes);
-
-            Assert.True(isRun);
-            Assert.False(Terraria.Main.tile[100, 256].active());
-            Assert.Equal(ItemId.DirtBlock, (ItemId)Terraria.Main.item[0].type);
-        }
-
-        [Fact]
-        public void PacketReceive_TileModify_BreakBlock_EventCanceled()
-        {
-            // Set `State` to 10 so that the tile modify packet is not ignored by the server, and mark the relevant
-            // `TileSections` entry so that the tile modify packet is not treated with failure.
-            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5, State = 10 };
-            Terraria.Netplay.Clients[5].TileSections[0, 1] = true;
-            Terraria.Main.player[5] = new Terraria.Player { whoAmI = 5 };
-            Terraria.Main.item[0] = new Terraria.Item { whoAmI = 0 };
-
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
-
-            Terraria.Main.tile[100, 256] = new Terraria.Tile();
-            Terraria.Main.tile[100, 256].active(true);
-
-            kernel.Events.RegisterHandler<BlockBreakEvent>(evt => evt.Cancel(), Logger.None);
-
-            TestUtils.FakeReceiveBytes(5, _breakBlockBytes);
-
-            Assert.True(Terraria.Main.tile[100, 256].active());
-        }
-
-        [Fact]
-        public void PacketReceive_TileModify_BreakBlockFailure_EventNotTriggered()
-        {
-            // Set `State` to 10 so that the tile modify packet is not ignored by the server, and mark the relevant
-            // `TileSections` entry so that the tile modify packet is not treated with failure.
-            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5, State = 10 };
-            Terraria.Netplay.Clients[5].TileSections[0, 1] = true;
-            Terraria.Main.player[5] = new Terraria.Player { whoAmI = 5 };
-            Terraria.Main.item[0] = new Terraria.Item { whoAmI = 0 };
-
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
-
-            var isRun = false;
-            kernel.Events.RegisterHandler<BlockBreakEvent>(evt => isRun = true, Logger.None);
-
-            TestUtils.FakeReceiveBytes(5, _breakBlockFailureBytes);
-
-            Assert.False(isRun);
-        }
-
-        [Fact]
-        public void PacketReceive_TileModify_PlaceBlock_EventTriggered()
-        {
-            // Set `State` to 10 so that the tile modify packet is not ignored by the server, and mark the relevant
-            // `TileSections` entry so that the tile modify packet is not treated with failure.
-            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5, State = 10 };
-            Terraria.Netplay.Clients[5].TileSections[0, 1] = true;
-            Terraria.Main.player[5] = new Terraria.Player { whoAmI = 5 };
-            Terraria.Main.item[0] = new Terraria.Item { whoAmI = 0 };
-
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
-
-            Terraria.Main.tile[100, 256] = new Terraria.Tile();
-            Terraria.Main.tile[100, 257] = new Terraria.Tile();
-            Terraria.Main.tile[100, 257].active(true);
-
-            var isRun = false;
-            kernel.Events.RegisterHandler<BlockPlaceEvent>(evt =>
-            {
-                Assert.Same(worldService.World, evt.World);
-                Assert.Same(playerService.Players[5], evt.Player);
-                Assert.Equal(100, evt.X);
-                Assert.Equal(256, evt.Y);
-                Assert.Equal(BlockId.Torches, evt.Id);
-                Assert.Equal(1, evt.Style);
-                Assert.False(evt.IsReplacement);
-                isRun = true;
-            }, Logger.None);
-
-            TestUtils.FakeReceiveBytes(5, _placeBlockBytes);
-
-            Assert.True(isRun);
-            Assert.Equal(BlockId.Torches, (BlockId)Terraria.Main.tile[100, 256].type);
-            Assert.True(Terraria.Main.tile[100, 256].active());
-        }
-
-        [Fact]
-        public void PacketReceive_TileModify_PlaceBlock_EventCanceled()
-        {
-            // Set `State` to 10 so that the tile modify packet is not ignored by the server, and mark the relevant
-            // `TileSections` entry so that the tile modify packet is not treated with failure.
-            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5, State = 10 };
-            Terraria.Netplay.Clients[5].TileSections[0, 1] = true;
-            Terraria.Main.player[5] = new Terraria.Player { whoAmI = 5 };
-            Terraria.Main.item[0] = new Terraria.Item { whoAmI = 0 };
-
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
-
-            Terraria.Main.tile[100, 256] = new Terraria.Tile();
-            Terraria.Main.tile[100, 257] = new Terraria.Tile();
-            Terraria.Main.tile[100, 257].active(true);
-
-            kernel.Events.RegisterHandler<BlockPlaceEvent>(evt => evt.Cancel(), Logger.None);
-
-            TestUtils.FakeReceiveBytes(5, _placeBlockBytes);
-
-            Assert.False(Terraria.Main.tile[100, 256].active());
-        }
-
-        [Fact]
-        public void PacketReceive_TileModify_BreakWall_EventTriggered()
-        {
-            // Set `State` to 10 so that the tile modify packet is not ignored by the server, and mark the relevant
-            // `TileSections` entry so that the tile modify packet is not treated with failure.
-            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5, State = 10 };
-            Terraria.Netplay.Clients[5].TileSections[0, 1] = true;
-            Terraria.Main.player[5] = new Terraria.Player { whoAmI = 5 };
-            Terraria.Main.item[0] = new Terraria.Item { whoAmI = 0 };
-
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
-
-            Terraria.Main.tile[100, 256] = new Terraria.Tile { wall = (ushort)WallId.Stone };
-
-            var isRun = false;
-            kernel.Events.RegisterHandler<WallBreakEvent>(evt =>
-            {
-                Assert.Same(worldService.World, evt.World);
-                Assert.Same(playerService.Players[5], evt.Player);
-                Assert.Equal(100, evt.X);
-                Assert.Equal(256, evt.Y);
-                isRun = true;
-            }, Logger.None);
-
-            TestUtils.FakeReceiveBytes(5, _breakWallBytes);
-
-            Assert.True(isRun);
-            Assert.Equal(WallId.None, (WallId)Terraria.Main.tile[100, 256].wall);
-            Assert.Equal(ItemId.StoneWall, (ItemId)Terraria.Main.item[0].type);
-        }
-
-        [Fact]
-        public void PacketReceive_TileModify_BreakWall_EventCanceled()
-        {
-            // Set `State` to 10 so that the tile modify packet is not ignored by the server, and mark the relevant
-            // `TileSections` entry so that the tile modify packet is not treated with failure.
-            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5, State = 10 };
-            Terraria.Netplay.Clients[5].TileSections[0, 1] = true;
-            Terraria.Main.player[5] = new Terraria.Player { whoAmI = 5 };
-            Terraria.Main.item[0] = new Terraria.Item { whoAmI = 0 };
-
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
-
-            Terraria.Main.tile[100, 256] = new Terraria.Tile { wall = (ushort)WallId.Stone };
-
-            kernel.Events.RegisterHandler<WallBreakEvent>(evt => evt.Cancel(), Logger.None);
-
-            TestUtils.FakeReceiveBytes(5, _breakWallBytes);
-
-            Assert.Equal(WallId.Stone, (WallId)Terraria.Main.tile[100, 256].wall);
-        }
-
-        [Fact]
-        public void PacketReceive_TileModify_BreakWallFailure_EventNotTriggered()
-        {
-            // Set `State` to 10 so that the tile modify packet is not ignored by the server, and mark the relevant
-            // `TileSections` entry so that the tile modify packet is not treated with failure.
-            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5, State = 10 };
-            Terraria.Netplay.Clients[5].TileSections[0, 1] = true;
-            Terraria.Main.player[5] = new Terraria.Player { whoAmI = 5 };
-            Terraria.Main.item[0] = new Terraria.Item { whoAmI = 0 };
-
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
-
-            Terraria.Main.tile[100, 256] = new Terraria.Tile { wall = (ushort)WallId.Stone };
-
-            var isRun = false;
-            kernel.Events.RegisterHandler<WallBreakEvent>(evt => isRun = true, Logger.None);
-
-            TestUtils.FakeReceiveBytes(5, _breakWallFailureBytes);
-
-            Assert.False(isRun);
-        }
-
-        [Fact]
-        public void PacketReceive_TileModify_PlaceWall_EventTriggered()
-        {
-            // Set `State` to 10 so that the tile modify packet is not ignored by the server, and mark the relevant
-            // `TileSections` entry so that the tile modify packet is not treated with failure.
-            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5, State = 10 };
-            Terraria.Netplay.Clients[5].TileSections[0, 1] = true;
-            Terraria.Main.player[5] = new Terraria.Player { whoAmI = 5 };
-            Terraria.Main.item[0] = new Terraria.Item { whoAmI = 0 };
-
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
-
-            Terraria.Main.tile[100, 256] = new Terraria.Tile();
-
-            var isRun = false;
-            kernel.Events.RegisterHandler<WallPlaceEvent>(evt =>
-            {
-                Assert.Same(worldService.World, evt.World);
-                Assert.Same(playerService.Players[5], evt.Player);
-                Assert.Equal(100, evt.X);
-                Assert.Equal(256, evt.Y);
-                Assert.Equal(WallId.Stone, evt.Id);
-                Assert.False(evt.IsReplacement);
-                isRun = true;
-            }, Logger.None);
-
-            TestUtils.FakeReceiveBytes(5, _placeWallBytes);
-
-            Assert.True(isRun);
-            Assert.Equal(WallId.Stone, (WallId)Terraria.Main.tile[100, 256].wall);
-        }
-
-        [Fact]
-        public void PacketReceive_TileModify_PlaceWall_EventCanceled()
-        {
-            // Set `State` to 10 so that the tile modify packet is not ignored by the server, and mark the relevant
-            // `TileSections` entry so that the tile modify packet is not treated with failure.
-            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5, State = 10 };
-            Terraria.Netplay.Clients[5].TileSections[0, 1] = true;
-            Terraria.Main.player[5] = new Terraria.Player { whoAmI = 5 };
-            Terraria.Main.item[0] = new Terraria.Item { whoAmI = 0 };
-
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
-
-            Terraria.Main.tile[100, 256] = new Terraria.Tile();
-
-            kernel.Events.RegisterHandler<WallPlaceEvent>(evt => evt.Cancel(), Logger.None);
-
-            TestUtils.FakeReceiveBytes(5, _placeWallBytes);
-
-            Assert.Equal(WallId.None, (WallId)Terraria.Main.tile[100, 256].wall);
-        }
-
-        [Fact]
-        public void PacketReceive_TileModify_BreakBlockItemless_EventTriggered()
-        {
-            // Set `State` to 10 so that the tile modify packet is not ignored by the server, and mark the relevant
-            // `TileSections` entry so that the tile modify packet is not treated with failure.
-            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5, State = 10 };
-            Terraria.Netplay.Clients[5].TileSections[0, 1] = true;
-            Terraria.Main.player[5] = new Terraria.Player { whoAmI = 5 };
-            Terraria.Main.item[0] = new Terraria.Item { whoAmI = 0 };
-
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
-
-            Terraria.Main.tile[100, 256] = new Terraria.Tile();
-            Terraria.Main.tile[100, 256].active(true);
-
-            var isRun = false;
-            kernel.Events.RegisterHandler<BlockBreakEvent>(evt =>
-            {
-                Assert.Same(worldService.World, evt.World);
-                Assert.Same(playerService.Players[5], evt.Player);
-                Assert.Equal(100, evt.X);
-                Assert.Equal(256, evt.Y);
-                Assert.True(evt.IsItemless);
-                isRun = true;
-            }, Logger.None);
-
-            TestUtils.FakeReceiveBytes(5, _breakBlockItemlessBytes);
-
-            Assert.True(isRun);
-            Assert.False(Terraria.Main.tile[100, 256].active());
-            Assert.Equal(ItemId.None, (ItemId)Terraria.Main.item[0].type);
-        }
-
-        [Fact]
-        public void PacketReceive_TileModify_BreakBlockItemless_EventCanceled()
-        {
-            // Set `State` to 10 so that the tile modify packet is not ignored by the server, and mark the relevant
-            // `TileSections` entry so that the tile modify packet is not treated with failure.
-            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5, State = 10 };
-            Terraria.Netplay.Clients[5].TileSections[0, 1] = true;
-            Terraria.Main.player[5] = new Terraria.Player { whoAmI = 5 };
-            Terraria.Main.item[0] = new Terraria.Item { whoAmI = 0 };
-
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
-
-            Terraria.Main.tile[100, 256] = new Terraria.Tile();
-            Terraria.Main.tile[100, 256].active(true);
-
-            kernel.Events.RegisterHandler<BlockBreakEvent>(evt => evt.Cancel(), Logger.None);
-
-            TestUtils.FakeReceiveBytes(5, _breakBlockItemlessBytes);
-
-            Assert.True(Terraria.Main.tile[100, 256].active());
-        }
-
-        [Fact]
-        public void PacketReceive_TileModify_BreakBlockItemlessFailure_EventNotTriggered()
-        {
-            // Set `State` to 10 so that the tile modify packet is not ignored by the server, and mark the relevant
-            // `TileSections` entry so that the tile modify packet is not treated with failure.
-            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5, State = 10 };
-            Terraria.Netplay.Clients[5].TileSections[0, 1] = true;
-            Terraria.Main.player[5] = new Terraria.Player { whoAmI = 5 };
-            Terraria.Main.item[0] = new Terraria.Item { whoAmI = 0 };
-
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
-
-            var isRun = false;
-            kernel.Events.RegisterHandler<BlockBreakEvent>(evt => isRun = true, Logger.None);
-
-            TestUtils.FakeReceiveBytes(5, _breakBlockItemlessFailureBytes);
-
-            Assert.False(isRun);
-        }
-
-        [Fact]
-        public void PacketReceive_TileModify_ReplaceBlock_EventTriggered()
-        {
-            // Set `State` to 10 so that the tile modify packet is not ignored by the server, and mark the relevant
-            // `TileSections` entry so that the tile modify packet is not treated with failure.
-            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5, State = 10 };
-            Terraria.Netplay.Clients[5].TileSections[0, 1] = true;
-            Terraria.Main.player[5] = new Terraria.Player { whoAmI = 5 };
-            Terraria.Main.item[0] = new Terraria.Item { whoAmI = 0 };
-
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
-
-            Terraria.Main.tile[100, 256] = new Terraria.Tile();
-            Terraria.Main.tile[100, 256].active(true);
-            Terraria.Main.tile[100, 257] = new Terraria.Tile();
-            Terraria.Main.tile[100, 257].active(true);
-
-            var isRun = false;
-            kernel.Events.RegisterHandler<BlockPlaceEvent>(evt =>
-            {
-                Assert.Same(worldService.World, evt.World);
-                Assert.Same(playerService.Players[5], evt.Player);
-                Assert.Equal(100, evt.X);
-                Assert.Equal(256, evt.Y);
-                Assert.Equal(BlockId.Stone, evt.Id);
-                Assert.Equal(0, evt.Style);
-                Assert.True(evt.IsReplacement);
-                isRun = true;
-            }, Logger.None);
-
-            TestUtils.FakeReceiveBytes(5, _replaceBlockBytes);
-
-            Assert.True(isRun);
-            Assert.Equal(BlockId.Stone, (BlockId)Terraria.Main.tile[100, 256].type);
-            Assert.True(Terraria.Main.tile[100, 256].active());
-        }
-
-        [Fact]
-        public void PacketReceive_TileModify_ReplaceBlock_EventCanceled()
-        {
-            // Set `State` to 10 so that the tile modify packet is not ignored by the server, and mark the relevant
-            // `TileSections` entry so that the tile modify packet is not treated with failure.
-            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5, State = 10 };
-            Terraria.Netplay.Clients[5].TileSections[0, 1] = true;
-            Terraria.Main.player[5] = new Terraria.Player { whoAmI = 5 };
-            Terraria.Main.item[0] = new Terraria.Item { whoAmI = 0 };
-
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
-
-            Terraria.Main.tile[100, 256] = new Terraria.Tile();
-            Terraria.Main.tile[100, 256].active(true);
-            Terraria.Main.tile[100, 257] = new Terraria.Tile();
-            Terraria.Main.tile[100, 257].active(true);
-
-            kernel.Events.RegisterHandler<BlockPlaceEvent>(evt => evt.Cancel(), Logger.None);
-
-            TestUtils.FakeReceiveBytes(5, _replaceBlockBytes);
-
-            Assert.Equal(BlockId.Dirt, (BlockId)Terraria.Main.tile[100, 256].type);
-            Assert.True(Terraria.Main.tile[100, 256].active());
-        }
-
-        [Fact]
-        public void PacketReceive_TileModify_ReplaceWall_EventTriggered()
-        {
-            // Set `State` to 10 so that the tile modify packet is not ignored by the server, and mark the relevant
-            // `TileSections` entry so that the tile modify packet is not treated with failure.
-            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5, State = 10 };
-            Terraria.Netplay.Clients[5].TileSections[0, 1] = true;
-            Terraria.Main.player[5] = new Terraria.Player { whoAmI = 5 };
-            Terraria.Main.item[0] = new Terraria.Item { whoAmI = 0 };
-
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
-
-            Terraria.Main.tile[100, 256] = new Terraria.Tile { wall = (ushort)WallId.Dirt };
-
-            var isRun = false;
-            kernel.Events.RegisterHandler<WallPlaceEvent>(evt =>
-            {
-                Assert.Same(worldService.World, evt.World);
-                Assert.Same(playerService.Players[5], evt.Player);
-                Assert.Equal(100, evt.X);
-                Assert.Equal(256, evt.Y);
-                Assert.Equal(WallId.Stone, evt.Id);
-                Assert.True(evt.IsReplacement);
-                isRun = true;
-            }, Logger.None);
-
-            TestUtils.FakeReceiveBytes(5, _replaceWallBytes);
-
-            Assert.True(isRun);
-            Assert.Equal(WallId.Stone, (WallId)Terraria.Main.tile[100, 256].wall);
-        }
-
-        [Fact]
-        public void PacketReceive_TileModify_ReplaceWall_EventCanceled()
-        {
-            // Set `State` to 10 so that the tile modify packet is not ignored by the server, and mark the relevant
-            // `TileSections` entry so that the tile modify packet is not treated with failure.
-            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5, State = 10 };
-            Terraria.Netplay.Clients[5].TileSections[0, 1] = true;
-            Terraria.Main.player[5] = new Terraria.Player { whoAmI = 5 };
-            Terraria.Main.item[0] = new Terraria.Item { whoAmI = 0 };
-
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
-
-            Terraria.Main.tile[100, 256] = new Terraria.Tile { wall = (ushort)WallId.Dirt };
-
-            kernel.Events.RegisterHandler<WallPlaceEvent>(evt => evt.Cancel(), Logger.None);
-
-            TestUtils.FakeReceiveBytes(5, _replaceWallBytes);
-
-            Assert.Equal(WallId.Dirt, (WallId)Terraria.Main.tile[100, 256].wall);
-        }
-
-        [Fact]
-        public void PacketReceive_TileModifyInvalidModification()
-        {
-            // Set `State` to 10 so that the tile modify packet is not ignored by the server, and mark the relevant
-            // `TileSections` entry so that the tile modify packet is not treated with failure.
-            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5, State = 10 };
-            Terraria.Netplay.Clients[5].TileSections[0, 1] = true;
-            Terraria.Main.player[5] = new Terraria.Player { whoAmI = 5 };
-
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
-
-            TestUtils.FakeReceiveBytes(5, new byte[] { 11, 0, 17, 255, 100, 0, 0, 1, 1, 0, 0 });
-        }
-
-        [Fact]
-        public void PacketReceive_TileSquare_EventTriggered()
-        {
-            // Set `State` to 10 so that the tile square packet is not ignored by the server.
-            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5, State = 10 };
-            Terraria.Main.player[5] = new Terraria.Player { whoAmI = 5 };
-
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
-
-            for (var i = 0; i < 3; ++i)
-            {
-                for (var j = 0; j < 3; ++j)
-                {
-                    Terraria.Main.tile[100 + i, 256 + j] = new Terraria.Tile();
-                }
+                Terraria.Main.sign[i] = new Terraria.Sign();
             }
 
-            var isRun = false;
-            kernel.Events.RegisterHandler<TileSquareEvent>(evt =>
+            Action<PacketReceiveEvent<TileModifyPacket>>? registeredHandler = null;
+
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            Mock.Get(server.Events)
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<TileModifyPacket>>>(), log))
+                .Callback<Action<PacketReceiveEvent<TileModifyPacket>>, ILogger>(
+                    (handler, log) => registeredHandler = handler);
+
+            using var worldService = new OrionWorldService(server, log);
+
+            var packet = new TileModifyPacket
             {
-                Assert.Same(worldService.World, evt.World);
-                Assert.Same(playerService.Players[5], evt.Player);
-                Assert.Equal(100, evt.X);
-                Assert.Equal(256, evt.Y);
-                isRun = true;
-            }, Logger.None);
+                X = 100,
+                Y = 256,
+                Modification = TileModification.BreakBlock,
+                IsFailure = true
+            };
+            var sender = Mock.Of<IPlayer>();
+            var evt = new PacketReceiveEvent<TileModifyPacket>(ref packet, sender);
 
-            TestUtils.FakeReceiveBytes(5, _tileSquareBytes);
+            Assert.NotNull(registeredHandler);
+            registeredHandler!(evt);
 
-            Assert.True(isRun);
-            Assert.Equal(BlockId.Dirt, worldService.World[100, 256].BlockId);
-            Assert.False(worldService.World[100, 256].IsBlockActive);
+            Mock.Get(server.Events)
+                .Verify(em => em.Raise(It.IsAny<BlockBreakEvent>(), log), Times.Never);
         }
 
         [Fact]
-        public void PacketReceive_TileSquare_EventModified()
+        public void PacketReceive_TileModifyPacket_PlaceBlock_EventTriggered()
         {
-            // Set `State` to 10 so that the tile square packet is not ignored by the server.
-            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5, State = 10 };
-            Terraria.Main.player[5] = new Terraria.Player { whoAmI = 5 };
+            Action<PacketReceiveEvent<TileModifyPacket>>? registeredHandler = null;
 
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            Mock.Get(server.Events)
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<TileModifyPacket>>>(), log))
+                .Callback<Action<PacketReceiveEvent<TileModifyPacket>>, ILogger>(
+                    (handler, log) => registeredHandler = handler);
 
-            for (var i = 0; i < 3; ++i)
+            using var worldService = new OrionWorldService(server, log);
+
+            var packet = new TileModifyPacket
             {
-                for (var j = 0; j < 3; ++j)
-                {
-                    Terraria.Main.tile[100 + i, 256 + j] = new Terraria.Tile();
-                }
+                X = 100,
+                Y = 256,
+                Modification = TileModification.PlaceBlock,
+                BlockId = BlockId.Torches,
+                BlockStyle = 1
+            };
+            var sender = Mock.Of<IPlayer>();
+            var evt = new PacketReceiveEvent<TileModifyPacket>(ref packet, sender);
+
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(
+                    It.Is<BlockPlaceEvent>(
+                        evt => evt.World == worldService.World && evt.Player == sender && evt.X == 100 &&
+                            evt.Y == 256 && evt.Id == BlockId.Torches && evt.Style == 1 && !evt.IsReplacement),
+                    log));
+
+            Assert.NotNull(registeredHandler);
+            registeredHandler!(evt);
+
+            Mock.Get(server.Events).VerifyAll();
+        }
+
+        [Fact]
+        public void PacketReceive_TileModifyPacket_PlaceBlock_EventCanceled()
+        {
+            Action<PacketReceiveEvent<TileModifyPacket>>? registeredHandler = null;
+
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            Mock.Get(server.Events)
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<TileModifyPacket>>>(), log))
+                .Callback<Action<PacketReceiveEvent<TileModifyPacket>>, ILogger>(
+                    (handler, log) => registeredHandler = handler);
+
+            using var worldService = new OrionWorldService(server, log);
+
+            var packet = new TileModifyPacket
+            {
+                X = 100,
+                Y = 256,
+                Modification = TileModification.PlaceBlock,
+                BlockId = BlockId.Torches,
+                BlockStyle = 1
+            };
+            var sender = Mock.Of<IPlayer>();
+            var evt = new PacketReceiveEvent<TileModifyPacket>(ref packet, sender);
+
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(It.IsAny<BlockPlaceEvent>(), log))
+                .Callback<BlockPlaceEvent, ILogger>((evt, log) => evt.Cancel());
+
+            Assert.NotNull(registeredHandler);
+            registeredHandler!(evt);
+
+            Assert.True(evt.IsCanceled);
+
+            Mock.Get(server.Events).VerifyAll();
+        }
+
+        [Fact]
+        public void PacketReceive_TileModifyPacket_BreakWall_EventTriggered()
+        {
+            Action<PacketReceiveEvent<TileModifyPacket>>? registeredHandler = null;
+
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            Mock.Get(server.Events)
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<TileModifyPacket>>>(), log))
+                .Callback<Action<PacketReceiveEvent<TileModifyPacket>>, ILogger>(
+                    (handler, log) => registeredHandler = handler);
+
+            using var worldService = new OrionWorldService(server, log);
+
+            var packet = new TileModifyPacket { X = 100, Y = 256, Modification = TileModification.BreakWall };
+            var sender = Mock.Of<IPlayer>();
+            var evt = new PacketReceiveEvent<TileModifyPacket>(ref packet, sender);
+
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(
+                    It.Is<WallBreakEvent>(
+                        evt => evt.World == worldService.World && evt.Player == sender && evt.X == 100 && evt.Y == 256),
+                    log));
+
+            Assert.NotNull(registeredHandler);
+            registeredHandler!(evt);
+
+            Mock.Get(server.Events).VerifyAll();
+        }
+
+        [Fact]
+        public void PacketReceive_TileModifyPacket_BreakWall_EventCanceled()
+        {
+            Action<PacketReceiveEvent<TileModifyPacket>>? registeredHandler = null;
+
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            Mock.Get(server.Events)
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<TileModifyPacket>>>(), log))
+                .Callback<Action<PacketReceiveEvent<TileModifyPacket>>, ILogger>(
+                    (handler, log) => registeredHandler = handler);
+
+            using var worldService = new OrionWorldService(server, log);
+
+            var packet = new TileModifyPacket { X = 100, Y = 256, Modification = TileModification.BreakWall };
+            var sender = Mock.Of<IPlayer>();
+            var evt = new PacketReceiveEvent<TileModifyPacket>(ref packet, sender);
+
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(It.IsAny<WallBreakEvent>(), log))
+                .Callback<WallBreakEvent, ILogger>((evt, log) => evt.Cancel());
+
+            Assert.NotNull(registeredHandler);
+            registeredHandler!(evt);
+
+            Assert.True(evt.IsCanceled);
+
+            Mock.Get(server.Events).VerifyAll();
+        }
+
+        [Fact]
+        public void PacketReceive_TileModifyPacket_BreakWallFailure_EventNotTriggered()
+        {
+            for (var i = 0; i < Terraria.Sign.maxSigns; ++i)
+            {
+                Terraria.Main.sign[i] = new Terraria.Sign();
             }
 
-            kernel.Events.RegisterHandler<TileSquareEvent>(evt =>
+            Action<PacketReceiveEvent<TileModifyPacket>>? registeredHandler = null;
+
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            Mock.Get(server.Events)
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<TileModifyPacket>>>(), log))
+                .Callback<Action<PacketReceiveEvent<TileModifyPacket>>, ILogger>(
+                    (handler, log) => registeredHandler = handler);
+
+            using var worldService = new OrionWorldService(server, log);
+
+            var packet = new TileModifyPacket
             {
-                evt.Tiles[0, 0].BlockId = BlockId.Stone;
-                evt.Tiles[0, 0].IsBlockActive = true;
-            }, Logger.None);
+                X = 100,
+                Y = 256,
+                Modification = TileModification.BreakWall,
+                IsFailure = true
+            };
+            var sender = Mock.Of<IPlayer>();
+            var evt = new PacketReceiveEvent<TileModifyPacket>(ref packet, sender);
 
-            TestUtils.FakeReceiveBytes(5, _tileSquareBytes);
+            Assert.NotNull(registeredHandler);
+            registeredHandler!(evt);
 
-            Assert.Equal(BlockId.Stone, worldService.World[100, 256].BlockId);
-            Assert.True(worldService.World[100, 256].IsBlockActive);
+            Mock.Get(server.Events)
+                .Verify(em => em.Raise(It.IsAny<WallBreakEvent>(), log), Times.Never);
         }
 
         [Fact]
-        public void PacketReceive_TileSquare_EventCanceled()
+        public void PacketReceive_TileModifyPacket_PlaceWall_EventTriggered()
         {
-            // Set `State` to 10 so that the tile square packet is not ignored by the server.
-            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5, State = 10 };
-            Terraria.Main.player[5] = new Terraria.Player { whoAmI = 5 };
+            Action<PacketReceiveEvent<TileModifyPacket>>? registeredHandler = null;
 
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            Mock.Get(server.Events)
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<TileModifyPacket>>>(), log))
+                .Callback<Action<PacketReceiveEvent<TileModifyPacket>>, ILogger>(
+                    (handler, log) => registeredHandler = handler);
 
-            for (var i = 0; i < 3; ++i)
+            using var worldService = new OrionWorldService(server, log);
+
+            var packet = new TileModifyPacket
             {
-                for (var j = 0; j < 3; ++j)
-                {
-                    Terraria.Main.tile[2206 + i, 312 + j] = new Terraria.Tile();
-                }
+                X = 100,
+                Y = 256,
+                Modification = TileModification.PlaceWall,
+                WallId = WallId.Stone
+            };
+            var sender = Mock.Of<IPlayer>();
+            var evt = new PacketReceiveEvent<TileModifyPacket>(ref packet, sender);
+
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(
+                    It.Is<WallPlaceEvent>(
+                        evt => evt.World == worldService.World && evt.Player == sender && evt.X == 100 &&
+                            evt.Y == 256 && evt.Id == WallId.Stone && !evt.IsReplacement),
+                    log));
+
+            Assert.NotNull(registeredHandler);
+            registeredHandler!(evt);
+
+            Mock.Get(server.Events).VerifyAll();
+        }
+
+        [Fact]
+        public void PacketReceive_TileModifyPacket_PlaceWall_EventCanceled()
+        {
+            Action<PacketReceiveEvent<TileModifyPacket>>? registeredHandler = null;
+
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            Mock.Get(server.Events)
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<TileModifyPacket>>>(), log))
+                .Callback<Action<PacketReceiveEvent<TileModifyPacket>>, ILogger>(
+                    (handler, log) => registeredHandler = handler);
+
+            using var worldService = new OrionWorldService(server, log);
+
+            var packet = new TileModifyPacket
+            {
+                X = 100,
+                Y = 256,
+                Modification = TileModification.PlaceWall,
+                WallId = WallId.Stone
+            };
+            var sender = Mock.Of<IPlayer>();
+            var evt = new PacketReceiveEvent<TileModifyPacket>(ref packet, sender);
+
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(It.IsAny<WallPlaceEvent>(), log))
+                .Callback<WallPlaceEvent, ILogger>((evt, log) => evt.Cancel());
+
+            Assert.NotNull(registeredHandler);
+            registeredHandler!(evt);
+
+            Assert.True(evt.IsCanceled);
+
+            Mock.Get(server.Events).VerifyAll();
+        }
+
+        [Fact]
+        public void PacketReceive_TileModifyPacket_BreakBlockItemless_EventTriggered()
+        {
+            Action<PacketReceiveEvent<TileModifyPacket>>? registeredHandler = null;
+
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            Mock.Get(server.Events)
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<TileModifyPacket>>>(), log))
+                .Callback<Action<PacketReceiveEvent<TileModifyPacket>>, ILogger>(
+                    (handler, log) => registeredHandler = handler);
+
+            using var worldService = new OrionWorldService(server, log);
+
+            var packet = new TileModifyPacket { X = 100, Y = 256, Modification = TileModification.BreakBlockItemless };
+            var sender = Mock.Of<IPlayer>();
+            var evt = new PacketReceiveEvent<TileModifyPacket>(ref packet, sender);
+
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(
+                    It.Is<BlockBreakEvent>(
+                        evt => evt.World == worldService.World && evt.Player == sender && evt.X == 100 &&
+                            evt.Y == 256 && evt.IsItemless),
+                    log));
+
+            Assert.NotNull(registeredHandler);
+            registeredHandler!(evt);
+
+            Mock.Get(server.Events).VerifyAll();
+        }
+
+        [Fact]
+        public void PacketReceive_TileModifyPacket_BreakBlockItemless_EventCanceled()
+        {
+            Action<PacketReceiveEvent<TileModifyPacket>>? registeredHandler = null;
+
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            Mock.Get(server.Events)
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<TileModifyPacket>>>(), log))
+                .Callback<Action<PacketReceiveEvent<TileModifyPacket>>, ILogger>(
+                    (handler, log) => registeredHandler = handler);
+
+            using var worldService = new OrionWorldService(server, log);
+
+            var packet = new TileModifyPacket { X = 100, Y = 256, Modification = TileModification.BreakBlockItemless };
+            var sender = Mock.Of<IPlayer>();
+            var evt = new PacketReceiveEvent<TileModifyPacket>(ref packet, sender);
+
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(It.IsAny<BlockBreakEvent>(), log))
+                .Callback<BlockBreakEvent, ILogger>((evt, log) => evt.Cancel());
+
+            Assert.NotNull(registeredHandler);
+            registeredHandler!(evt);
+
+            Assert.True(evt.IsCanceled);
+
+            Mock.Get(server.Events).VerifyAll();
+        }
+
+        [Fact]
+        public void PacketReceive_TileModifyPacket_BreakBlockItemlessFailure_EventNotTriggered()
+        {
+            for (var i = 0; i < Terraria.Sign.maxSigns; ++i)
+            {
+                Terraria.Main.sign[i] = new Terraria.Sign();
             }
 
-            kernel.Events.RegisterHandler<TileSquareEvent>(evt => evt.Cancel(), Logger.None);
+            Action<PacketReceiveEvent<TileModifyPacket>>? registeredHandler = null;
 
-            TestUtils.FakeReceiveBytes(5, _tileSquareBytes);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            Mock.Get(server.Events)
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<TileModifyPacket>>>(), log))
+                .Callback<Action<PacketReceiveEvent<TileModifyPacket>>, ILogger>(
+                    (handler, log) => registeredHandler = handler);
 
-            Assert.False(worldService.World[2206, 312].IsBlockActive);
-        }
+            using var worldService = new OrionWorldService(server, log);
 
-        [Fact]
-        public void PacketReceive_TileLiquid_EventTriggered()
-        {
-            // Set `State` to 10 so that the tile liquid packet is not ignored by the server.
-            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5, State = 10 };
-            Terraria.Main.player[5] = new Terraria.Player { whoAmI = 5 };
-
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
-
-            Terraria.Main.tile[256, 100] = new Terraria.Tile();
-
-            var isRun = false;
-            kernel.Events.RegisterHandler<TileLiquidEvent>(evt =>
+            var packet = new TileModifyPacket
             {
-                Assert.Same(worldService.World, evt.World);
-                Assert.Same(playerService.Players[5], evt.Player);
-                Assert.Equal(256, evt.X);
-                Assert.Equal(100, evt.Y);
-                Assert.Equal(255, evt.LiquidAmount);
-                Assert.Equal(Liquid.Honey, evt.Liquid);
-                isRun = true;
-            }, Logger.None);
+                X = 100,
+                Y = 256,
+                Modification = TileModification.BreakBlockItemless,
+                IsFailure = true
+            };
+            var sender = Mock.Of<IPlayer>();
+            var evt = new PacketReceiveEvent<TileModifyPacket>(ref packet, sender);
 
-            TestUtils.FakeReceiveBytes(5, _tileLiquidBytes);
+            Assert.NotNull(registeredHandler);
+            registeredHandler!(evt);
 
-            Assert.True(isRun);
-            Assert.Equal(255, worldService.World[256, 100].LiquidAmount);
-            Assert.Equal(Liquid.Honey, worldService.World[256, 100].Liquid);
+            Mock.Get(server.Events)
+                .Verify(em => em.Raise(It.IsAny<BlockBreakEvent>(), log), Times.Never);
         }
 
         [Fact]
-        public void PacketReceive_TileLiquid_EventCanceled()
+        public void PacketReceive_TileModifyPacket_ReplaceBlock_EventTriggered()
         {
-            // Set `State` to 10 so that the tile liquid packet is not ignored by the server.
-            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5, State = 10 };
-            Terraria.Main.player[5] = new Terraria.Player { whoAmI = 5 };
+            Action<PacketReceiveEvent<TileModifyPacket>>? registeredHandler = null;
 
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            Mock.Get(server.Events)
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<TileModifyPacket>>>(), log))
+                .Callback<Action<PacketReceiveEvent<TileModifyPacket>>, ILogger>(
+                    (handler, log) => registeredHandler = handler);
 
-            Terraria.Main.tile[256, 100] = new Terraria.Tile();
+            using var worldService = new OrionWorldService(server, log);
 
-            kernel.Events.RegisterHandler<TileLiquidEvent>(evt => evt.Cancel(), Logger.None);
-
-            TestUtils.FakeReceiveBytes(5, _tileLiquidBytes);
-
-            Assert.Equal(0, worldService.World[256, 100].LiquidAmount);
-        }
-
-        [Fact]
-        public void PacketReceive_WireActivate_EventTriggered()
-        {
-            // Set `State` to 10 so that the wire activate packet is not ignored by the server.
-            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5, State = 10 };
-            Terraria.Main.player[5] = new Terraria.Player { whoAmI = 5 };
-
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
-
-            Terraria.Main.tile[256, 100] = new Terraria.Tile { type = (ushort)BlockId.Switch };
-            Terraria.Main.tile[256, 100].active(true);
-            Terraria.Main.tile[256, 100].wire(true);
-            Terraria.Main.tile[257, 100] = new Terraria.Tile { type = (ushort)BlockId.Stone };
-            Terraria.Main.tile[257, 100].active(true);
-            Terraria.Main.tile[257, 100].wire(true);
-            Terraria.Main.tile[257, 100].actuator(true);
-
-            var isRun = false;
-            kernel.Events.RegisterHandler<WiringActivateEvent>(evt =>
+            var packet = new TileModifyPacket
             {
-                Assert.Same(worldService.World, evt.World);
-                Assert.Same(playerService.Players[5], evt.Player);
-                Assert.Equal(256, evt.X);
-                Assert.Equal(100, evt.Y);
-                isRun = true;
-            }, Logger.None);
+                X = 100,
+                Y = 256,
+                Modification = TileModification.ReplaceBlock,
+                BlockId = BlockId.Stone
+            };
+            var sender = Mock.Of<IPlayer>();
+            var evt = new PacketReceiveEvent<TileModifyPacket>(ref packet, sender);
 
-            TestUtils.FakeReceiveBytes(5, _wireActivateBytes);
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(
+                    It.Is<BlockPlaceEvent>(
+                        evt => evt.World == worldService.World && evt.Player == sender && evt.X == 100 &&
+                            evt.Y == 256 && evt.Id == BlockId.Stone && evt.Style == 0 && evt.IsReplacement),
+                    log));
 
-            Assert.True(isRun);
-            Assert.True(worldService.World[257, 100].IsBlockActuated);
+            Assert.NotNull(registeredHandler);
+            registeredHandler!(evt);
+
+            Mock.Get(server.Events).VerifyAll();
         }
 
         [Fact]
-        public void PacketReceive_WireActivate_EventCanceled()
+        public void PacketReceive_TileModifyPacket_ReplaceBlock_EventCanceled()
         {
-            // Set `State` to 10 so that the wire activate packet is not ignored by the server.
-            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5, State = 10 };
-            Terraria.Main.player[5] = new Terraria.Player { whoAmI = 5 };
+            Action<PacketReceiveEvent<TileModifyPacket>>? registeredHandler = null;
 
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            Mock.Get(server.Events)
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<TileModifyPacket>>>(), log))
+                .Callback<Action<PacketReceiveEvent<TileModifyPacket>>, ILogger>(
+                    (handler, log) => registeredHandler = handler);
 
-            Terraria.Main.tile[256, 100] = new Terraria.Tile { type = (ushort)BlockId.Switch };
-            Terraria.Main.tile[256, 100].active(true);
-            Terraria.Main.tile[256, 100].wire(true);
-            Terraria.Main.tile[257, 100] = new Terraria.Tile { type = (ushort)BlockId.Stone };
-            Terraria.Main.tile[257, 100].active(true);
-            Terraria.Main.tile[257, 100].wire(true);
-            Terraria.Main.tile[257, 100].actuator(true);
+            using var worldService = new OrionWorldService(server, log);
 
-            kernel.Events.RegisterHandler<WiringActivateEvent>(evt => evt.Cancel(), Logger.None);
-
-            TestUtils.FakeReceiveBytes(5, _wireActivateBytes);
-
-            Assert.False(worldService.World[257, 100].IsBlockActuated);
-        }
-
-        [Fact]
-        public void PacketReceive_BlockPaint_EventTriggered()
-        {
-            // Set `State` to 10 so that the block paint packet is not ignored by the server.
-            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5, State = 10 };
-            Terraria.Main.player[5] = new Terraria.Player { whoAmI = 5 };
-
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
-
-            Terraria.Main.tile[256, 100] = new Terraria.Tile();
-            Terraria.Main.tile[256, 100].active(true);
-
-            var isRun = false;
-            kernel.Events.RegisterHandler<BlockPaintEvent>(evt =>
+            var packet = new TileModifyPacket
             {
-                Assert.Same(worldService.World, evt.World);
-                Assert.Same(playerService.Players[5], evt.Player);
-                Assert.Equal(256, evt.X);
-                Assert.Equal(100, evt.Y);
-                Assert.Equal(PaintColor.Red, evt.Color);
-                isRun = true;
-            }, Logger.None);
+                X = 100,
+                Y = 256,
+                Modification = TileModification.ReplaceBlock,
+                BlockId = BlockId.Stone
+            };
+            var sender = Mock.Of<IPlayer>();
+            var evt = new PacketReceiveEvent<TileModifyPacket>(ref packet, sender);
 
-            TestUtils.FakeReceiveBytes(5, _blockPaintBytes);
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(It.IsAny<BlockPlaceEvent>(), log))
+                .Callback<BlockPlaceEvent, ILogger>((evt, log) => evt.Cancel());
 
-            Assert.True(isRun);
-            Assert.Equal(PaintColor.Red, worldService.World[256, 100].BlockColor);
+            Assert.NotNull(registeredHandler);
+            registeredHandler!(evt);
+
+            Assert.True(evt.IsCanceled);
+
+            Mock.Get(server.Events).VerifyAll();
         }
 
         [Fact]
-        public void PacketReceive_BlockPaint_EventCanceled()
+        public void PacketReceive_TileModifyPacket_ReplaceWall_EventTriggered()
         {
-            // Set `State` to 10 so that the block paint packet is not ignored by the server.
-            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5, State = 10 };
-            Terraria.Main.player[5] = new Terraria.Player { whoAmI = 5 };
+            Action<PacketReceiveEvent<TileModifyPacket>>? registeredHandler = null;
 
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            Mock.Get(server.Events)
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<TileModifyPacket>>>(), log))
+                .Callback<Action<PacketReceiveEvent<TileModifyPacket>>, ILogger>(
+                    (handler, log) => registeredHandler = handler);
 
-            Terraria.Main.tile[256, 100] = new Terraria.Tile();
-            Terraria.Main.tile[256, 100].active(true);
+            using var worldService = new OrionWorldService(server, log);
 
-            kernel.Events.RegisterHandler<BlockPaintEvent>(evt => evt.Cancel(), Logger.None);
-
-            TestUtils.FakeReceiveBytes(5, _blockPaintBytes);
-
-            Assert.Equal(PaintColor.None, worldService.World[256, 100].BlockColor);
-        }
-
-        [Fact]
-        public void PacketReceive_WallPaint_EventTriggered()
-        {
-            // Set `State` to 10 so that the wall paint packet is not ignored by the server.
-            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5, State = 10 };
-            Terraria.Main.player[5] = new Terraria.Player { whoAmI = 5 };
-
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
-
-            Terraria.Main.tile[256, 100] = new Terraria.Tile { wall = (byte)WallId.Stone };
-
-            var isRun = false;
-            kernel.Events.RegisterHandler<WallPaintEvent>(evt =>
+            var packet = new TileModifyPacket
             {
-                Assert.Same(worldService.World, evt.World);
-                Assert.Same(playerService.Players[5], evt.Player);
-                Assert.Equal(256, evt.X);
-                Assert.Equal(100, evt.Y);
-                Assert.Equal(PaintColor.Red, evt.Color);
-                isRun = true;
-            }, Logger.None);
+                X = 100,
+                Y = 256,
+                Modification = TileModification.ReplaceWall,
+                WallId = WallId.Stone
+            };
+            var sender = Mock.Of<IPlayer>();
+            var evt = new PacketReceiveEvent<TileModifyPacket>(ref packet, sender);
 
-            TestUtils.FakeReceiveBytes(5, _wallPaintBytes);
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(
+                    It.Is<WallPlaceEvent>(
+                        evt => evt.World == worldService.World && evt.Player == sender && evt.X == 100 &&
+                            evt.Y == 256 && evt.Id == WallId.Stone && evt.IsReplacement),
+                    log));
 
-            Assert.True(isRun);
-            Assert.Equal(PaintColor.Red, worldService.World[256, 100].WallColor);
+            Assert.NotNull(registeredHandler);
+            registeredHandler!(evt);
+
+            Mock.Get(server.Events).VerifyAll();
         }
 
         [Fact]
-        public void PacketReceive_WallPaint_EventCanceled()
+        public void PacketReceive_TileModifyPacket_ReplaceWall_EventCanceled()
         {
-            // Set `State` to 10 so that the wall paint packet is not ignored by the server.
-            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5, State = 10 };
-            Terraria.Main.player[5] = new Terraria.Player { whoAmI = 5 };
+            Action<PacketReceiveEvent<TileModifyPacket>>? registeredHandler = null;
 
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            using var worldService = new OrionWorldService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            Mock.Get(server.Events)
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<TileModifyPacket>>>(), log))
+                .Callback<Action<PacketReceiveEvent<TileModifyPacket>>, ILogger>(
+                    (handler, log) => registeredHandler = handler);
 
-            Terraria.Main.tile[256, 100] = new Terraria.Tile { wall = (byte)WallId.Stone };
+            using var worldService = new OrionWorldService(server, log);
 
-            kernel.Events.RegisterHandler<WallPaintEvent>(evt => evt.Cancel(), Logger.None);
+            var packet = new TileModifyPacket
+            {
+                X = 100,
+                Y = 256,
+                Modification = TileModification.ReplaceWall,
+                WallId = WallId.Stone
+            };
+            var sender = Mock.Of<IPlayer>();
+            var evt = new PacketReceiveEvent<TileModifyPacket>(ref packet, sender);
 
-            TestUtils.FakeReceiveBytes(5, _wallPaintBytes);
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(It.IsAny<WallPlaceEvent>(), log))
+                .Callback<WallPlaceEvent, ILogger>((evt, log) => evt.Cancel());
 
-            Assert.Equal(PaintColor.None, worldService.World[256, 100].WallColor);
+            Assert.NotNull(registeredHandler);
+            registeredHandler!(evt);
+
+            Assert.True(evt.IsCanceled);
+
+            Mock.Get(server.Events).VerifyAll();
+        }
+
+        [Fact]
+        public void PacketReceive_TileModifyPacket_InvalidModification()
+        {
+            Action<PacketReceiveEvent<TileModifyPacket>>? registeredHandler = null;
+
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            Mock.Get(server.Events)
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<TileModifyPacket>>>(), log))
+                .Callback<Action<PacketReceiveEvent<TileModifyPacket>>, ILogger>(
+                    (handler, log) => registeredHandler = handler);
+
+            using var worldService = new OrionWorldService(server, log);
+
+            var packet = new TileModifyPacket
+            {
+                X = 100,
+                Y = 256,
+                Modification = (TileModification)255
+            };
+            var sender = Mock.Of<IPlayer>();
+            var evt = new PacketReceiveEvent<TileModifyPacket>(ref packet, sender);
+
+            Assert.NotNull(registeredHandler);
+            registeredHandler!(evt);
+        }
+
+        [Fact]
+        public void PacketReceive_TileSquarePacket_EventTriggered()
+        {
+            Action<PacketReceiveEvent<TileSquarePacket>>? registeredHandler = null;
+
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            Mock.Get(server.Events)
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<TileSquarePacket>>>(), log))
+                .Callback<Action<PacketReceiveEvent<TileSquarePacket>>, ILogger>(
+                    (handler, log) => registeredHandler = handler);
+
+            using var worldService = new OrionWorldService(server, log);
+
+            var packet = new TileSquarePacket { X = 100, Y = 256, Tiles = new TileSlice(3, 3) };
+            var sender = Mock.Of<IPlayer>();
+            var evt = new PacketReceiveEvent<TileSquarePacket>(ref packet, sender);
+
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(
+                    It.Is<TileSquareEvent>(
+                        evt => evt.World == worldService.World && evt.Player == sender && evt.X == 100 &&
+                            evt.Y == 256 && evt.Tiles.Width == 3 && evt.Tiles.Height == 3),
+                    log));
+
+            Assert.NotNull(registeredHandler);
+            registeredHandler!(evt);
+
+            Mock.Get(server.Events).VerifyAll();
+        }
+
+        [Fact]
+        public void PacketReceive_TileSquarePacket_EventCanceled()
+        {
+            Action<PacketReceiveEvent<TileSquarePacket>>? registeredHandler = null;
+
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            Mock.Get(server.Events)
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<TileSquarePacket>>>(), log))
+                .Callback<Action<PacketReceiveEvent<TileSquarePacket>>, ILogger>(
+                    (handler, log) => registeredHandler = handler);
+
+            using var worldService = new OrionWorldService(server, log);
+
+            var packet = new TileSquarePacket { X = 100, Y = 256, Tiles = new TileSlice(3, 3) };
+            var sender = Mock.Of<IPlayer>();
+            var evt = new PacketReceiveEvent<TileSquarePacket>(ref packet, sender);
+
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(It.IsAny<TileSquareEvent>(), log))
+                .Callback<TileSquareEvent, ILogger>((evt, log) => evt.Cancel());
+
+            Assert.NotNull(registeredHandler);
+            registeredHandler!(evt);
+
+            Assert.True(evt.IsCanceled);
+
+            Mock.Get(server.Events).VerifyAll();
+        }
+
+        [Fact]
+        public void PacketReceive_TileLiquidPacket_EventTriggered()
+        {
+            Action<PacketReceiveEvent<TileLiquidPacket>>? registeredHandler = null;
+
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            Mock.Get(server.Events)
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<TileLiquidPacket>>>(), log))
+                .Callback<Action<PacketReceiveEvent<TileLiquidPacket>>, ILogger>(
+                    (handler, log) => registeredHandler = handler);
+
+            using var worldService = new OrionWorldService(server, log);
+
+            var packet = new TileLiquidPacket { X = 100, Y = 256, LiquidAmount = 255, Liquid = Liquid.Honey };
+            var sender = Mock.Of<IPlayer>();
+            var evt = new PacketReceiveEvent<TileLiquidPacket>(ref packet, sender);
+
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(
+                    It.Is<TileLiquidEvent>(
+                        evt => evt.World == worldService.World && evt.Player == sender && evt.X == 100 &&
+                            evt.Y == 256 && evt.LiquidAmount == 255 && evt.Liquid == Liquid.Honey),
+                    log));
+
+            Assert.NotNull(registeredHandler);
+            registeredHandler!(evt);
+
+            Mock.Get(server.Events).VerifyAll();
+        }
+
+        [Fact]
+        public void PacketReceive_TileLiquidPacket_EventCanceled()
+        {
+            Action<PacketReceiveEvent<TileLiquidPacket>>? registeredHandler = null;
+
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            Mock.Get(server.Events)
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<TileLiquidPacket>>>(), log))
+                .Callback<Action<PacketReceiveEvent<TileLiquidPacket>>, ILogger>(
+                    (handler, log) => registeredHandler = handler);
+
+            using var worldService = new OrionWorldService(server, log);
+
+            var packet = new TileLiquidPacket { X = 100, Y = 256, LiquidAmount = 255, Liquid = Liquid.Honey };
+            var sender = Mock.Of<IPlayer>();
+            var evt = new PacketReceiveEvent<TileLiquidPacket>(ref packet, sender);
+
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(It.IsAny<TileLiquidEvent>(), log))
+                .Callback<TileLiquidEvent, ILogger>((evt, log) => evt.Cancel());
+
+            Assert.NotNull(registeredHandler);
+            registeredHandler!(evt);
+
+            Assert.True(evt.IsCanceled);
+
+            Mock.Get(server.Events).VerifyAll();
+        }
+
+        [Fact]
+        public void PacketReceive_WireActivatePacket_EventTriggered()
+        {
+            Action<PacketReceiveEvent<WireActivatePacket>>? registeredHandler = null;
+
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            Mock.Get(server.Events)
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<WireActivatePacket>>>(), log))
+                .Callback<Action<PacketReceiveEvent<WireActivatePacket>>, ILogger>(
+                    (handler, log) => registeredHandler = handler);
+
+            using var worldService = new OrionWorldService(server, log);
+
+            var packet = new WireActivatePacket { X = 100, Y = 256 };
+            var sender = Mock.Of<IPlayer>();
+            var evt = new PacketReceiveEvent<WireActivatePacket>(ref packet, sender);
+
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(
+                    It.Is<WiringActivateEvent>(
+                        evt => evt.World == worldService.World && evt.Player == sender && evt.X == 100 && evt.Y == 256),
+                    log));
+
+            Assert.NotNull(registeredHandler);
+            registeredHandler!(evt);
+
+            Mock.Get(server.Events).VerifyAll();
+        }
+
+        [Fact]
+        public void PacketReceive_WireActivatePacket_EventCanceled()
+        {
+            Action<PacketReceiveEvent<WireActivatePacket>>? registeredHandler = null;
+
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            Mock.Get(server.Events)
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<WireActivatePacket>>>(), log))
+                .Callback<Action<PacketReceiveEvent<WireActivatePacket>>, ILogger>(
+                    (handler, log) => registeredHandler = handler);
+
+            using var worldService = new OrionWorldService(server, log);
+
+            var packet = new WireActivatePacket { X = 100, Y = 256 };
+            var sender = Mock.Of<IPlayer>();
+            var evt = new PacketReceiveEvent<WireActivatePacket>(ref packet, sender);
+
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(It.IsAny<WiringActivateEvent>(), log))
+                .Callback<WiringActivateEvent, ILogger>((evt, log) => evt.Cancel());
+
+            Assert.NotNull(registeredHandler);
+            registeredHandler!(evt);
+
+            Assert.True(evt.IsCanceled);
+
+            Mock.Get(server.Events).VerifyAll();
+        }
+
+        [Fact]
+        public void PacketReceive_BlockPaintPacket_EventTriggered()
+        {
+            Action<PacketReceiveEvent<BlockPaintPacket>>? registeredHandler = null;
+
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            Mock.Get(server.Events)
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<BlockPaintPacket>>>(), log))
+                .Callback<Action<PacketReceiveEvent<BlockPaintPacket>>, ILogger>(
+                    (handler, log) => registeredHandler = handler);
+
+            using var worldService = new OrionWorldService(server, log);
+
+            var packet = new BlockPaintPacket { X = 100, Y = 256, Color = PaintColor.Red };
+            var sender = Mock.Of<IPlayer>();
+            var evt = new PacketReceiveEvent<BlockPaintPacket>(ref packet, sender);
+
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(
+                    It.Is<BlockPaintEvent>(
+                        evt => evt.World == worldService.World && evt.Player == sender && evt.X == 100 &&
+                            evt.Y == 256 && evt.Color == PaintColor.Red),
+                    log));
+
+            Assert.NotNull(registeredHandler);
+            registeredHandler!(evt);
+
+            Mock.Get(server.Events).VerifyAll();
+        }
+
+        [Fact]
+        public void PacketReceive_BlockPaintPacket_EventCanceled()
+        {
+            Action<PacketReceiveEvent<BlockPaintPacket>>? registeredHandler = null;
+
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            Mock.Get(server.Events)
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<BlockPaintPacket>>>(), log))
+                .Callback<Action<PacketReceiveEvent<BlockPaintPacket>>, ILogger>(
+                    (handler, log) => registeredHandler = handler);
+
+            using var worldService = new OrionWorldService(server, log);
+
+            var packet = new BlockPaintPacket { X = 100, Y = 256, Color = PaintColor.Red };
+            var sender = Mock.Of<IPlayer>();
+            var evt = new PacketReceiveEvent<BlockPaintPacket>(ref packet, sender);
+
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(It.IsAny<BlockPaintEvent>(), log))
+                .Callback<BlockPaintEvent, ILogger>((evt, log) => evt.Cancel());
+
+            Assert.NotNull(registeredHandler);
+            registeredHandler!(evt);
+
+            Assert.True(evt.IsCanceled);
+
+            Mock.Get(server.Events).VerifyAll();
+        }
+
+        [Fact]
+        public void PacketReceive_WallPaintPacket_EventTriggered()
+        {
+            Action<PacketReceiveEvent<WallPaintPacket>>? registeredHandler = null;
+
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            Mock.Get(server.Events)
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<WallPaintPacket>>>(), log))
+                .Callback<Action<PacketReceiveEvent<WallPaintPacket>>, ILogger>(
+                    (handler, log) => registeredHandler = handler);
+
+            using var worldService = new OrionWorldService(server, log);
+
+            var packet = new WallPaintPacket { X = 100, Y = 256, Color = PaintColor.Red };
+            var sender = Mock.Of<IPlayer>();
+            var evt = new PacketReceiveEvent<WallPaintPacket>(ref packet, sender);
+
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(
+                    It.Is<WallPaintEvent>(
+                        evt => evt.World == worldService.World && evt.Player == sender && evt.X == 100 &&
+                            evt.Y == 256 && evt.Color == PaintColor.Red),
+                    log));
+
+            Assert.NotNull(registeredHandler);
+            registeredHandler!(evt);
+
+            Mock.Get(server.Events).VerifyAll();
+        }
+
+        [Fact]
+        public void PacketReceive_WallPaintPacket_EventCanceled()
+        {
+            Action<PacketReceiveEvent<WallPaintPacket>>? registeredHandler = null;
+
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            Mock.Get(server.Events)
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<WallPaintPacket>>>(), log))
+                .Callback<Action<PacketReceiveEvent<WallPaintPacket>>, ILogger>(
+                    (handler, log) => registeredHandler = handler);
+
+            using var worldService = new OrionWorldService(server, log);
+
+            var packet = new WallPaintPacket { X = 100, Y = 256, Color = PaintColor.Red };
+            var sender = Mock.Of<IPlayer>();
+            var evt = new PacketReceiveEvent<WallPaintPacket>(ref packet, sender);
+
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(It.IsAny<WallPaintEvent>(), log))
+                .Callback<WallPaintEvent, ILogger>((evt, log) => evt.Cancel());
+
+            Assert.NotNull(registeredHandler);
+            registeredHandler!(evt);
+
+            Assert.True(evt.IsCanceled);
+
+            Mock.Get(server.Events).VerifyAll();
         }
     }
 }

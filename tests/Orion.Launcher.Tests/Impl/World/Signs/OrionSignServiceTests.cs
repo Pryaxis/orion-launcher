@@ -17,13 +17,14 @@
 
 using System;
 using System.Linq;
+using Moq;
 using Orion.Core;
+using Orion.Core.Events;
+using Orion.Core.Events.Packets;
 using Orion.Core.Events.World.Signs;
 using Orion.Core.Packets.World.Signs;
 using Orion.Core.Players;
-using Orion.Core.World.Tiles;
-using Orion.Launcher.Impl.Players;
-using Serilog.Core;
+using Serilog;
 using Xunit;
 
 namespace Orion.Launcher.Impl.World.Signs
@@ -32,15 +33,14 @@ namespace Orion.Launcher.Impl.World.Signs
     [Collection("TerrariaTestsCollection")]
     public class OrionSignServiceTests
     {
-        private static readonly byte[] _signReadPacketBytes = { 7, 0, 46, 0, 1, 100, 0 };
-
         [Theory]
         [InlineData(-1)]
         [InlineData(10000)]
         public void Signs_Item_GetInvalidIndex_ThrowsIndexOutOfRangeException(int index)
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var signService = new OrionSignService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var signService = new OrionSignService(server, log);
 
             Assert.Throws<IndexOutOfRangeException>(() => signService.Signs[index]);
         }
@@ -50,8 +50,10 @@ namespace Orion.Launcher.Impl.World.Signs
         {
             Terraria.Main.sign[1] = new Terraria.Sign();
 
-            using var kernel = new OrionKernel(Logger.None);
-            using var signService = new OrionSignService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var signService = new OrionSignService(server, log);
+
             var sign = signService.Signs[1];
 
             Assert.Equal(1, sign.Index);
@@ -62,9 +64,10 @@ namespace Orion.Launcher.Impl.World.Signs
         public void Signs_Item_GetMultipleTimes_ReturnsSameInstance()
         {
             Terraria.Main.sign[0] = new Terraria.Sign();
-
-            using var kernel = new OrionKernel(Logger.None);
-            using var signService = new OrionSignService(kernel, Logger.None);
+            
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var signService = new OrionSignService(server, log);
 
             var sign = signService.Signs[0];
             var sign2 = signService.Signs[0];
@@ -80,8 +83,9 @@ namespace Orion.Launcher.Impl.World.Signs
                 Terraria.Main.sign[i] = new Terraria.Sign();
             }
 
-            using var kernel = new OrionKernel(Logger.None);
-            using var signService = new OrionSignService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var signService = new OrionSignService(server, log);
 
             var signs = signService.Signs.ToList();
 
@@ -92,99 +96,95 @@ namespace Orion.Launcher.Impl.World.Signs
         }
 
         [Fact]
-        public void PacketReceive_SignRead_EventTriggered()
+        public void PacketReceive_SignReadPacket_EventTriggered()
         {
-            // Set `State` to 10 so that the sign read packet is not ignored by the server.
-            var socket = new TestSocket { Connected = true };
-            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5, State = 10, Socket = socket };
-            Terraria.Main.player[5] = new Terraria.Player { whoAmI = 5 };
-            Terraria.Main.tile[256, 100] = new Terraria.Tile { type = (ushort)BlockId.Sign };
             Terraria.Main.sign[0] = new Terraria.Sign { x = 256, y = 100, text = "test" };
 
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            using var signService = new OrionSignService(kernel, Logger.None);
+            Action<PacketReceiveEvent<SignReadPacket>>? registeredHandler = null;
 
-            var isRun = false;
-            kernel.Events.RegisterHandler<SignReadEvent>(evt =>
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            Mock.Get(server.Events)
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<SignReadPacket>>>(), log))
+                .Callback<Action<PacketReceiveEvent<SignReadPacket>>, ILogger>(
+                    (handler, log) => registeredHandler = handler);
+
+            using var signService = new OrionSignService(server, log);
+
+            var packet = new SignReadPacket { X = 256, Y = 100 };
+            var sender = Mock.Of<IPlayer>();
+            var evt = new PacketReceiveEvent<SignReadPacket>(ref packet, sender);
+
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(
+                    It.Is<SignReadEvent>(evt => evt.Sign == signService.Signs[0] && evt.Player == sender), log));
+
+            Assert.NotNull(registeredHandler);
+            registeredHandler!(evt);
+
+            Mock.Get(server.Events).VerifyAll();
+        }
+
+        [Fact]
+        public void PacketReceive_SignReadPacket_EventCanceled()
+        {
+            Terraria.Main.sign[0] = new Terraria.Sign { x = 256, y = 100, text = "test" };
+
+            Action<PacketReceiveEvent<SignReadPacket>>? registeredHandler = null;
+
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            Mock.Get(server.Events)
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<SignReadPacket>>>(), log))
+                .Callback<Action<PacketReceiveEvent<SignReadPacket>>, ILogger>(
+                    (handler, log) => registeredHandler = handler);
+
+            using var signService = new OrionSignService(server, log);
+
+            var packet = new SignReadPacket { X = 256, Y = 100 };
+            var sender = Mock.Of<IPlayer>();
+            var evt = new PacketReceiveEvent<SignReadPacket>(ref packet, sender);
+
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(It.IsAny<SignReadEvent>(), log))
+                .Callback<SignReadEvent, ILogger>((evt, log) => evt.Cancel());
+
+            Assert.NotNull(registeredHandler);
+            registeredHandler!(evt);
+
+            Assert.True(evt.IsCanceled);
+
+            Mock.Get(server.Events).VerifyAll();
+        }
+
+        [Fact]
+        public void PacketReceive_SignReadPacket_EventNotTriggered()
+        {
+            for (var i = 0; i < Terraria.Sign.maxSigns; ++i)
             {
-                Assert.Same(signService.Signs[0], evt.Sign);
-                Assert.Same(playerService.Players[5], evt.Player);
-                isRun = true;
-            }, Logger.None);
+                Terraria.Main.sign[i] = new Terraria.Sign();
+            }
 
-            TestUtils.FakeReceiveBytes(5, _signReadPacketBytes);
+            Action<PacketReceiveEvent<SignReadPacket>>? registeredHandler = null;
 
-            Assert.True(isRun);
-            Assert.NotEmpty(socket.SendData);
-        }
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            Mock.Get(server.Events)
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<SignReadPacket>>>(), log))
+                .Callback<Action<PacketReceiveEvent<SignReadPacket>>, ILogger>(
+                    (handler, log) => registeredHandler = handler);
 
-        [Fact]
-        public void PacketReceive_SignRead_EventCanceled()
-        {
-            // Set `State` to 10 so that the sign read packet is not ignored by the server.
-            var socket = new TestSocket { Connected = true };
-            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5, State = 10, Socket = socket };
-            Terraria.Main.player[5] = new Terraria.Player { whoAmI = 5 };
-            Terraria.Main.sign[0] = new Terraria.Sign { x = 256, y = 100, text = "test" };
+            using var signService = new OrionSignService(server, log);
 
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            using var signService = new OrionSignService(kernel, Logger.None);
+            var packet = new SignReadPacket { X = 256, Y = 100 };
+            var sender = Mock.Of<IPlayer>();
+            var evt = new PacketReceiveEvent<SignReadPacket>(ref packet, sender);
 
-            Terraria.Main.tile[256, 100] = new Terraria.Tile { type = (ushort)BlockId.Sign };
+            Assert.NotNull(registeredHandler);
+            registeredHandler!(evt);
 
-            kernel.Events.RegisterHandler<SignReadEvent>(evt => evt.Cancel(), Logger.None);
-
-            TestUtils.FakeReceiveBytes(5, _signReadPacketBytes);
-
-            Assert.Empty(socket.SendData);
-        }
-
-        [Fact]
-        public void PacketReceive_SignRead_EventNotTriggered()
-        {
-            // Set `State` to 10 so that the sign read packet is not ignored by the server.
-            var socket = new TestSocket { Connected = true };
-            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5, State = 10, Socket = socket };
-            Terraria.Main.player[5] = new Terraria.Player { whoAmI = 5 };
-            Terraria.Main.tile[256, 100] = new Terraria.Tile { type = (ushort)BlockId.Sign };
-            Terraria.Main.sign[0] = new Terraria.Sign { x = 255, y = 100, text = "test" };
-
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            using var signService = new OrionSignService(kernel, Logger.None);
-
-            var isRun = false;
-            kernel.Events.RegisterHandler<SignReadEvent>(evt => isRun = true, Logger.None);
-
-            TestUtils.FakeReceiveBytes(5, _signReadPacketBytes);
-
-            Assert.False(isRun);
-        }
-
-        private class TestSocket : Terraria.Net.Sockets.ISocket
-        {
-            public bool Connected { get; set; }
-            public byte[] SendData { get; private set; } = Array.Empty<byte>();
-
-            public void AsyncReceive(
-                byte[] data, int offset, int size, Terraria.Net.Sockets.SocketReceiveCallback callback,
-                object? state = null) =>
-                    throw new NotImplementedException();
-            public void AsyncSend(
-                byte[] data, int offset, int size, Terraria.Net.Sockets.SocketSendCallback callback,
-                object? state = null) =>
-                    SendData = data[offset..(offset + size)];
-            public void Close() => throw new NotImplementedException();
-            public void Connect(Terraria.Net.RemoteAddress address) => throw new NotImplementedException();
-            public Terraria.Net.RemoteAddress GetRemoteAddress() => throw new NotImplementedException();
-            public bool IsConnected() => Connected;
-            public bool IsDataAvailable() => throw new NotImplementedException();
-            public void SendQueuedPackets() => throw new NotImplementedException();
-            public bool StartListening(Terraria.Net.Sockets.SocketConnectionAccepted callback) =>
-                throw new NotImplementedException();
-            public void StopListening() => throw new NotImplementedException();
+            Mock.Get(server.Events)
+                .Verify(em => em.Raise(It.IsAny<SignReadEvent>(), log), Times.Never);
         }
     }
 }

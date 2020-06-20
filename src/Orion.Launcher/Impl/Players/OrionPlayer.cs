@@ -24,7 +24,6 @@ using Destructurama.Attributed;
 using Orion.Core;
 using Orion.Core.Buffs;
 using Orion.Core.Collections;
-using Orion.Core.Entities;
 using Orion.Core.Events.Packets;
 using Orion.Core.Packets;
 using Orion.Core.Players;
@@ -36,23 +35,23 @@ namespace Orion.Launcher.Impl.Players
     [LogAsScalar]
     internal sealed class OrionPlayer : OrionEntity<Terraria.Player>, IPlayer
     {
-        private readonly OrionKernel _kernel;
+        private readonly IServer _server;
         private readonly ILogger _log;
 
-        public OrionPlayer(int playerIndex, Terraria.Player terrariaPlayer, OrionKernel kernel, ILogger log)
+        public OrionPlayer(int playerIndex, Terraria.Player terrariaPlayer, IServer server, ILogger log)
             : base(playerIndex, terrariaPlayer)
         {
-            Debug.Assert(kernel != null);
+            Debug.Assert(server != null);
             Debug.Assert(log != null);
 
-            _kernel = kernel;
+            _server = server;
             _log = log;
 
             Buffs = new BuffArray(terrariaPlayer);
         }
 
-        public OrionPlayer(Terraria.Player terrariaPlayer, OrionKernel kernel, ILogger log)
-            : this(-1, terrariaPlayer, kernel, log) { }
+        public OrionPlayer(Terraria.Player terrariaPlayer, IServer server, ILogger log)
+            : this(-1, terrariaPlayer, server, log) { }
 
         public override string Name
         {
@@ -107,7 +106,7 @@ namespace Orion.Launcher.Impl.Players
         public void ReceivePacket<TPacket>(ref TPacket packet) where TPacket : struct, IPacket
         {
             var evt = new PacketReceiveEvent<TPacket>(ref packet, this);
-            _kernel.Events.Raise(evt, _log);
+            _server.Events.Raise(evt, _log);
             if (evt.IsCanceled)
             {
                 return;
@@ -153,7 +152,7 @@ namespace Orion.Launcher.Impl.Players
             }
 
             var evt = new PacketSendEvent<TPacket>(ref packet, this);
-            _kernel.Events.Raise(evt, _log);
+            _server.Events.Raise(evt, _log);
             if (evt.IsCanceled)
             {
                 return;

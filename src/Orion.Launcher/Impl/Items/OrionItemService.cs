@@ -21,7 +21,7 @@ using System.Diagnostics;
 using Orion.Core;
 using Orion.Core.DataStructures;
 using Orion.Core.Events.Items;
-using Orion.Core.Framework.Extensions;
+using Orion.Core.Framework;
 using Orion.Core.Items;
 using Serilog;
 
@@ -32,7 +32,7 @@ namespace Orion.Launcher.Impl.Items
     {
         private readonly object _lock = new object();
 
-        public OrionItemService(OrionKernel kernel, ILogger log) : base(kernel, log)
+        public OrionItemService(IServer server, ILogger log) : base(server, log)
         {
             // Construct the `Items` array. Note that the last item should be ignored, as it is not a real item.
             Items = new WrappedReadOnlyList<OrionItem, Terraria.Item>(
@@ -78,7 +78,7 @@ namespace Orion.Launcher.Impl.Items
 
             var item = GetItem(terrariaItem);
             var evt = new ItemDefaultsEvent(item) { Id = (ItemId)itemId };
-            Kernel.Events.Raise(evt, Log);
+            Server.Events.Raise(evt, Log);
             if (evt.IsCanceled)
             {
                 return OTAPI.HookResult.Cancel;
@@ -98,7 +98,7 @@ namespace Orion.Launcher.Impl.Items
             terrariaItem.whoAmI = itemIndex;
 
             var evt = new ItemTickEvent(Items[itemIndex]);
-            Kernel.Events.Raise(evt, Log);
+            Server.Events.Raise(evt, Log);
             return evt.IsCanceled ? OTAPI.HookResult.Cancel : OTAPI.HookResult.Continue;
         }
 

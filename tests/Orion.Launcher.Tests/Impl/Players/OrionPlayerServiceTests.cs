@@ -18,8 +18,10 @@
 using System;
 using System.IO;
 using System.Linq;
+using Moq;
 using Orion.Core;
 using Orion.Core.DataStructures;
+using Orion.Core.Events;
 using Orion.Core.Events.Packets;
 using Orion.Core.Events.Players;
 using Orion.Core.Packets;
@@ -27,7 +29,7 @@ using Orion.Core.Packets.Client;
 using Orion.Core.Packets.Modules;
 using Orion.Core.Packets.Players;
 using Orion.Core.Players;
-using Serilog.Core;
+using Serilog;
 using Xunit;
 
 namespace Orion.Launcher.Impl.Players
@@ -37,18 +39,6 @@ namespace Orion.Launcher.Impl.Players
     public class OrionPlayerServiceTests
     {
         private static readonly byte[] _serverConnectPacketBytes;
-        private static readonly byte[] _playerJoinPacketBytes = { 3, 0, 6 };
-        private static readonly byte[] _playerHealthPacketBytes = { 8, 0, 16, 5, 100, 0, 244, 1 };
-        private static readonly byte[] _playerPvpPacketBytes = { 5, 0, 30, 5, 1 };
-        private static readonly byte[] _clientPasswordPacketBytes = { 12, 0, 38, 8, 84, 101, 114, 114, 97, 114, 105, 97 };
-        private static readonly byte[] _playerManaPacketBytes = { 8, 0, 42, 5, 100, 0, 200, 0 };
-        private static readonly byte[] _playerTeamPacketBytes = { 5, 0, 45, 5, 1 };
-        private static readonly byte[] _clientUuidPacketBytes = { 12, 0, 68, 8, 84, 101, 114, 114, 97, 114, 105, 97 };
-
-        private static readonly byte[] _chatModuleBytes =
-        {
-            23, 0, 82, 1, 0, 3, 83, 97, 121, 13, 47, 99, 111, 109, 109, 97, 110, 100, 32, 116, 101, 115, 116
-        };
 
         static OrionPlayerServiceTests()
         {
@@ -64,8 +54,9 @@ namespace Orion.Launcher.Impl.Players
         [InlineData(10000)]
         public void Players_Item_GetInvalidIndex_ThrowsIndexOutOfRangeException(int index)
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var playerService = new OrionPlayerService(server, log);
 
             Assert.Throws<IndexOutOfRangeException>(() => playerService.Players[index]);
         }
@@ -73,8 +64,9 @@ namespace Orion.Launcher.Impl.Players
         [Fact]
         public void Players_Item_Get()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var playerService = new OrionPlayerService(server, log);
 
             var player = playerService.Players[1];
 
@@ -85,8 +77,9 @@ namespace Orion.Launcher.Impl.Players
         [Fact]
         public void Players_Item_GetMultipleTimes_ReturnsSameInstance()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var playerService = new OrionPlayerService(server, log);
 
             var player = playerService.Players[0];
             var player2 = playerService.Players[0];
@@ -97,8 +90,9 @@ namespace Orion.Launcher.Impl.Players
         [Fact]
         public void Players_GetEnumerator()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var playerService = new OrionPlayerService(server, log);
 
             var players = playerService.Players.ToList();
 
@@ -111,704 +105,1020 @@ namespace Orion.Launcher.Impl.Players
         [Fact]
         public void PlayerTick_EventTriggered()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            var isRun = false;
-            kernel.Events.RegisterHandler<PlayerTickEvent>(evt =>
-            {
-                Assert.Same(Terraria.Main.player[0], ((OrionPlayer)evt.Player).Wrapped);
-                isRun = true;
-            }, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var playerService = new OrionPlayerService(server, log);
+
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(
+                    It.Is<PlayerTickEvent>(
+                        evt => ((OrionPlayer)evt.Player).Wrapped == Terraria.Main.player[0]),
+                    log));
 
             Terraria.Main.player[0].Update(0);
 
-            Assert.True(isRun);
+            Mock.Get(server.Events).VerifyAll();
         }
 
         [Fact]
         public void PlayerTick_EventCanceled()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            kernel.Events.RegisterHandler<PlayerTickEvent>(evt => evt.Cancel(), Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var playerService = new OrionPlayerService(server, log);
+
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(It.IsAny<PlayerTickEvent>(), log))
+                .Callback<PlayerTickEvent, ILogger>((evt, log) => evt.Cancel());
 
             Terraria.Main.player[0].Update(0);
+
+            Mock.Get(server.Events).VerifyAll();
         }
 
         [Fact]
-        public void ResetClient_PlayerQuitEventTriggered()
+        public void ResetClient_EventTriggered()
         {
             Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5, IsActive = true };
 
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            var isRun = false;
-            kernel.Events.RegisterHandler<PlayerQuitEvent>(evt =>
-            {
-                Assert.Same(playerService.Players[5], evt.Player);
-                isRun = true;
-            }, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var playerService = new OrionPlayerService(server, log);
+
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(
+                    It.Is<PlayerQuitEvent>(
+                        evt => ((OrionPlayer)evt.Player).Wrapped == Terraria.Main.player[5]),
+                    log));
 
             Terraria.Netplay.Clients[5].Reset();
 
-            Assert.True(isRun);
+            Mock.Get(server.Events).VerifyAll();
         }
 
         [Fact]
-        public void ResetClient_PlayerQuitEventNotTriggered()
+        public void ResetClient_EventNotTriggered()
         {
             Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5 };
 
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            var isRun = false;
-            kernel.Events.RegisterHandler<PlayerQuitEvent>(evt => isRun = true, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var playerService = new OrionPlayerService(server, log);
 
             Terraria.Netplay.Clients[5].Reset();
 
-            Assert.False(isRun);
+            Mock.Get(server.Events)
+                .Verify(em => em.Raise(It.IsAny<PlayerQuitEvent>(), log), Times.Never);
         }
 
         [Fact]
         public void PacketReceive_EventTriggered()
         {
+            // Clear out the password so we know it's empty.
             Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5 };
             Terraria.Netplay.ServerPassword = string.Empty;
 
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            var isRun = false;
-            kernel.Events.RegisterHandler<PacketReceiveEvent<ClientConnectPacket>>(evt =>
-            {
-                Assert.Same(playerService.Players[5], evt.Sender);
-                Assert.Equal("Terraria" + Terraria.Main.curRelease, evt.Packet.Version);
-                isRun = true;
-            }, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(
+                    It.Is<PacketReceiveEvent<ClientConnectPacket>>(
+                        evt => ((OrionPlayer)evt.Sender).Wrapped == Terraria.Main.player[5]),
+                    log))
+                .Callback<PacketReceiveEvent<ClientConnectPacket>, ILogger>((evt, log) =>
+                {
+                    Assert.Equal("Terraria" + Terraria.Main.curRelease, evt.Packet.Version);
+                });
+
+            using var playerService = new OrionPlayerService(server, log);
 
             TestUtils.FakeReceiveBytes(5, _serverConnectPacketBytes);
 
-            Assert.True(isRun);
             Assert.Equal(1, Terraria.Netplay.Clients[5].State);
+
+            Mock.Get(server.Events).VerifyAll();
         }
 
         [Fact]
         public void PacketReceive_EventModified()
         {
+            // Clear out the password so we know it's empty.
             Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5 };
             Terraria.Netplay.ServerPassword = string.Empty;
 
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            kernel.Events.RegisterHandler<PacketReceiveEvent<ClientConnectPacket>>(
-                evt => evt.Packet.Version = "Terraria1", Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(It.IsAny<PacketReceiveEvent<ClientConnectPacket>>(), log))
+                .Callback<PacketReceiveEvent<ClientConnectPacket>, ILogger>(
+                    (evt, log) => evt.Packet.Version = "Terraria1");
+
+            using var playerService = new OrionPlayerService(server, log);
 
             TestUtils.FakeReceiveBytes(5, _serverConnectPacketBytes);
 
             Assert.Equal(0, Terraria.Netplay.Clients[5].State);
+
+            Mock.Get(server.Events).VerifyAll();
         }
 
         [Fact]
         public void PacketReceive_EventCanceled()
         {
+            // Clear out the password so we know it's empty.
             Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5 };
             Terraria.Netplay.ServerPassword = string.Empty;
 
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            kernel.Events.RegisterHandler<PacketReceiveEvent<ClientConnectPacket>>(evt => evt.Cancel(), Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(It.IsAny<PacketReceiveEvent<ClientConnectPacket>>(), log))
+                .Callback<PacketReceiveEvent<ClientConnectPacket>, ILogger>((evt, log) => evt.Cancel());
+
+            using var playerService = new OrionPlayerService(server, log);
 
             TestUtils.FakeReceiveBytes(5, _serverConnectPacketBytes);
 
             Assert.Equal(0, Terraria.Netplay.Clients[5].State);
+
+            Mock.Get(server.Events).VerifyAll();
         }
 
         [Fact]
         public void PacketReceive_UnknownPacket()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            var isRun = false;
-            kernel.Events.RegisterHandler<PacketReceiveEvent<UnknownPacket>>(evt =>
-            {
-                ref var packet = ref evt.Packet;
-                Assert.Equal((PacketId)255, packet.Id);
-                Assert.Equal(0, packet.Length);
-                isRun = true;
-            }, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(
+                    It.Is<PacketReceiveEvent<UnknownPacket>>(
+                        evt => ((OrionPlayer)evt.Sender).Wrapped == Terraria.Main.player[5]),
+                    log))
+                .Callback<PacketReceiveEvent<UnknownPacket>, ILogger>((evt, log) =>
+                {
+                    Assert.Equal((PacketId)255, evt.Packet.Id);
+                    Assert.Equal(0, evt.Packet.Length);
+                });
+
+            using var playerService = new OrionPlayerService(server, log);
 
             TestUtils.FakeReceiveBytes(5, new byte[] { 3, 0, 255 });
 
-            Assert.True(isRun);
+            Mock.Get(server.Events).VerifyAll();
         }
 
         [Fact]
         public void PacketReceive_UnknownModule()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            var isRun = false;
-            kernel.Events.RegisterHandler<PacketReceiveEvent<ModulePacket<UnknownModule>>>(evt =>
-            {
-                ref var module = ref evt.Packet.Module;
-                Assert.Equal((ModuleId)65535, module.Id);
-                Assert.Equal(0, module.Length);
-                isRun = true;
-            }, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(
+                    It.Is<PacketReceiveEvent<ModulePacket<UnknownModule>>>(
+                        evt => ((OrionPlayer)evt.Sender).Wrapped == Terraria.Main.player[5]),
+                    log))
+                .Callback<PacketReceiveEvent<ModulePacket<UnknownModule>>, ILogger>((evt, log) =>
+                {
+                    Assert.Equal((ModuleId)65535, evt.Packet.Module.Id);
+                    Assert.Equal(0, evt.Packet.Module.Length);
+                });
+
+            using var playerService = new OrionPlayerService(server, log);
 
             TestUtils.FakeReceiveBytes(5, new byte[] { 5, 0, 82, 255, 255 });
 
-            Assert.True(isRun);
+            Mock.Get(server.Events).VerifyAll();
         }
 
         [Fact]
-        public void PacketReceive_PlayerJoin_EventTriggered()
+        public void PacketReceive_PlayerJoinPacket_EventTriggered()
         {
-            // Set `State` to 1 so that the join packet is not ignored by the server.
-            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5, State = 1 };
-            Terraria.Main.player[5] = new Terraria.Player { whoAmI = 5 };
+            Action<PacketReceiveEvent<PlayerJoinPacket>>? registeredHandler = null;
 
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            var isRun = false;
-            kernel.Events.RegisterHandler<PlayerJoinEvent>(evt =>
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            Mock.Get(server.Events)
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<PlayerJoinPacket>>>(), log))
+                .Callback<Action<PacketReceiveEvent<PlayerJoinPacket>>, ILogger>(
+                    (handler, log) => registeredHandler = handler);
+
+            using var playerService = new OrionPlayerService(server, log);
+
+            var packet = new PlayerJoinPacket();
+            var sender = Mock.Of<IPlayer>();
+            var evt = new PacketReceiveEvent<PlayerJoinPacket>(ref packet, sender);
+
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(It.Is<PlayerJoinEvent>(evt => evt.Player == sender), log));
+
+            Assert.NotNull(registeredHandler);
+            registeredHandler!(evt);
+
+            Mock.Get(server.Events).VerifyAll();
+        }
+
+        [Fact]
+        public void PacketReceive_PlayerJoinPacket_EventCanceled()
+        {
+            Action<PacketReceiveEvent<PlayerJoinPacket>>? registeredHandler = null;
+
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            Mock.Get(server.Events)
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<PlayerJoinPacket>>>(), log))
+                .Callback<Action<PacketReceiveEvent<PlayerJoinPacket>>, ILogger>(
+                    (handler, log) => registeredHandler = handler);
+
+            using var playerService = new OrionPlayerService(server, log);
+
+            var packet = new PlayerJoinPacket();
+            var sender = Mock.Of<IPlayer>();
+            var evt = new PacketReceiveEvent<PlayerJoinPacket>(ref packet, sender);
+
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(It.IsAny<PlayerJoinEvent>(), log))
+                .Callback<PlayerJoinEvent, ILogger>((evt, log) => evt.Cancel());
+
+            Assert.NotNull(registeredHandler);
+            registeredHandler!(evt);
+
+            Assert.True(evt.IsCanceled);
+
+            Mock.Get(server.Events).VerifyAll();
+        }
+
+        [Fact]
+        public void PacketReceive_PlayerHealthPacket_EventTriggered()
+        {
+            Action<PacketReceiveEvent<PlayerHealthPacket>>? registeredHandler = null;
+
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            Mock.Get(server.Events)
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<PlayerHealthPacket>>>(), log))
+                .Callback<Action<PacketReceiveEvent<PlayerHealthPacket>>, ILogger>(
+                    (handler, log) => registeredHandler = handler);
+
+            using var playerService = new OrionPlayerService(server, log);
+
+            var packet = new PlayerHealthPacket { Health = 100, MaxHealth = 500 };
+            var sender = Mock.Of<IPlayer>();
+            var evt = new PacketReceiveEvent<PlayerHealthPacket>(ref packet, sender);
+
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(
+                    It.Is<PlayerHealthEvent>(
+                        evt => evt.Player == sender && evt.Health == 100 && evt.MaxHealth == 500),
+                    log));
+
+            Assert.NotNull(registeredHandler);
+            registeredHandler!(evt);
+
+            Mock.Get(server.Events).VerifyAll();
+        }
+
+        [Fact]
+        public void PacketReceive_PlayerHealthPacket_EventCanceled()
+        {
+            Action<PacketReceiveEvent<PlayerHealthPacket>>? registeredHandler = null;
+
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            Mock.Get(server.Events)
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<PlayerHealthPacket>>>(), log))
+                .Callback<Action<PacketReceiveEvent<PlayerHealthPacket>>, ILogger>(
+                    (handler, log) => registeredHandler = handler);
+
+            using var playerService = new OrionPlayerService(server, log);
+
+            var packet = new PlayerHealthPacket { Health = 100, MaxHealth = 500 };
+            var sender = Mock.Of<IPlayer>();
+            var evt = new PacketReceiveEvent<PlayerHealthPacket>(ref packet, sender);
+
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(It.IsAny<PlayerHealthEvent>(), log))
+                .Callback<PlayerHealthEvent, ILogger>((evt, log) => evt.Cancel());
+
+            Assert.NotNull(registeredHandler);
+            registeredHandler!(evt);
+
+            Assert.True(evt.IsCanceled);
+
+            Mock.Get(server.Events).VerifyAll();
+        }
+
+        [Fact]
+        public void PacketReceive_PlayerPvpPacket_EventTriggered()
+        {
+            Action<PacketReceiveEvent<PlayerPvpPacket>>? registeredHandler = null;
+
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            Mock.Get(server.Events)
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<PlayerPvpPacket>>>(), log))
+                .Callback<Action<PacketReceiveEvent<PlayerPvpPacket>>, ILogger>(
+                    (handler, log) => registeredHandler = handler);
+
+            using var playerService = new OrionPlayerService(server, log);
+
+            var packet = new PlayerPvpPacket { IsInPvp = true };
+            var sender = Mock.Of<IPlayer>();
+            var evt = new PacketReceiveEvent<PlayerPvpPacket>(ref packet, sender);
+
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(It.Is<PlayerPvpEvent>(evt => evt.Player == sender && evt.IsInPvp), log));
+
+            Assert.NotNull(registeredHandler);
+            registeredHandler!(evt);
+
+            Mock.Get(server.Events).VerifyAll();
+        }
+
+        [Fact]
+        public void PacketReceive_PlayerPvpPacket_EventCanceled()
+        {
+            Action<PacketReceiveEvent<PlayerPvpPacket>>? registeredHandler = null;
+
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            Mock.Get(server.Events)
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<PlayerPvpPacket>>>(), log))
+                .Callback<Action<PacketReceiveEvent<PlayerPvpPacket>>, ILogger>(
+                    (handler, log) => registeredHandler = handler);
+
+            using var playerService = new OrionPlayerService(server, log);
+
+            var packet = new PlayerPvpPacket { IsInPvp = true };
+            var sender = Mock.Of<IPlayer>();
+            var evt = new PacketReceiveEvent<PlayerPvpPacket>(ref packet, sender);
+
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(It.IsAny<PlayerPvpEvent>(), log))
+                .Callback<PlayerPvpEvent, ILogger>((evt, log) => evt.Cancel());
+
+            Assert.NotNull(registeredHandler);
+            registeredHandler!(evt);
+
+            Assert.True(evt.IsCanceled);
+        }
+
+        [Fact]
+        public void PacketReceive_ClientPasswordPacket_EventTriggered()
+        {
+            Action<PacketReceiveEvent<ClientPasswordPacket>>? registeredHandler = null;
+
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            Mock.Get(server.Events)
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<ClientPasswordPacket>>>(), log))
+                .Callback<Action<PacketReceiveEvent<ClientPasswordPacket>>, ILogger>(
+                    (handler, log) => registeredHandler = handler);
+
+            using var playerService = new OrionPlayerService(server, log);
+
+            var packet = new ClientPasswordPacket { Password = "Terraria" };
+            var sender = Mock.Of<IPlayer>();
+            var evt = new PacketReceiveEvent<ClientPasswordPacket>(ref packet, sender);
+
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(
+                    It.Is<PlayerPasswordEvent>(evt => evt.Player == sender && evt.Password == "Terraria"), log));
+
+            Assert.NotNull(registeredHandler);
+            registeredHandler!(evt);
+
+            Mock.Get(server.Events).VerifyAll();
+        }
+
+        [Fact]
+        public void PacketReceive_ClientPasswordPacket_EventCanceled()
+        {
+            Action<PacketReceiveEvent<ClientPasswordPacket>>? registeredHandler = null;
+
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            Mock.Get(server.Events)
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<ClientPasswordPacket>>>(), log))
+                .Callback<Action<PacketReceiveEvent<ClientPasswordPacket>>, ILogger>(
+                    (handler, log) => registeredHandler = handler);
+
+            using var playerService = new OrionPlayerService(server, log);
+
+            var packet = new ClientPasswordPacket { Password = "Terraria" };
+            var sender = Mock.Of<IPlayer>();
+            var evt = new PacketReceiveEvent<ClientPasswordPacket>(ref packet, sender);
+
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(It.IsAny<PlayerPasswordEvent>(), log))
+                .Callback<PlayerPasswordEvent, ILogger>((evt, log) => evt.Cancel());
+
+            Assert.NotNull(registeredHandler);
+            registeredHandler!(evt);
+
+            Assert.True(evt.IsCanceled);
+        }
+
+        [Fact]
+        public void PacketReceive_PlayerManaPacket_EventTriggered()
+        {
+            Action<PacketReceiveEvent<PlayerManaPacket>>? registeredHandler = null;
+
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            Mock.Get(server.Events)
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<PlayerManaPacket>>>(), log))
+                .Callback<Action<PacketReceiveEvent<PlayerManaPacket>>, ILogger>(
+                    (handler, log) => registeredHandler = handler);
+
+            using var playerService = new OrionPlayerService(server, log);
+
+            var packet = new PlayerManaPacket { Mana = 100, MaxMana = 200 };
+            var sender = Mock.Of<IPlayer>();
+            var evt = new PacketReceiveEvent<PlayerManaPacket>(ref packet, sender);
+
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(
+                    It.Is<PlayerManaEvent>(evt => evt.Player == sender && evt.Mana == 100 && evt.MaxMana == 200), log));
+
+            Assert.NotNull(registeredHandler);
+            registeredHandler!(evt);
+
+            Mock.Get(server.Events).VerifyAll();
+        }
+
+        [Fact]
+        public void PacketReceive_PlayerManaPacket_EventCanceled()
+        {
+            Action<PacketReceiveEvent<PlayerManaPacket>>? registeredHandler = null;
+
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            Mock.Get(server.Events)
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<PlayerManaPacket>>>(), log))
+                .Callback<Action<PacketReceiveEvent<PlayerManaPacket>>, ILogger>(
+                    (handler, log) => registeredHandler = handler);
+
+            using var playerService = new OrionPlayerService(server, log);
+
+            var packet = new PlayerManaPacket { Mana = 100, MaxMana = 200 };
+            var sender = Mock.Of<IPlayer>();
+            var evt = new PacketReceiveEvent<PlayerManaPacket>(ref packet, sender);
+
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(It.IsAny<PlayerManaEvent>(), log))
+                .Callback<PlayerManaEvent, ILogger>((evt, log) => evt.Cancel());
+
+            Assert.NotNull(registeredHandler);
+            registeredHandler!(evt);
+
+            Assert.True(evt.IsCanceled);
+
+            Mock.Get(server.Events).VerifyAll();
+        }
+
+        [Fact]
+        public void PacketReceive_PlayerTeamPacket_EventTriggered()
+        {
+            Action<PacketReceiveEvent<PlayerTeamPacket>>? registeredHandler = null;
+
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            Mock.Get(server.Events)
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<PlayerTeamPacket>>>(), log))
+                .Callback<Action<PacketReceiveEvent<PlayerTeamPacket>>, ILogger>(
+                    (handler, log) => registeredHandler = handler);
+
+            using var playerService = new OrionPlayerService(server, log);
+
+            var packet = new PlayerTeamPacket { Team = PlayerTeam.Red };
+            var sender = Mock.Of<IPlayer>();
+            var evt = new PacketReceiveEvent<PlayerTeamPacket>(ref packet, sender);
+
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(
+                    It.Is<PlayerTeamEvent>(evt => evt.Player == sender && evt.Team == PlayerTeam.Red), log));
+
+            Assert.NotNull(registeredHandler);
+            registeredHandler!(evt);
+
+            Mock.Get(server.Events).VerifyAll();
+        }
+
+        [Fact]
+        public void PacketReceive_PlayerTeamPacket_EventCanceled()
+        {
+            Action<PacketReceiveEvent<PlayerTeamPacket>>? registeredHandler = null;
+
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            Mock.Get(server.Events)
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<PlayerTeamPacket>>>(), log))
+                .Callback<Action<PacketReceiveEvent<PlayerTeamPacket>>, ILogger>(
+                    (handler, log) => registeredHandler = handler);
+
+            using var playerService = new OrionPlayerService(server, log);
+
+            var packet = new PlayerTeamPacket { Team = PlayerTeam.Red };
+            var sender = Mock.Of<IPlayer>();
+            var evt = new PacketReceiveEvent<PlayerTeamPacket>(ref packet, sender);
+
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(It.IsAny<PlayerTeamEvent>(), log))
+                .Callback<PlayerTeamEvent, ILogger>((evt, log) => evt.Cancel());
+
+            Assert.NotNull(registeredHandler);
+            registeredHandler!(evt);
+
+            Assert.True(evt.IsCanceled);
+
+            Mock.Get(server.Events).VerifyAll();
+        }
+
+        [Fact]
+        public void PacketReceive_ClientUuidPacket_EventTriggered()
+        {
+            Action<PacketReceiveEvent<ClientUuidPacket>>? registeredHandler = null;
+
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            Mock.Get(server.Events)
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<ClientUuidPacket>>>(), log))
+                .Callback<Action<PacketReceiveEvent<ClientUuidPacket>>, ILogger>(
+                    (handler, log) => registeredHandler = handler);
+
+            using var playerService = new OrionPlayerService(server, log);
+
+            var packet = new ClientUuidPacket { Uuid = "Terraria" };
+            var sender = Mock.Of<IPlayer>();
+            var evt = new PacketReceiveEvent<ClientUuidPacket>(ref packet, sender);
+
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(
+                    It.Is<PlayerUuidEvent>(evt => evt.Player == sender && evt.Uuid == "Terraria"), log));
+
+            Assert.NotNull(registeredHandler);
+            registeredHandler!(evt);
+
+            Mock.Get(server.Events).VerifyAll();
+        }
+
+        [Fact]
+        public void PacketReceive_ClientUuidPacket_EventCanceled()
+        {
+            Action<PacketReceiveEvent<ClientUuidPacket>>? registeredHandler = null;
+
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            Mock.Get(server.Events)
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<ClientUuidPacket>>>(), log))
+                .Callback<Action<PacketReceiveEvent<ClientUuidPacket>>, ILogger>(
+                    (handler, log) => registeredHandler = handler);
+
+            using var playerService = new OrionPlayerService(server, log);
+
+            var packet = new ClientUuidPacket { Uuid = "Terraria" };
+            var sender = Mock.Of<IPlayer>();
+            var evt = new PacketReceiveEvent<ClientUuidPacket>(ref packet, sender);
+
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(It.IsAny<PlayerUuidEvent>(), log))
+                .Callback<PlayerUuidEvent, ILogger>((evt, log) => evt.Cancel());
+
+            Assert.NotNull(registeredHandler);
+            registeredHandler!(evt);
+
+            Assert.True(evt.IsCanceled);
+
+            Mock.Get(server.Events).VerifyAll();
+        }
+
+        [Fact]
+        public void PacketReceive_ChatModulePacket_EventTriggered()
+        {
+            Action<PacketReceiveEvent<ModulePacket<ChatModule>>>? registeredHandler = null;
+
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            Mock.Get(server.Events)
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<ModulePacket<ChatModule>>>>(), log))
+                .Callback<Action<PacketReceiveEvent<ModulePacket<ChatModule>>>, ILogger>(
+                    (handler, log) => registeredHandler = handler);
+
+            using var playerService = new OrionPlayerService(server, log);
+
+            var packet = new ModulePacket<ChatModule>
             {
-                Assert.Same(playerService.Players[5], evt.Player);
-                isRun = true;
-            }, Logger.None);
+                Module = new ChatModule { ClientCommand = "Say", ClientMessage = "/command test" }
+            };
+            var sender = Mock.Of<IPlayer>();
+            var evt = new PacketReceiveEvent<ModulePacket<ChatModule>>(ref packet, sender);
 
-            TestUtils.FakeReceiveBytes(5, _playerJoinPacketBytes);
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(
+                    It.Is<PlayerChatEvent>(
+                        evt => evt.Player == sender && evt.Command == "Say" && evt.Message == "/command test"),
+                    log));
 
-            Assert.True(isRun);
-            Assert.Equal(2, Terraria.Netplay.Clients[5].State);
+            Assert.NotNull(registeredHandler);
+            registeredHandler!(evt);
+
+            Mock.Get(server.Events).VerifyAll();
         }
 
         [Fact]
-        public void PacketReceive_PlayerJoin_EventCanceled()
+        public void PacketReceive_ChatModulePacket_EventCanceled()
         {
-            // Set `State` to 1 so that the join packet is not ignored by the server.
-            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5, State = 1 };
-            Terraria.Main.player[5] = new Terraria.Player { whoAmI = 5 };
+            Action<PacketReceiveEvent<ModulePacket<ChatModule>>>? registeredHandler = null;
 
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            kernel.Events.RegisterHandler<PlayerJoinEvent>(evt => evt.Cancel(), Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            Mock.Get(server.Events)
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<ModulePacket<ChatModule>>>>(), log))
+                .Callback<Action<PacketReceiveEvent<ModulePacket<ChatModule>>>, ILogger>(
+                    (handler, log) => registeredHandler = handler);
 
-            TestUtils.FakeReceiveBytes(5, _playerJoinPacketBytes);
+            using var playerService = new OrionPlayerService(server, log);
 
-            Assert.Equal(1, Terraria.Netplay.Clients[5].State);
-        }
-
-        [Fact]
-        public void PacketReceive_PlayerHealth_EventTriggered()
-        {
-            // Set `State` to 10 so that the health packet is not ignored by the server.
-            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5, State = 10 };
-            Terraria.Main.player[5] = new Terraria.Player { whoAmI = 5 };
-
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            var isRun = false;
-            kernel.Events.RegisterHandler<PlayerHealthEvent>(evt =>
+            var packet = new ModulePacket<ChatModule>
             {
-                Assert.Same(playerService.Players[5], evt.Player);
-                Assert.Equal(100, evt.Health);
-                Assert.Equal(500, evt.MaxHealth);
-                isRun = true;
-            }, Logger.None);
+                Module = new ChatModule { ClientCommand = "Say", ClientMessage = "/command test" }
+            };
+            var sender = Mock.Of<IPlayer>();
+            var evt = new PacketReceiveEvent<ModulePacket<ChatModule>>(ref packet, sender);
 
-            TestUtils.FakeReceiveBytes(5, _playerHealthPacketBytes);
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(It.IsAny<PlayerChatEvent>(), log))
+                .Callback<PlayerChatEvent, ILogger>((evt, log) => evt.Cancel());
 
-            Assert.True(isRun);
-            Assert.Equal(100, Terraria.Main.player[5].statLife);
-            Assert.Equal(500, Terraria.Main.player[5].statLifeMax);
-        }
+            Assert.NotNull(registeredHandler);
+            registeredHandler!(evt);
 
-        [Fact]
-        public void PacketReceive_PlayerHealth_EventCanceled()
-        {
-            // Set `State` to 10 so that the health packet is not ignored by the server.
-            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5, State = 10 };
-            Terraria.Main.player[5] = new Terraria.Player { whoAmI = 5 };
+            Assert.True(evt.IsCanceled);
 
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            kernel.Events.RegisterHandler<PlayerHealthEvent>(evt => evt.Cancel(), Logger.None);
-
-            TestUtils.FakeReceiveBytes(5, _playerHealthPacketBytes);
-
-            Assert.Equal(100, Terraria.Main.player[5].statLife);
-            Assert.Equal(100, Terraria.Main.player[5].statLifeMax);
-        }
-
-        [Fact]
-        public void PacketReceive_PlayerPvp_EventTriggered()
-        {
-            // Set `State` to 10 so that the PvP packet is not ignored by the server.
-            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5, State = 10 };
-            Terraria.Main.player[5] = new Terraria.Player { whoAmI = 5 };
-
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            var isRun = false;
-            kernel.Events.RegisterHandler<PlayerPvpEvent>(evt =>
-            {
-                Assert.Same(playerService.Players[5], evt.Player);
-                Assert.True(evt.IsInPvp);
-                isRun = true;
-            }, Logger.None);
-
-            TestUtils.FakeReceiveBytes(5, _playerPvpPacketBytes);
-
-            Assert.True(isRun);
-            Assert.True(Terraria.Main.player[5].hostile);
-        }
-
-        [Fact]
-        public void PacketReceive_PlayerPvp_EventCanceled()
-        {
-            // Set `State` to 10 so that the PvP packet is not ignored by the server.
-            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5, State = 10 };
-            Terraria.Main.player[5] = new Terraria.Player { whoAmI = 5 };
-
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            kernel.Events.RegisterHandler<PlayerPvpEvent>(evt => evt.Cancel(), Logger.None);
-
-            TestUtils.FakeReceiveBytes(5, _playerPvpPacketBytes);
-
-            Assert.False(Terraria.Main.player[5].hostile);
-        }
-
-        [Fact]
-        public void PacketReceive_PlayerPassword_EventTriggered()
-        {
-            // Set `State` to -1 so that the password packet is not ignored by the server.
-            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5, State = -1 };
-            Terraria.Main.player[5] = new Terraria.Player { whoAmI = 5 };
-            Terraria.Netplay.ServerPassword = "Terraria";
-
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            var isRun = false;
-            kernel.Events.RegisterHandler<PlayerPasswordEvent>(evt =>
-            {
-                Assert.Same(playerService.Players[5], evt.Player);
-                Assert.Equal("Terraria", evt.Password);
-                isRun = true;
-            }, Logger.None);
-
-            TestUtils.FakeReceiveBytes(5, _clientPasswordPacketBytes);
-
-            Assert.True(isRun);
-            Assert.Equal(1, Terraria.Netplay.Clients[5].State);
-        }
-
-        [Fact]
-        public void PacketReceive_PlayerPassword_EventCanceled()
-        {
-            // Set `State` to -1 so that the password packet is not ignored by the server.
-            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5, State = -1 };
-            Terraria.Main.player[5] = new Terraria.Player { whoAmI = 5 };
-            Terraria.Netplay.ServerPassword = "Terraria";
-
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            kernel.Events.RegisterHandler<PlayerPasswordEvent>(evt => evt.Cancel(), Logger.None);
-
-            TestUtils.FakeReceiveBytes(5, _clientPasswordPacketBytes);
-
-            Assert.Equal(-1, Terraria.Netplay.Clients[5].State);
-        }
-
-        [Fact]
-        public void PacketReceive_PlayerMana_EventTriggered()
-        {
-            // Set `State` to 10 so that the mana packet is not ignored by the server.
-            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5, State = 10 };
-            Terraria.Main.player[5] = new Terraria.Player { whoAmI = 5 };
-
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            var isRun = false;
-            kernel.Events.RegisterHandler<PlayerManaEvent>(evt =>
-            {
-                Assert.Same(playerService.Players[5], evt.Player);
-                Assert.Equal(100, evt.Mana);
-                Assert.Equal(200, evt.MaxMana);
-                isRun = true;
-            }, Logger.None);
-
-            TestUtils.FakeReceiveBytes(5, _playerManaPacketBytes);
-
-            Assert.True(isRun);
-            Assert.Equal(100, Terraria.Main.player[5].statMana);
-            Assert.Equal(200, Terraria.Main.player[5].statManaMax);
-        }
-
-        [Fact]
-        public void PacketReceive_PlayerMana_EventCanceled()
-        {
-            // Set `State` to 10 so that the mana packet is not ignored by the server.
-            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5, State = 10 };
-            Terraria.Main.player[5] = new Terraria.Player { whoAmI = 5 };
-
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            kernel.Events.RegisterHandler<PlayerManaEvent>(evt => evt.Cancel(), Logger.None);
-
-            TestUtils.FakeReceiveBytes(5, _playerManaPacketBytes);
-
-            Assert.Equal(0, Terraria.Main.player[5].statMana);
-            Assert.Equal(20, Terraria.Main.player[5].statManaMax);
-        }
-
-        [Fact]
-        public void PacketReceive_PlayerTeam_EventTriggered()
-        {
-            // Set `State` to 10 so that the team packet is not ignored by the server. The socket must be set so that
-            // the team message doesn't fail.
-            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5, State = 10, Socket = new TestSocket() };
-            Terraria.Main.player[5] = new Terraria.Player { whoAmI = 5 };
-
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            var isRun = false;
-            kernel.Events.RegisterHandler<PlayerTeamEvent>(evt =>
-            {
-                Assert.Same(playerService.Players[5], evt.Player);
-                Assert.Equal(PlayerTeam.Red, evt.Team);
-                isRun = true;
-            }, Logger.None);
-
-            TestUtils.FakeReceiveBytes(5, _playerTeamPacketBytes);
-
-            Assert.True(isRun);
-            Assert.Equal(PlayerTeam.Red, (PlayerTeam)Terraria.Main.player[5].team);
-        }
-
-        [Fact]
-        public void PacketReceive_PlayerTeam_EventCanceled()
-        {
-            // Set `State` to 10 so that the team packet is not ignored by the server.
-            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5, State = 10 };
-            Terraria.Main.player[5] = new Terraria.Player { whoAmI = 5 };
-
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            kernel.Events.RegisterHandler<PlayerTeamEvent>(evt => evt.Cancel(), Logger.None);
-
-            TestUtils.FakeReceiveBytes(5, _playerTeamPacketBytes);
-
-            Assert.Equal(0, Terraria.Main.player[5].team);
-        }
-
-        [Fact]
-        public void PacketReceive_ClientUuid_EventTriggered()
-        {
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            var isRun = false;
-            kernel.Events.RegisterHandler<PlayerUuidEvent>(evt =>
-            {
-                Assert.Same(playerService.Players[5], evt.Player);
-                Assert.Equal("Terraria", evt.Uuid);
-                isRun = true;
-            }, Logger.None);
-
-            TestUtils.FakeReceiveBytes(5, _clientUuidPacketBytes);
-
-            Assert.True(isRun);
-        }
-
-        [Fact]
-        public void PacketReceive_ChatModule_EventTriggered()
-        {
-            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5 };
-
-            // Set up another player for the chat to be broadcast to.
-            var socket = new TestSocket { Connected = true };
-            Terraria.Netplay.Clients[6] = new Terraria.RemoteClient { Id = 6, State = 10, Socket = socket };
-            Terraria.Main.player[6] = new Terraria.Player { whoAmI = 6 };
-
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            var isRun = false;
-            kernel.Events.RegisterHandler<PlayerChatEvent>(evt =>
-            {
-                Assert.Same(playerService.Players[5], evt.Player);
-                Assert.Equal("Say", evt.Command);
-                Assert.Equal("/command test", evt.Message);
-                isRun = true;
-            }, Logger.None);
-
-            TestUtils.FakeReceiveBytes(5, _chatModuleBytes);
-
-            Assert.True(isRun);
-            Assert.NotEmpty(socket.SendData);
-        }
-
-        [Fact]
-        public void PacketReceive_ChatModule_EventCanceled()
-        {
-            // Set `State` to 10 so that the chat packet is not ignored by the server.
-            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5, State = 10 };
-            Terraria.Main.player[5] = new Terraria.Player { whoAmI = 5 };
-
-            // Set up another player for the chat to be broadcast to.
-            var socket = new TestSocket { Connected = true };
-            Terraria.Netplay.Clients[6] = new Terraria.RemoteClient { Id = 6, State = 10, Socket = socket };
-            Terraria.Main.player[6] = new Terraria.Player { whoAmI = 6 };
-
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            kernel.Events.RegisterHandler<PlayerChatEvent>(evt => evt.Cancel(), Logger.None);
-
-            TestUtils.FakeReceiveBytes(5, _chatModuleBytes);
-
-            Assert.Empty(socket.SendData);
+            Mock.Get(server.Events).VerifyAll();
         }
 
         [Fact]
         public void PacketSend_EventTriggered()
         {
-            var socket = new TestSocket { Connected = true };
-            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5, Socket = socket };
-
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            var isRun = false;
-            kernel.Events.RegisterHandler<PacketSendEvent<ClientConnectPacket>>(evt =>
+            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient
             {
-                Assert.Same(playerService.Players[5], evt.Receiver);
-                Assert.Equal("Terraria" + Terraria.Main.curRelease, evt.Packet.Version);
-                isRun = true;
-            }, Logger.None);
+                Id = 5,
+                Socket = Mock.Of<Terraria.Net.Sockets.ISocket>(s => s.IsConnected())
+            };
+
+            byte[]? sendData = null;
+            Mock.Get(Terraria.Netplay.Clients[5].Socket)
+                .Setup(s => s.AsyncSend(
+                    It.IsAny<byte[]>(), It.IsAny<int>(), It.IsAny<int>(),
+                    It.IsAny<Terraria.Net.Sockets.SocketSendCallback>(), It.IsAny<object>()))
+                .Callback<byte[], int, int, Terraria.Net.Sockets.SocketSendCallback, object>(
+                    (data, offset, size, callback, state) => sendData = data[offset..size]);
+
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var playerService = new OrionPlayerService(server, log);
+
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(
+                    It.Is<PacketSendEvent<ClientConnectPacket>>(
+                        evt => ((OrionPlayer)evt.Receiver).Wrapped == Terraria.Main.player[5]),
+                    log))
+                .Callback<PacketSendEvent<ClientConnectPacket>, ILogger>((evt, log) =>
+                {
+                    Assert.Equal("Terraria" + Terraria.Main.curRelease, evt.Packet.Version);
+                });
 
             Terraria.NetMessage.SendData((byte)PacketId.ClientConnect, 5);
 
-            Assert.True(isRun);
-            Assert.Equal(_serverConnectPacketBytes, socket.SendData);
+            Assert.NotNull(sendData);
+            Assert.Equal(_serverConnectPacketBytes, sendData!);
+
+            Mock.Get(Terraria.Netplay.Clients[5].Socket).VerifyAll();
+            Mock.Get(server.Events).VerifyAll();
         }
 
         [Fact]
         public void PacketSend_UnknownPacket_EventTriggered()
         {
-            var socket = new TestSocket { Connected = true };
-            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5, Socket = socket };
-
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            var isRun = false;
-            kernel.Events.RegisterHandler<PacketSendEvent<UnknownPacket>>(evt =>
+            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient
             {
-                Assert.Same(playerService.Players[5], evt.Receiver);
-                Assert.Equal((PacketId)25, evt.Packet.Id);
-                Assert.Equal(0, evt.Packet.Length);
-                isRun = true;
-            }, Logger.None);
+                Id = 5,
+                Socket = Mock.Of<Terraria.Net.Sockets.ISocket>(s => s.IsConnected())
+            };
+
+            byte[]? sendData = null;
+            Mock.Get(Terraria.Netplay.Clients[5].Socket)
+                .Setup(s => s.AsyncSend(
+                    It.IsAny<byte[]>(), It.IsAny<int>(), It.IsAny<int>(),
+                    It.IsAny<Terraria.Net.Sockets.SocketSendCallback>(), It.IsAny<object>()))
+                .Callback<byte[], int, int, Terraria.Net.Sockets.SocketSendCallback, object>(
+                    (data, offset, size, callback, state) => sendData = data[offset..size]);
+
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var playerService = new OrionPlayerService(server, log);
+
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(
+                    It.Is<PacketSendEvent<UnknownPacket>>(
+                        evt => ((OrionPlayer)evt.Receiver).Wrapped == Terraria.Main.player[5]),
+                    log))
+                .Callback<PacketSendEvent<UnknownPacket>, ILogger>((evt, log) =>
+                {
+                    Assert.Equal((PacketId)25, evt.Packet.Id);
+                    Assert.Equal(0, evt.Packet.Length);
+                });
 
             Terraria.NetMessage.SendData(25, 5);
 
-            Assert.True(isRun);
-            Assert.Equal(new byte[] { 3, 0, 25 }, socket.SendData);
+            Assert.NotNull(sendData);
+            Assert.Equal(new byte[] { 3, 0, 25 }, sendData!);
+
+            Mock.Get(Terraria.Netplay.Clients[5].Socket).VerifyAll();
+            Mock.Get(server.Events).VerifyAll();
         }
 
         [Fact]
         public void PacketSend_EventModified()
         {
-            var socket = new TestSocket { Connected = true };
-            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5, Socket = socket };
+            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient
+            {
+                Id = 5,
+                Socket = Mock.Of<Terraria.Net.Sockets.ISocket>(s => s.IsConnected())
+            };
 
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            kernel.Events.RegisterHandler<PacketSendEvent<ClientConnectPacket>>(
-                evt => evt.Packet.Version = string.Empty, Logger.None);
+            byte[]? sendData = null;
+            Mock.Get(Terraria.Netplay.Clients[5].Socket)
+                .Setup(s => s.AsyncSend(
+                    It.IsAny<byte[]>(), It.IsAny<int>(), It.IsAny<int>(),
+                    It.IsAny<Terraria.Net.Sockets.SocketSendCallback>(), It.IsAny<object>()))
+                .Callback<byte[], int, int, Terraria.Net.Sockets.SocketSendCallback, object>(
+                    (data, offset, size, callback, state) => sendData = data[offset..size]);
+
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var playerService = new OrionPlayerService(server, log);
+
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(It.IsAny<PacketSendEvent<ClientConnectPacket>>(), log))
+                .Callback<PacketSendEvent<ClientConnectPacket>, ILogger>((evt, log) => evt.Packet.Version = "");
 
             Terraria.NetMessage.SendData((byte)PacketId.ClientConnect, 5);
 
-            Assert.NotEqual(_serverConnectPacketBytes, socket.SendData);
+            Assert.NotNull(sendData);
+            Assert.NotEqual(_serverConnectPacketBytes, sendData!);
+
+            Mock.Get(Terraria.Netplay.Clients[5].Socket).VerifyAll();
+            Mock.Get(server.Events).VerifyAll();
         }
 
         [Fact]
         public void PacketSend_EventCanceled()
         {
-            var socket = new TestSocket { Connected = true };
-            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5, Socket = socket };
+            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient
+            {
+                Id = 5,
+                Socket = Mock.Of<Terraria.Net.Sockets.ISocket>(s => s.IsConnected())
+            };
 
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            kernel.Events.RegisterHandler<PacketSendEvent<ClientConnectPacket>>(evt => evt.Cancel(), Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var playerService = new OrionPlayerService(server, log);
+
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(It.IsAny<PacketSendEvent<ClientConnectPacket>>(), log))
+                .Callback<PacketSendEvent<ClientConnectPacket>, ILogger>((evt, log) => evt.Cancel());
 
             Terraria.NetMessage.SendData((byte)PacketId.ClientConnect, 5);
 
-            Assert.Empty(socket.SendData);
+            Mock.Get(Terraria.Netplay.Clients[5].Socket)
+                .Verify(
+                    s => s.AsyncSend(
+                        It.IsAny<byte[]>(), It.IsAny<int>(), It.IsAny<int>(),
+                        It.IsAny<Terraria.Net.Sockets.SocketSendCallback>(), It.IsAny<object>()),
+                    Times.Never);
+            Mock.Get(server.Events).VerifyAll();
         }
 
         [Fact]
-        public void PacketSend_ThrowsIOException()
+        public void PacketSend_AsyncSendThrowsIOException()
         {
-            var socket = new BuggySocket { Connected = true };
-            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5, Socket = socket };
+            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient
+            {
+                Id = 5,
+                Socket = Mock.Of<Terraria.Net.Sockets.ISocket>(s => s.IsConnected())
+            };
 
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
+            Mock.Get(Terraria.Netplay.Clients[5].Socket)
+                .Setup(s => s.AsyncSend(
+                    It.IsAny<byte[]>(), It.IsAny<int>(), It.IsAny<int>(),
+                    It.IsAny<Terraria.Net.Sockets.SocketSendCallback>(), It.IsAny<object>()))
+                .Throws<IOException>();
+
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var playerService = new OrionPlayerService(server, log);
+
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(It.IsAny<PacketSendEvent<ClientConnectPacket>>(), log));
 
             Terraria.NetMessage.SendData((byte)PacketId.ClientConnect, 5);
+
+            Mock.Get(Terraria.Netplay.Clients[5].Socket).VerifyAll();
+            Mock.Get(server.Events).VerifyAll();
         }
 
         [Fact]
         public void ModuleSend_EventTriggered()
         {
-            var socket = new TestSocket { Connected = true };
-            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5, Socket = socket };
-
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            var isRun = false;
-            kernel.Events.RegisterHandler<PacketSendEvent<ModulePacket<ChatModule>>>(evt =>
+            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient
             {
-                Assert.Same(playerService.Players[5], evt.Receiver);
-                Assert.Equal(1, evt.Packet.Module.ServerAuthorIndex);
-                Assert.Equal("test", evt.Packet.Module.ServerMessage);
-                Assert.Equal(Color3.White, evt.Packet.Module.ServerColor);
-                isRun = true;
-            }, Logger.None);
+                Id = 5,
+                Socket = Mock.Of<Terraria.Net.Sockets.ISocket>(s => s.IsConnected())
+            };
+
+            byte[]? sendData = null;
+            Mock.Get(Terraria.Netplay.Clients[5].Socket)
+                .Setup(s => s.AsyncSend(
+                    It.IsAny<byte[]>(), It.IsAny<int>(), It.IsAny<int>(),
+                    It.IsAny<Terraria.Net.Sockets.SocketSendCallback>(), It.IsAny<object>()))
+                .Callback<byte[], int, int, Terraria.Net.Sockets.SocketSendCallback, object>(
+                    (data, offset, size, callback, state) => sendData = data[offset..size]);
+
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var playerService = new OrionPlayerService(server, log);
+
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(
+                    It.Is<PacketSendEvent<ModulePacket<ChatModule>>>(
+                        evt => ((OrionPlayer)evt.Receiver).Wrapped == Terraria.Main.player[5]),
+                    log))
+                .Callback<PacketSendEvent<ModulePacket<ChatModule>>, ILogger>((evt, log) =>
+                {
+                    Assert.Equal(1, evt.Packet.Module.ServerAuthorIndex);
+                    Assert.Equal("test", evt.Packet.Module.ServerMessage);
+                    Assert.Equal(Color3.White, evt.Packet.Module.ServerColor);
+                });
 
             var packet = new Terraria.Net.NetPacket(1, 16);
             packet.Writer.Write((byte)1);
             Terraria.Localization.NetworkText.FromLiteral("test").Serialize(packet.Writer);
             Terraria.Utils.WriteRGB(packet.Writer, Microsoft.Xna.Framework.Color.White);
-            Terraria.Net.NetManager.Instance.SendData(socket, packet);
+            Terraria.Net.NetManager.Instance.SendData(Terraria.Netplay.Clients[5].Socket, packet);
 
-            Assert.True(isRun);
-            Assert.Equal(new byte[] { 15, 0, 82, 1, 0, 1, 0, 4, 116, 101, 115, 116, 255, 255, 255 }, socket.SendData);
+            Assert.NotNull(sendData);
+            Assert.Equal(new byte[] { 15, 0, 82, 1, 0, 1, 0, 4, 116, 101, 115, 116, 255, 255, 255 }, sendData!);
+
+            Mock.Get(Terraria.Netplay.Clients[5].Socket).VerifyAll();
+            Mock.Get(server.Events).VerifyAll();
         }
 
         [Fact]
         public void ModuleSend_UnknownModule_EventTriggered()
         {
-            var socket = new TestSocket { Connected = true };
-            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5, Socket = socket };
-
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            var isRun = false;
-            kernel.Events.RegisterHandler<PacketSendEvent<ModulePacket<UnknownModule>>>(evt =>
+            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient
             {
-                Assert.Same(playerService.Players[5], evt.Receiver);
-                Assert.Equal((ModuleId)65535, evt.Packet.Module.Id);
-                Assert.Equal(4, evt.Packet.Module.Length);
-                isRun = true;
-            }, Logger.None);
+                Id = 5,
+                Socket = Mock.Of<Terraria.Net.Sockets.ISocket>(s => s.IsConnected())
+            };
+
+            byte[]? sendData = null;
+            Mock.Get(Terraria.Netplay.Clients[5].Socket)
+                .Setup(s => s.AsyncSend(
+                    It.IsAny<byte[]>(), It.IsAny<int>(), It.IsAny<int>(),
+                    It.IsAny<Terraria.Net.Sockets.SocketSendCallback>(), It.IsAny<object>()))
+                .Callback<byte[], int, int, Terraria.Net.Sockets.SocketSendCallback, object>(
+                    (data, offset, size, callback, state) => sendData = data[offset..size]);
+
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var playerService = new OrionPlayerService(server, log);
+
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(
+                    It.Is<PacketSendEvent<ModulePacket<UnknownModule>>>(
+                        evt => ((OrionPlayer)evt.Receiver).Wrapped == Terraria.Main.player[5]),
+                    log))
+                .Callback<PacketSendEvent<ModulePacket<UnknownModule>>, ILogger>((evt, log) =>
+                {
+                    Assert.Equal((ModuleId)65535, evt.Packet.Module.Id);
+                    Assert.Equal(4, evt.Packet.Module.Length);
+                });
 
             var packet = new Terraria.Net.NetPacket(65535, 10);
             packet.Writer.Write(1234);
-            Terraria.Net.NetManager.Instance.SendData(socket, packet);
+            Terraria.Net.NetManager.Instance.SendData(Terraria.Netplay.Clients[5].Socket, packet);
 
-            Assert.True(isRun);
-            Assert.Equal(new byte[] { 9, 0, 82, 255, 255, 210, 4, 0, 0 }, socket.SendData);
+            Assert.NotNull(sendData);
+            Assert.Equal(new byte[] { 9, 0, 82, 255, 255, 210, 4, 0, 0 }, sendData!);
+
+            Mock.Get(Terraria.Netplay.Clients[5].Socket).VerifyAll();
+            Mock.Get(server.Events).VerifyAll();
         }
 
         [Fact]
         public void ModuleSend_EventModified()
         {
-            var socket = new TestSocket { Connected = true };
-            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5, Socket = socket };
+            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient
+            {
+                Id = 5,
+                Socket = Mock.Of<Terraria.Net.Sockets.ISocket>(s => s.IsConnected())
+            };
 
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            kernel.Events.RegisterHandler<PacketSendEvent<ModulePacket<ChatModule>>>(
-                evt => evt.Packet.Module.ServerColor = Color3.Black, Logger.None);
+            byte[]? sendData = null;
+            Mock.Get(Terraria.Netplay.Clients[5].Socket)
+                .Setup(s => s.AsyncSend(
+                    It.IsAny<byte[]>(), It.IsAny<int>(), It.IsAny<int>(),
+                    It.IsAny<Terraria.Net.Sockets.SocketSendCallback>(), It.IsAny<object>()))
+                .Callback<byte[], int, int, Terraria.Net.Sockets.SocketSendCallback, object>(
+                    (data, offset, size, callback, state) => sendData = data[offset..size]);
+
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var playerService = new OrionPlayerService(server, log);
+
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(It.IsAny<PacketSendEvent<ModulePacket<ChatModule>>>(), log))
+                .Callback<PacketSendEvent<ModulePacket<ChatModule>>, ILogger>(
+                    (evt, log) => evt.Packet.Module.ServerColor = Color3.Black);
 
             var packet = new Terraria.Net.NetPacket(1, 16);
             packet.Writer.Write((byte)1);
             Terraria.Localization.NetworkText.FromLiteral("test").Serialize(packet.Writer);
             Terraria.Utils.WriteRGB(packet.Writer, Microsoft.Xna.Framework.Color.White);
-            Terraria.Net.NetManager.Instance.SendData(socket, packet);
+            Terraria.Net.NetManager.Instance.SendData(Terraria.Netplay.Clients[5].Socket, packet);
 
-            Assert.Equal(new byte[] { 15, 0, 82, 1, 0, 1, 0, 4, 116, 101, 115, 116, 0, 0, 0 }, socket.SendData);
+            Assert.NotNull(sendData);
+            Assert.Equal(new byte[] { 15, 0, 82, 1, 0, 1, 0, 4, 116, 101, 115, 116, 0, 0, 0 }, sendData!);
+
+            Mock.Get(Terraria.Netplay.Clients[5].Socket).VerifyAll();
+            Mock.Get(server.Events).VerifyAll();
         }
 
         [Fact]
         public void ModuleSend_EventCanceled()
         {
-            var socket = new TestSocket { Connected = true };
-            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5, Socket = socket };
+            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient
+            {
+                Id = 5,
+                Socket = Mock.Of<Terraria.Net.Sockets.ISocket>(s => s.IsConnected())
+            };
 
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            kernel.Events.RegisterHandler<PacketSendEvent<ModulePacket<ChatModule>>>(evt => evt.Cancel(), Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var playerService = new OrionPlayerService(server, log);
+
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(It.IsAny<PacketSendEvent<ModulePacket<ChatModule>>>(), log))
+                .Callback<PacketSendEvent<ModulePacket<ChatModule>>, ILogger>((evt, log) => evt.Cancel());
 
             var packet = new Terraria.Net.NetPacket(1, 16);
             packet.Writer.Write((byte)1);
             Terraria.Localization.NetworkText.FromLiteral("test").Serialize(packet.Writer);
             Terraria.Utils.WriteRGB(packet.Writer, Microsoft.Xna.Framework.Color.White);
-            Terraria.Net.NetManager.Instance.SendData(socket, packet);
+            Terraria.Net.NetManager.Instance.SendData(Terraria.Netplay.Clients[5].Socket, packet);
 
-            Assert.Empty(socket.SendData);
+            Mock.Get(Terraria.Netplay.Clients[5].Socket)
+                .Verify(
+                    s => s.AsyncSend(
+                        It.IsAny<byte[]>(), It.IsAny<int>(), It.IsAny<int>(),
+                        It.IsAny<Terraria.Net.Sockets.SocketSendCallback>(), It.IsAny<object>()),
+                    Times.Never);
+            Mock.Get(server.Events).VerifyAll();
         }
 
         [Fact]
-        public void ModuleSend_ThrowsIOException()
+        public void ModuleSend_AsyncSendThrowsIOException()
         {
-            var socket = new BuggySocket { Connected = true };
-            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5, Socket = socket };
+            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient
+            {
+                Id = 5,
+                Socket = Mock.Of<Terraria.Net.Sockets.ISocket>(s => s.IsConnected())
+            };
 
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
+            Mock.Get(Terraria.Netplay.Clients[5].Socket)
+                .Setup(s => s.AsyncSend(
+                    It.IsAny<byte[]>(), It.IsAny<int>(), It.IsAny<int>(),
+                    It.IsAny<Terraria.Net.Sockets.SocketSendCallback>(), It.IsAny<object>()))
+                .Throws<IOException>();
+
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var playerService = new OrionPlayerService(server, log);
+
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(It.IsAny<PacketSendEvent<ModulePacket<ChatModule>>>(), log));
 
             var packet = new Terraria.Net.NetPacket(1, 16);
             packet.Writer.Write((byte)1);
             Terraria.Localization.NetworkText.FromLiteral("test").Serialize(packet.Writer);
             Terraria.Utils.WriteRGB(packet.Writer, Microsoft.Xna.Framework.Color.White);
-            Terraria.Net.NetManager.Instance.SendData(socket, packet);
-        }
+            Terraria.Net.NetManager.Instance.SendData(Terraria.Netplay.Clients[5].Socket, packet);
 
-        private class TestSocket : Terraria.Net.Sockets.ISocket
-        {
-            public bool Connected { get; set; }
-            public byte[] SendData { get; private set; } = Array.Empty<byte>();
-
-            public void AsyncReceive(
-                byte[] data, int offset, int size, Terraria.Net.Sockets.SocketReceiveCallback callback,
-                object? state = null) =>
-                    throw new NotImplementedException();
-            public void AsyncSend(
-                byte[] data, int offset, int size, Terraria.Net.Sockets.SocketSendCallback callback,
-                object? state = null) =>
-                    SendData = data[offset..(offset + size)];
-            public void Close() => throw new NotImplementedException();
-            public void Connect(Terraria.Net.RemoteAddress address) => throw new NotImplementedException();
-            public Terraria.Net.RemoteAddress GetRemoteAddress() => throw new NotImplementedException();
-            public bool IsConnected() => Connected;
-            public bool IsDataAvailable() => throw new NotImplementedException();
-            public void SendQueuedPackets() => throw new NotImplementedException();
-            public bool StartListening(Terraria.Net.Sockets.SocketConnectionAccepted callback) =>
-                throw new NotImplementedException();
-            public void StopListening() => throw new NotImplementedException();
-        }
-
-        private class BuggySocket : Terraria.Net.Sockets.ISocket
-        {
-            public bool Connected { get; set; }
-
-            public void AsyncReceive(
-                byte[] data, int offset, int size, Terraria.Net.Sockets.SocketReceiveCallback callback,
-                object? state = null) =>
-                    throw new NotImplementedException();
-            public void AsyncSend(
-                byte[] data, int offset, int size, Terraria.Net.Sockets.SocketSendCallback callback,
-                object? state = null) =>
-                    throw new IOException();
-            public void Close() => throw new NotImplementedException();
-            public void Connect(Terraria.Net.RemoteAddress address) => throw new NotImplementedException();
-            public Terraria.Net.RemoteAddress GetRemoteAddress() => throw new NotImplementedException();
-            public bool IsConnected() => Connected;
-            public bool IsDataAvailable() => throw new NotImplementedException();
-            public void SendQueuedPackets() => throw new NotImplementedException();
-            public bool StartListening(Terraria.Net.Sockets.SocketConnectionAccepted callback) =>
-                throw new NotImplementedException();
-            public void StopListening() => throw new NotImplementedException();
+            Mock.Get(Terraria.Netplay.Clients[5].Socket).VerifyAll();
+            Mock.Get(server.Events).VerifyAll();
         }
     }
 }

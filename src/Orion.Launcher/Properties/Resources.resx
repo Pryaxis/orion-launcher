@@ -117,7 +117,16 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="InitializedPlugin" xml:space="preserve">
+    <value>Initialized {PluginName} v{PluginVersion} by {PluginAuthor}</value>
+  </data>
+  <data name="LoadedPlugin" xml:space="preserve">
+    <value>Loaded {PluginName}</value>
+  </data>
   <data name="UnhandledExceptionMessage" xml:space="preserve">
     <value>Unhandled exception</value>
+  </data>
+  <data name="UnloadedPlugin" xml:space="preserve">
+    <value>Unloaded {PluginName}</value>
   </data>
 </root>

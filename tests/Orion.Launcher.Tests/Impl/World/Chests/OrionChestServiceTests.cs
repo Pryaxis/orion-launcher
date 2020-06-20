@@ -17,14 +17,15 @@
 
 using System;
 using System.Linq;
+using Moq;
 using Orion.Core;
+using Orion.Core.Events;
+using Orion.Core.Events.Packets;
 using Orion.Core.Events.World.Chests;
 using Orion.Core.Items;
 using Orion.Core.Packets.World.Chests;
 using Orion.Core.Players;
-using Orion.Core.World.Tiles;
-using Orion.Launcher.Impl.Players;
-using Serilog.Core;
+using Serilog;
 using Xunit;
 
 namespace Orion.Launcher.Impl.World.Chests
@@ -33,16 +34,14 @@ namespace Orion.Launcher.Impl.World.Chests
     [Collection("TerrariaTestsCollection")]
     public class OrionChestServiceTests
     {
-        private static readonly byte[] _chestOpenPacketBytes = { 7, 0, 31, 0, 1, 100, 0 };
-        private static readonly byte[] _chestInventoryPacketBytes = { 11, 0, 32, 5, 0, 2, 1, 0, 82, 17, 6 };
-
         [Theory]
         [InlineData(-1)]
         [InlineData(10000)]
         public void Chests_Item_GetInvalidIndex_ThrowsIndexOutOfRangeException(int index)
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var chestService = new OrionChestService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var chestService = new OrionChestService(server, log);
 
             Assert.Throws<IndexOutOfRangeException>(() => chestService.Chests[index]);
         }
@@ -52,8 +51,10 @@ namespace Orion.Launcher.Impl.World.Chests
         {
             Terraria.Main.chest[1] = new Terraria.Chest();
 
-            using var kernel = new OrionKernel(Logger.None);
-            using var chestService = new OrionChestService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var chestService = new OrionChestService(server, log);
+
             var chest = chestService.Chests[1];
 
             Assert.Equal(1, chest.Index);
@@ -65,8 +66,9 @@ namespace Orion.Launcher.Impl.World.Chests
         {
             Terraria.Main.chest[0] = new Terraria.Chest();
 
-            using var kernel = new OrionKernel(Logger.None);
-            using var chestService = new OrionChestService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var chestService = new OrionChestService(server, log);
 
             var chest = chestService.Chests[0];
             var chest2 = chestService.Chests[0];
@@ -82,8 +84,9 @@ namespace Orion.Launcher.Impl.World.Chests
                 Terraria.Main.chest[i] = new Terraria.Chest();
             }
 
-            using var kernel = new OrionKernel(Logger.None);
-            using var chestService = new OrionChestService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var chestService = new OrionChestService(server, log);
 
             var chests = chestService.Chests.ToList();
 
@@ -96,147 +99,168 @@ namespace Orion.Launcher.Impl.World.Chests
         [Fact]
         public void PacketReceive_ChestOpen_EventTriggered()
         {
-            // Set `State` to 10 so that the chest open packet is not ignored by the server.
-            var socket = new TestSocket { Connected = true };
-            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5, State = 10, Socket = socket };
-            Terraria.Main.player[5] = new Terraria.Player { whoAmI = 5 };
-            Terraria.Main.tile[256, 100] = new Terraria.Tile { type = (ushort)BlockId.Chests };
             Terraria.Main.chest[0] = new Terraria.Chest { x = 256, y = 100, name = "test" };
 
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            using var chestService = new OrionChestService(kernel, Logger.None);
+            Action<PacketReceiveEvent<ChestOpenPacket>>? registeredHandler = null;
 
-            var isRun = false;
-            kernel.Events.RegisterHandler<ChestOpenEvent>(evt =>
-            {
-                Assert.Same(chestService.Chests[0], evt.Chest);
-                Assert.Same(playerService.Players[5], evt.Player);
-                isRun = true;
-            }, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            Mock.Get(server.Events)
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<ChestOpenPacket>>>(), log))
+                .Callback<Action<PacketReceiveEvent<ChestOpenPacket>>, ILogger>(
+                    (handler, log) => registeredHandler = handler);
 
-            TestUtils.FakeReceiveBytes(5, _chestOpenPacketBytes);
+            using var chestService = new OrionChestService(server, log);
 
-            Assert.True(isRun);
-            Assert.NotEmpty(socket.SendData);
+            var packet = new ChestOpenPacket { X = 256, Y = 100 };
+            var sender = Mock.Of<IPlayer>();
+            var evt = new PacketReceiveEvent<ChestOpenPacket>(ref packet, sender);
+
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(
+                    It.Is<ChestOpenEvent>(evt => evt.Player == sender && evt.Chest == chestService.Chests[0]), log));
+
+            Assert.NotNull(registeredHandler);
+            registeredHandler!(evt);
+
+            Mock.Get(server.Events).VerifyAll();
         }
 
         [Fact]
         public void PacketReceive_ChestOpen_EventCanceled()
         {
-            // Set `State` to 10 so that the chest open packet is not ignored by the server.
-            var socket = new TestSocket { Connected = true };
-            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5, State = 10, Socket = socket };
-            Terraria.Main.player[5] = new Terraria.Player { whoAmI = 5 };
-            Terraria.Main.tile[256, 100] = new Terraria.Tile { type = (ushort)BlockId.Chests };
             Terraria.Main.chest[0] = new Terraria.Chest { x = 256, y = 100, name = "test" };
 
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            using var chestService = new OrionChestService(kernel, Logger.None);
+            Action<PacketReceiveEvent<ChestOpenPacket>>? registeredHandler = null;
 
-            kernel.Events.RegisterHandler<ChestOpenEvent>(evt => evt.Cancel(), Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            Mock.Get(server.Events)
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<ChestOpenPacket>>>(), log))
+                .Callback<Action<PacketReceiveEvent<ChestOpenPacket>>, ILogger>(
+                    (handler, log) => registeredHandler = handler);
 
-            TestUtils.FakeReceiveBytes(5, _chestOpenPacketBytes);
+            using var chestService = new OrionChestService(server, log);
 
-            Assert.Empty(socket.SendData);
+            var packet = new ChestOpenPacket { X = 256, Y = 100 };
+            var sender = Mock.Of<IPlayer>();
+            var evt = new PacketReceiveEvent<ChestOpenPacket>(ref packet, sender);
+
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(It.IsAny<ChestOpenEvent>(), log))
+                .Callback<ChestOpenEvent, ILogger>((evt, log) => evt.Cancel());
+
+            Assert.NotNull(registeredHandler);
+            registeredHandler!(evt);
+
+            Assert.True(evt.IsCanceled);
+
+            Mock.Get(server.Events).VerifyAll();
         }
 
         [Fact]
         public void PacketReceive_ChestOpen_EventNotTriggered()
         {
-            // Set `State` to 10 so that the chest open packet is not ignored by the server.
-            var socket = new TestSocket { Connected = true };
-            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5, State = 10, Socket = socket };
-            Terraria.Main.player[5] = new Terraria.Player { whoAmI = 5 };
-            Terraria.Main.tile[256, 100] = new Terraria.Tile { type = (ushort)BlockId.Chests };
-            Terraria.Main.chest[0] = new Terraria.Chest { x = 255, y = 100, name = "test" };
+            for (var i = 0; i < Terraria.Sign.maxSigns; ++i)
+            {
+                Terraria.Main.sign[i] = new Terraria.Sign();
+            }
 
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            using var chestService = new OrionChestService(kernel, Logger.None);
+            Action<PacketReceiveEvent<ChestOpenPacket>>? registeredHandler = null;
 
-            var isRun = false;
-            kernel.Events.RegisterHandler<ChestOpenEvent>(evt => isRun = true, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            Mock.Get(server.Events)
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<ChestOpenPacket>>>(), log))
+                .Callback<Action<PacketReceiveEvent<ChestOpenPacket>>, ILogger>(
+                    (handler, log) => registeredHandler = handler);
 
-            TestUtils.FakeReceiveBytes(5, _chestOpenPacketBytes);
+            using var chestService = new OrionChestService(server, log);
 
-            Assert.False(isRun);
+            var packet = new ChestOpenPacket { X = 256, Y = 100 };
+            var sender = Mock.Of<IPlayer>();
+            var evt = new PacketReceiveEvent<ChestOpenPacket>(ref packet, sender);
+
+            Assert.NotNull(registeredHandler);
+            registeredHandler!(evt);
+
+            Mock.Get(server.Events)
+                .Verify(em => em.Raise(It.IsAny<ChestOpenEvent>(), log), Times.Never);
         }
 
         [Fact]
         public void PacketReceive_ChestInventory_EventTriggered()
         {
-            // Set `State` to 10 so that the chest inventory packet is not ignored by the server.
-            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5, State = 10 };
-            Terraria.Main.player[5] = new Terraria.Player { whoAmI = 5 };
             Terraria.Main.chest[5] = new Terraria.Chest();
-            Terraria.Main.chest[5].item[2] = new Terraria.Item();
 
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            using var chestService = new OrionChestService(kernel, Logger.None);
+            Action<PacketReceiveEvent<ChestInventoryPacket>>? registeredHandler = null;
 
-            var isRun = false;
-            kernel.Events.RegisterHandler<ChestInventoryEvent>(evt =>
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            Mock.Get(server.Events)
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<ChestInventoryPacket>>>(), log))
+                .Callback<Action<PacketReceiveEvent<ChestInventoryPacket>>, ILogger>(
+                    (handler, log) => registeredHandler = handler);
+
+            using var chestService = new OrionChestService(server, log);
+
+            var packet = new ChestInventoryPacket
             {
-                Assert.Same(chestService.Chests[5], evt.Chest);
-                Assert.Same(playerService.Players[5], evt.Player);
-                Assert.Equal(2, evt.Slot);
-                Assert.Equal(new ItemStack(ItemId.Sdmg, 1, ItemPrefix.Unreal), evt.ItemStack);
-                isRun = true;
-            }, Logger.None);
+                ChestIndex = 5,
+                Id = ItemId.Sdmg,
+                StackSize = 1,
+                Prefix = ItemPrefix.Unreal
+            };
+            var sender = Mock.Of<IPlayer>();
+            var evt = new PacketReceiveEvent<ChestInventoryPacket>(ref packet, sender);
 
-            TestUtils.FakeReceiveBytes(5, _chestInventoryPacketBytes);
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(
+                    It.Is<ChestInventoryEvent>(
+                        evt => evt.Player == sender && evt.Chest == chestService.Chests[5] &&
+                            evt.ItemStack == new ItemStack(ItemId.Sdmg, 1, ItemPrefix.Unreal)),
+                    log));
 
-            Assert.True(isRun);
-            Assert.Equal(ItemId.Sdmg, (ItemId)Terraria.Main.chest[5].item[2].type);
-            Assert.Equal(1, Terraria.Main.chest[5].item[2].stack);
-            Assert.Equal(ItemPrefix.Unreal, (ItemPrefix)Terraria.Main.chest[5].item[2].prefix);
+            Assert.NotNull(registeredHandler);
+            registeredHandler!(evt);
+
+            Mock.Get(server.Events).VerifyAll();
         }
 
         [Fact]
         public void PacketReceive_ChestInventory_EventCanceled()
         {
-            // Set `State` to 10 so that the chest inventory packet is not ignored by the server.
-            Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5, State = 10 };
-            Terraria.Main.player[5] = new Terraria.Player { whoAmI = 5 };
-            Terraria.Main.chest[5] = new Terraria.Chest();
-            Terraria.Main.chest[5].item[2] = new Terraria.Item();
+            Action<PacketReceiveEvent<ChestInventoryPacket>>? registeredHandler = null;
 
-            using var kernel = new OrionKernel(Logger.None);
-            using var playerService = new OrionPlayerService(kernel, Logger.None);
-            using var chestService = new OrionChestService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            Mock.Get(server.Events)
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<ChestInventoryPacket>>>(), log))
+                .Callback<Action<PacketReceiveEvent<ChestInventoryPacket>>, ILogger>(
+                    (handler, log) => registeredHandler = handler);
 
-            kernel.Events.RegisterHandler<ChestInventoryEvent>(evt => evt.Cancel(), Logger.None);
+            using var chestService = new OrionChestService(server, log);
 
-            TestUtils.FakeReceiveBytes(5, _chestInventoryPacketBytes);
+            var packet = new ChestInventoryPacket
+            {
+                ChestIndex = 5,
+                Id = ItemId.Sdmg,
+                StackSize = 1,
+                Prefix = ItemPrefix.Unreal
+            };
+            var sender = Mock.Of<IPlayer>();
+            var evt = new PacketReceiveEvent<ChestInventoryPacket>(ref packet, sender);
 
-            Assert.Equal(ItemId.None, (ItemId)Terraria.Main.chest[5].item[2].type);
-        }
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(It.IsAny<ChestInventoryEvent>(), log))
+                .Callback<ChestInventoryEvent, ILogger>((evt, log) => evt.Cancel());
 
-        private class TestSocket : Terraria.Net.Sockets.ISocket
-        {
-            public bool Connected { get; set; }
-            public byte[] SendData { get; private set; } = Array.Empty<byte>();
+            Assert.NotNull(registeredHandler);
+            registeredHandler!(evt);
 
-            public void AsyncReceive(
-                byte[] data, int offset, int size, Terraria.Net.Sockets.SocketReceiveCallback callback,
-                object? state = null) =>
-                    throw new NotImplementedException();
-            public void AsyncSend(
-                byte[] data, int offset, int size, Terraria.Net.Sockets.SocketSendCallback callback,
-                object? state = null) =>
-                    SendData = data[offset..(offset + size)];
-            public void Close() => throw new NotImplementedException();
-            public void Connect(Terraria.Net.RemoteAddress address) => throw new NotImplementedException();
-            public Terraria.Net.RemoteAddress GetRemoteAddress() => throw new NotImplementedException();
-            public bool IsConnected() => Connected;
-            public bool IsDataAvailable() => throw new NotImplementedException();
-            public void SendQueuedPackets() => throw new NotImplementedException();
-            public bool StartListening(Terraria.Net.Sockets.SocketConnectionAccepted callback) =>
-                throw new NotImplementedException();
-            public void StopListening() => throw new NotImplementedException();
+            Assert.True(evt.IsCanceled);
+
+            Mock.Get(server.Events).VerifyAll();
         }
     }
 }

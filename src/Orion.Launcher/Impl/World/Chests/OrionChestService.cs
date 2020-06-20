@@ -19,12 +19,10 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Orion.Core;
-using Orion.Core.Collections;
 using Orion.Core.Events;
 using Orion.Core.Events.Packets;
 using Orion.Core.Events.World.Chests;
-using Orion.Core.Framework.Events;
-using Orion.Core.Framework.Extensions;
+using Orion.Core.Framework;
 using Orion.Core.Items;
 using Orion.Core.Packets.World.Chests;
 using Orion.Core.World.Chests;
@@ -35,20 +33,20 @@ namespace Orion.Launcher.Impl.World.Chests
     [Binding("orion-chests", Author = "Pryaxis", Priority = BindingPriority.Lowest)]
     internal sealed class OrionChestService : OrionExtension, IChestService
     {
-        public OrionChestService(OrionKernel kernel, ILogger log) : base(kernel, log)
+        public OrionChestService(IServer server, ILogger log) : base(server, log)
         {
             // Construct the `Chests` array.
             Chests = new WrappedReadOnlyList<OrionChest, Terraria.Chest?>(
                 Terraria.Main.chest, (chestIndex, terrariaChest) => new OrionChest(chestIndex, terrariaChest));
 
-            Kernel.Events.RegisterHandlers(this, Log);
+            Server.Events.RegisterHandlers(this, Log);
         }
 
         public IReadOnlyList<IChest> Chests { get; }
 
         public override void Dispose()
         {
-            Kernel.Events.DeregisterHandlers(this, Log);
+            Server.Events.DeregisterHandlers(this, Log);
         }
 
         private IChest? FindChest(int x, int y) => Chests.FirstOrDefault(s => s.IsActive && s.X == x && s.Y == y);
@@ -84,7 +82,7 @@ namespace Orion.Launcher.Impl.World.Chests
         // Forwards `evt` as `newEvt`.
         private void ForwardEvent<TEvent>(Event evt, TEvent newEvt) where TEvent : Event
         {
-            Kernel.Events.Raise(newEvt, Log);
+            Server.Events.Raise(newEvt, Log);
             if (newEvt.IsCanceled)
             {
                 evt.Cancel(newEvt.CancellationReason);

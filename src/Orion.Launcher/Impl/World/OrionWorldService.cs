@@ -22,8 +22,7 @@ using Orion.Core.Events;
 using Orion.Core.Events.Packets;
 using Orion.Core.Events.World;
 using Orion.Core.Events.World.Tiles;
-using Orion.Core.Framework.Events;
-using Orion.Core.Framework.Extensions;
+using Orion.Core.Framework;
 using Orion.Core.Packets.World.Tiles;
 using Orion.Core.World;
 using Orion.Core.World.Tiles;
@@ -36,7 +35,7 @@ namespace Orion.Launcher.Impl.World
     {
         private readonly TileCollection _tileCollection;
 
-        public OrionWorldService(OrionKernel kernel, ILogger log) : base(kernel, log)
+        public OrionWorldService(IServer server, ILogger log) : base(server, log)
         {
             // Check if `Terraria.Main.tile` is already a `TileCollection`. This is only useful in tests, where
             // multiple `OrionWorldService` instances may be constructed.
@@ -53,7 +52,7 @@ namespace Orion.Launcher.Impl.World
             OTAPI.Hooks.World.IO.PostLoadWorld = PostLoadWorldHandler;
             OTAPI.Hooks.World.IO.PreSaveWorld = PreSaveWorldHandler;
 
-            Kernel.Events.RegisterHandlers(this, Log);
+            Server.Events.RegisterHandlers(this, Log);
         }
 
         public IWorld World => _tileCollection.World;
@@ -63,7 +62,7 @@ namespace Orion.Launcher.Impl.World
             OTAPI.Hooks.World.IO.PostLoadWorld = null;
             OTAPI.Hooks.World.IO.PreSaveWorld = null;
 
-            Kernel.Events.DeregisterHandlers(this, Log);
+            Server.Events.DeregisterHandlers(this, Log);
         }
 
         // =============================================================================================================
@@ -73,13 +72,13 @@ namespace Orion.Launcher.Impl.World
         private void PostLoadWorldHandler(bool loadFromCloud)
         {
             var evt = new WorldLoadedEvent(World);
-            Kernel.Events.Raise(evt, Log);
+            Server.Events.Raise(evt, Log);
         }
 
         private OTAPI.HookResult PreSaveWorldHandler(ref bool useCloudSaving, ref bool resetTime)
         {
             var evt = new WorldSaveEvent(World);
-            Kernel.Events.Raise(evt, Log);
+            Server.Events.Raise(evt, Log);
             return evt.IsCanceled ? OTAPI.HookResult.Cancel : OTAPI.HookResult.Continue;
         }
 
@@ -112,7 +111,7 @@ namespace Orion.Launcher.Impl.World
 
             Event Raise<TEvent>(TEvent newEvt) where TEvent : Event
             {
-                Kernel.Events.Raise(newEvt, Log);
+                Server.Events.Raise(newEvt, Log);
                 return newEvt;
             }
 
@@ -179,7 +178,7 @@ namespace Orion.Launcher.Impl.World
         // Forwards `evt` as `newEvt`.
         private void ForwardEvent<TEvent>(Event evt, TEvent newEvt) where TEvent : Event
         {
-            Kernel.Events.Raise(newEvt, Log);
+            Server.Events.Raise(newEvt, Log);
             if (newEvt.IsCanceled)
             {
                 evt.Cancel(newEvt.CancellationReason);

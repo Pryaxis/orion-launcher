@@ -19,12 +19,10 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Orion.Core;
-using Orion.Core.Collections;
 using Orion.Core.Events;
 using Orion.Core.Events.Packets;
 using Orion.Core.Events.World.Signs;
-using Orion.Core.Framework.Events;
-using Orion.Core.Framework.Extensions;
+using Orion.Core.Framework;
 using Orion.Core.Packets.World.Signs;
 using Orion.Core.World.Signs;
 using Serilog;
@@ -34,20 +32,20 @@ namespace Orion.Launcher.Impl.World.Signs
     [Binding("orion-signs", Author = "Pryaxis", Priority = BindingPriority.Lowest)]
     internal sealed class OrionSignService : OrionExtension, ISignService
     {
-        public OrionSignService(OrionKernel kernel, ILogger log) : base(kernel, log)
+        public OrionSignService(IServer server, ILogger log) : base(server, log)
         {
             // Construct the `Signs` array.
             Signs = new WrappedReadOnlyList<OrionSign, Terraria.Sign?>(
                 Terraria.Main.sign, (signIndex, terrariaSign) => new OrionSign(signIndex, terrariaSign));
 
-            Kernel.Events.RegisterHandlers(this, Log);
+            Server.Events.RegisterHandlers(this, Log);
         }
 
         public IReadOnlyList<ISign> Signs { get; }
 
         public override void Dispose()
         {
-            Kernel.Events.DeregisterHandlers(this, Log);
+            Server.Events.DeregisterHandlers(this, Log);
         }
 
         private ISign? FindSign(int x, int y) => Signs.FirstOrDefault(s => s.IsActive && s.X == x && s.Y == y);
@@ -73,7 +71,7 @@ namespace Orion.Launcher.Impl.World.Signs
         // Forwards `evt` as `newEvt`.
         private void ForwardEvent<TEvent>(Event evt, TEvent newEvt) where TEvent : Event
         {
-            Kernel.Events.Raise(newEvt, Log);
+            Server.Events.Raise(newEvt, Log);
             if (newEvt.IsCanceled)
             {
                 evt.Cancel(newEvt.CancellationReason);

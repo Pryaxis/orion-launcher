@@ -17,7 +17,6 @@
 
 using System;
 using System.Linq;
-using Orion.Core.Entities;
 using Xunit;
 
 namespace Orion.Launcher.Impl

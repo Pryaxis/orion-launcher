@@ -17,11 +17,13 @@
 
 using System;
 using System.Linq;
+using Moq;
 using Orion.Core;
 using Orion.Core.DataStructures;
+using Orion.Core.Events;
 using Orion.Core.Events.Projectiles;
 using Orion.Core.Projectiles;
-using Serilog.Core;
+using Serilog;
 using Xunit;
 
 namespace Orion.Launcher.Impl.Projectiles
@@ -35,8 +37,9 @@ namespace Orion.Launcher.Impl.Projectiles
         [InlineData(10000)]
         public void Projectiles_Item_GetInvalidIndex_ThrowsIndexOutOfRangeException(int index)
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var projectileService = new OrionProjectileService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var projectileService = new OrionProjectileService(server, log);
 
             Assert.Throws<IndexOutOfRangeException>(() => projectileService.Projectiles[index]);
         }
@@ -44,8 +47,10 @@ namespace Orion.Launcher.Impl.Projectiles
         [Fact]
         public void Projectiles_Item_Get()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var projectileService = new OrionProjectileService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var projectileService = new OrionProjectileService(server, log);
+
             var projectile = projectileService.Projectiles[1];
 
             Assert.Equal(1, projectile.Index);
@@ -55,8 +60,9 @@ namespace Orion.Launcher.Impl.Projectiles
         [Fact]
         public void Projectiles_Item_GetMultipleTimes_ReturnsSameInstance()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var projectileService = new OrionProjectileService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var projectileService = new OrionProjectileService(server, log);
 
             var projectile = projectileService.Projectiles[0];
             var projectile2 = projectileService.Projectiles[0];
@@ -67,8 +73,9 @@ namespace Orion.Launcher.Impl.Projectiles
         [Fact]
         public void Projectiles_GetEnumerator()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var projectileService = new OrionProjectileService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var projectileService = new OrionProjectileService(server, log);
 
             var projectiles = projectileService.Projectiles.ToList();
 
@@ -81,22 +88,22 @@ namespace Orion.Launcher.Impl.Projectiles
         [Fact]
         public void ProjectileDefaults_EventTriggered()
         {
-            Terraria.Main.projectile[0] = new Terraria.Projectile { whoAmI = 0 };
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var projectileService = new OrionProjectileService(server, log);
 
-            using var kernel = new OrionKernel(Logger.None);
-            using var projectileService = new OrionProjectileService(kernel, Logger.None);
-            var isRun = false;
-            kernel.Events.RegisterHandler<ProjectileDefaultsEvent>(evt =>
-            {
-                Assert.Same(Terraria.Main.projectile[0], ((OrionProjectile)evt.Projectile).Wrapped);
-                Assert.Equal(ProjectileId.CrystalBullet, evt.Id);
-                isRun = true;
-            }, Logger.None);
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(
+                    It.Is<ProjectileDefaultsEvent>(
+                        evt => ((OrionProjectile)evt.Projectile).Wrapped == Terraria.Main.projectile[0] &&
+                            evt.Id == ProjectileId.CrystalBullet),
+                    log));
 
             Terraria.Main.projectile[0].SetDefaults((int)ProjectileId.CrystalBullet);
 
-            Assert.True(isRun);
             Assert.Equal(ProjectileId.CrystalBullet, (ProjectileId)Terraria.Main.projectile[0].type);
+
+            Mock.Get(server.Events).VerifyAll();
         }
 
         [Fact]
@@ -104,86 +111,107 @@ namespace Orion.Launcher.Impl.Projectiles
         {
             var terrariaProjectile = new Terraria.Projectile();
 
-            using var kernel = new OrionKernel(Logger.None);
-            using var projectileService = new OrionProjectileService(kernel, Logger.None);
-            var isRun = false;
-            kernel.Events.RegisterHandler<ProjectileDefaultsEvent>(evt =>
-            {
-                Assert.Same(terrariaProjectile, ((OrionProjectile)evt.Projectile).Wrapped);
-                Assert.Equal(ProjectileId.CrystalBullet, evt.Id);
-                isRun = true;
-            }, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var projectileService = new OrionProjectileService(server, log);
+
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(
+                    It.Is<ProjectileDefaultsEvent>(
+                        evt => ((OrionProjectile)evt.Projectile).Wrapped == terrariaProjectile &&
+                            evt.Id == ProjectileId.CrystalBullet),
+                    log));
 
             terrariaProjectile.SetDefaults((int)ProjectileId.CrystalBullet);
 
-            Assert.True(isRun);
             Assert.Equal(ProjectileId.CrystalBullet, (ProjectileId)terrariaProjectile.type);
+
+            Mock.Get(server.Events).VerifyAll();
         }
 
-        [Theory]
-        [InlineData(ProjectileId.CrystalBullet, ProjectileId.WoodenArrow)]
-        [InlineData(ProjectileId.CrystalBullet, ProjectileId.None)]
-        public void ProjectileDefaults_EventModified(ProjectileId oldId, ProjectileId newId)
+        [Fact]
+        public void ProjectileDefaults_EventModified()
         {
-            Terraria.Main.projectile[0] = new Terraria.Projectile { whoAmI = 0 };
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var projectileService = new OrionProjectileService(server, log);
 
-            using var kernel = new OrionKernel(Logger.None);
-            using var projectileService = new OrionProjectileService(kernel, Logger.None);
-            kernel.Events.RegisterHandler<ProjectileDefaultsEvent>(evt => evt.Id = newId, Logger.None);
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(It.IsAny<ProjectileDefaultsEvent>(), log))
+                .Callback<ProjectileDefaultsEvent, ILogger>((evt, log) => evt.Id = ProjectileId.WoodenArrow);
 
-            Terraria.Main.projectile[0].SetDefaults((int)oldId);
+            Terraria.Main.projectile[0].SetDefaults((int)ProjectileId.CrystalBullet);
 
-            Assert.Equal(newId, (ProjectileId)Terraria.Main.projectile[0].type);
+            Assert.Equal(ProjectileId.WoodenArrow, (ProjectileId)Terraria.Main.projectile[0].type);
+
+            Mock.Get(server.Events).VerifyAll();
         }
 
         [Fact]
         public void ProjectileDefaults_EventCanceled()
         {
+            // Clear the projectile so that we know it's empty.
             Terraria.Main.projectile[0] = new Terraria.Projectile { whoAmI = 0 };
 
-            using var kernel = new OrionKernel(Logger.None);
-            using var projectileService = new OrionProjectileService(kernel, Logger.None);
-            kernel.Events.RegisterHandler<ProjectileDefaultsEvent>(evt => evt.Cancel(), Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var projectileService = new OrionProjectileService(server, log);
+
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(It.IsAny<ProjectileDefaultsEvent>(), log))
+                .Callback<ProjectileDefaultsEvent, ILogger>((evt, log) => evt.Cancel());
 
             Terraria.Main.projectile[0].SetDefaults((int)ProjectileId.CrystalBullet);
 
             Assert.Equal(ProjectileId.None, (ProjectileId)Terraria.Main.projectile[0].type);
+
+            Mock.Get(server.Events).VerifyAll();
         }
 
         [Fact]
         public void ProjectileTick_EventTriggered()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var projectileService = new OrionProjectileService(kernel, Logger.None);
-            var isRun = false;
-            kernel.Events.RegisterHandler<ProjectileTickEvent>(evt =>
-            {
-                Assert.Same(Terraria.Main.projectile[0], ((OrionProjectile)evt.Projectile).Wrapped);
-                isRun = true;
-            }, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var projectileService = new OrionProjectileService(server, log);
+
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(
+                    It.Is<ProjectileTickEvent>(
+                        evt => ((OrionProjectile)evt.Projectile).Wrapped == Terraria.Main.projectile[0]),
+                    log));
 
             Terraria.Main.projectile[0].Update(0);
 
-            Assert.True(isRun);
+            Mock.Get(server.Events).VerifyAll();
         }
 
         [Fact]
         public void ProjectileTick_EventCanceled()
         {
-            using var kernel = new OrionKernel(Logger.None);
-            using var projectileService = new OrionProjectileService(kernel, Logger.None);
-            kernel.Events.RegisterHandler<ProjectileTickEvent>(evt => evt.Cancel(), Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var projectileService = new OrionProjectileService(server, log);
+
+            Mock.Get(server.Events)
+                .Setup(em => em.Raise(It.IsAny<ProjectileTickEvent>(), log))
+                .Callback<ProjectileTickEvent, ILogger>((evt, log) => evt.Cancel());
 
             Terraria.Main.projectile[0].Update(0);
+
+            Mock.Get(server.Events).VerifyAll();
         }
 
         [Fact]
         public void SpawnProjectile()
         {
+            // Clear the projectile so that we know it's empty.
             Terraria.Main.projectile[0] = new Terraria.Projectile { whoAmI = 0 };
 
-            using var kernel = new OrionKernel(Logger.None);
-            using var projectileService = new OrionProjectileService(kernel, Logger.None);
+            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var log = Mock.Of<ILogger>();
+            using var projectileService = new OrionProjectileService(server, log);
+
             var projectile = projectileService.SpawnProjectile(
                 ProjectileId.CrystalBullet, Vector2f.Zero, Vector2f.Zero, 100, 0);
 

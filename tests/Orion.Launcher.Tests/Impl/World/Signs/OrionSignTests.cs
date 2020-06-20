@@ -17,7 +17,6 @@
 
 using System;
 using System.Diagnostics.CodeAnalysis;
-using Orion.Core.World.Signs;
 using Xunit;
 
 namespace Orion.Launcher.Impl.World.Signs

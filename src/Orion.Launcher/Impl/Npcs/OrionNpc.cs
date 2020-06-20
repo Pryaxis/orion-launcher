@@ -17,7 +17,6 @@
 
 using System;
 using Destructurama.Attributed;
-using Orion.Core.Entities;
 using Orion.Core.Npcs;
 using Orion.Launcher.Impl.Entities;
 
