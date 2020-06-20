@@ -15,6 +15,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Orion.  If not, see <https://www.gnu.org/licenses/>.
 
+using System;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using Orion.Core;
@@ -33,21 +35,16 @@ namespace Orion.Launcher.World
     [Binding("orion-world", Author = "Pryaxis", Priority = BindingPriority.Lowest)]
     internal sealed class OrionWorldService : OrionExtension, IWorldService
     {
-        private readonly TileCollection _tileCollection;
+        // Lazily initialize the world so that a world of minimum size is created.
+        private readonly Lazy<OrionWorld> _world =
+            new Lazy<OrionWorld>(() => new OrionWorld(Terraria.Main.maxTilesX, Terraria.Main.maxTilesY));
 
         public OrionWorldService(IServer server, ILogger log) : base(server, log)
         {
-            // Check if `Terraria.Main.tile` is already a `TileCollection`. This is only useful in tests, where
-            // multiple `OrionWorldService` instances may be constructed.
-            if (Terraria.Main.tile is TileCollection tileCollection)
-            {
-                _tileCollection = tileCollection;
-            }
-            else
-            {
-                _tileCollection = new TileCollection();
-                Terraria.Main.tile = _tileCollection;
-            }
+            // Replace `Terraria.Main.tile` with our own implementation which involves using the `OrionWorld` class
+            // along with an adapter for the `OTAPI.Tile.ITile` interface. This cuts down on the memory usage
+            // significantly while not impacting speed very much.
+            Terraria.Main.tile = new TileCollection(this);
 
             OTAPI.Hooks.World.IO.PostLoadWorld = PostLoadWorldHandler;
             OTAPI.Hooks.World.IO.PreSaveWorld = PreSaveWorldHandler;
@@ -55,10 +52,22 @@ namespace Orion.Launcher.World
             Server.Events.RegisterHandlers(this, Log);
         }
 
-        public IWorld World => _tileCollection.World;
+        public IWorld World => _world.Value;
 
         public override void Dispose()
         {
+            if (_world.IsValueCreated)
+            {
+                _world.Value.Dispose();
+            }
+
+            // Replace the original `Terraria.Main.tile` implementation using a reflection hack.
+            Terraria.Main.tile =
+                (OTAPI.Tile.ITileCollection)typeof(OTAPI.Hooks).Assembly
+                    .GetType("OTAPI.Callbacks.Terraria.Collection")!
+                    .GetMethod("Create")!
+                    .Invoke(null, null)!;
+
             OTAPI.Hooks.World.IO.PostLoadWorld = null;
             OTAPI.Hooks.World.IO.PreSaveWorld = null;
 
@@ -185,14 +194,20 @@ namespace Orion.Launcher.World
             }
         }
 
-        // This class does not implement `IDisposable` as it is a static replacement.
-        private class TileCollection : OTAPI.Tile.ITileCollection
+        private sealed class TileCollection : OTAPI.Tile.ITileCollection
         {
-            private IWorld? _world;
+            private readonly IWorldService _worldService;
+
+            public TileCollection(IWorldService worldService)
+            {
+                Debug.Assert(worldService != null);
+
+                _worldService = worldService;
+            }
 
             public unsafe OTAPI.Tile.ITile this[int x, int y]
             {
-                get => new TileAdapter(ref World[x, y]);
+                get => new TileAdapter(ref _worldService.World[x, y]);
 
                 // TODO: optimize this to not generate garbage.
                 set => this[x, y].CopyFrom(value);
@@ -200,20 +215,6 @@ namespace Orion.Launcher.World
 
             public int Width => Terraria.Main.maxTilesX;
             public int Height => Terraria.Main.maxTilesY;
-
-            public IWorld World
-            {
-                get
-                {
-                    // Lazily initialize the world so that a world of minimum size can be created.
-                    if (_world is null)
-                    {
-                        _world = new OrionWorld(Terraria.Main.maxTilesX, Terraria.Main.maxTilesY);
-                    }
-
-                    return _world;
-                }
-            }
         }
 
         // An adapter class to make a `Tile` reference compatible with `OTAPI.Tile.ITile`. Unfortunately, this means we
