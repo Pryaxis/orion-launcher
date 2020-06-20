@@ -32,15 +32,13 @@ namespace Orion.Launcher.World
     {
         private readonly unsafe Tile* _tiles;
 
-        public OrionWorld(int width, int height, string name)
+        public OrionWorld(int width, int height)
         {
             Debug.Assert(width > 0);
             Debug.Assert(height > 0);
-            Debug.Assert(name != null);
 
             Width = width;
             Height = height;
-            Name = name;
 
             // Allocate the `Tile` array in unmanaged memory so that it doesn't need to be pinned.
             _tiles = (Tile*)Marshal.AllocHGlobal(sizeof(Tile) * width * height);
@@ -67,7 +65,7 @@ namespace Orion.Launcher.World
         public int Width { get; }
         public int Height { get; }
 
-        public string Name { get; }
+        public string Name => Terraria.Main.worldName ?? string.Empty;
 
         public WorldDifficulty Difficulty
         {

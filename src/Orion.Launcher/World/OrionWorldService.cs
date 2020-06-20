@@ -208,8 +208,7 @@ namespace Orion.Launcher.World
                     // Lazily initialize the world so that a world of minimum size can be created.
                     if (_world is null)
                     {
-                        _world = new OrionWorld(
-                            Terraria.Main.maxTilesX, Terraria.Main.maxTilesY, Terraria.Main.worldName ?? string.Empty);
+                        _world = new OrionWorld(Terraria.Main.maxTilesX, Terraria.Main.maxTilesY);
                     }
 
                     return _world;
