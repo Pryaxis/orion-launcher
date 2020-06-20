@@ -260,20 +260,26 @@ namespace Orion.Launcher.World
 
             public short sTileHeader
             {
-                get => _tile->HeaderPart;
-                set => _tile->HeaderPart = value;
+                get => Unsafe.ReadUnaligned<short>(((byte*) _tile) + 9);
+                set => Unsafe.WriteUnaligned(((byte*) _tile) + 9, value);
             }
 
             public byte bTileHeader
             {
-                get => _tile->HeaderPart2;
-                set => _tile->HeaderPart2 = value;
+                get => *((byte*)_tile + 11);
+                set => *((byte*)_tile + 11) = value;
             }
 
             public byte bTileHeader3
             {
-                get => _tile->HeaderPart3;
-                set => _tile->HeaderPart3 = value;
+                get => *((byte*)_tile + 12);
+                set => *((byte*)_tile + 12) = value;
+            }
+
+            public int BlockFrames
+            {
+                get => Unsafe.ReadUnaligned<int>(((byte*)_tile) + 5);
+                set => Unsafe.WriteUnaligned(((byte*)_tile) + 5, value);
             }
 
             // No-ops since these are never used.
@@ -311,31 +317,31 @@ namespace Orion.Launcher.World
 
             public byte wallColor() => (byte)_tile->WallColor;
             public void wallColor(byte wallColor) => _tile->WallColor = (PaintColor)wallColor;
-            public bool lava() => (_tile->HeaderPart2 & 0x20) == 0x20;
+            public bool lava() => (bTileHeader & 0x20) == 0x20;
 
             public void lava(bool lava)
             {
                 if (lava)
                 {
-                    _tile->HeaderPart2 = (byte)((_tile->HeaderPart2 & 0x9F) | 0x20);
+                    bTileHeader = (byte)((bTileHeader & 0x9F) | 0x20);
                 }
                 else
                 {
-                    _tile->HeaderPart2 &= 223;
+                    bTileHeader &= 223;
                 }
             }
 
-            public bool honey() => (_tile->HeaderPart2 & 0x40) == 0x40;
+            public bool honey() => (bTileHeader & 0x40) == 0x40;
 
             public void honey(bool honey)
             {
                 if (honey)
                 {
-                    _tile->HeaderPart2 = (byte)((_tile->HeaderPart2 & 0x9F) | 0x40);
+                    bTileHeader = (byte)((bTileHeader & 0x9F) | 0x40);
                 }
                 else
                 {
-                    _tile->HeaderPart2 &= 191;
+                    bTileHeader &= 191;
                 }
             }
 
@@ -385,70 +391,70 @@ namespace Orion.Launcher.World
 
                 if (compTile is TileAdapter adapter)
                 {
-                    const uint bottomMask = 0b_00000000_11111111_11111111_11111111;
-                    var mask = _tile->LiquidAmount == 0 ? bottomMask : bottomMask | ~Tile.LiquidMask;
+                    var mask = liquid == 0 ?
+                        0b_00000000_11111111_11111111_11111111 :
+                        0b_00000000_10011111_11111111_11111111;
                     if ((_tile->Header & mask) != (adapter._tile->Header & mask))
-                    {
-                        return false;
-                    }
-
-                    if (_tile->IsBlockActive)
-                    {
-                        if (_tile->BlockId != adapter._tile->BlockId)
-                        {
-                            return false;
-                        }
-
-                        if (_tile->BlockId.HasFrames() && _tile->BlockFrames != adapter._tile->BlockFrames)
-                        {
-                            return false;
-                        }
-                    }
-
-                    if (_tile->WallId != adapter._tile->WallId || _tile->LiquidAmount != adapter._tile->LiquidAmount)
-                    {
-                        return false;
-                    }
-                }
-                else
-                {
-                    if (_tile->HeaderPart != compTile.sTileHeader)
                     {
                         return false;
                     }
 
                     if (active())
                     {
-                        if (_tile->BlockId != (BlockId)compTile.type)
+                        if (type != adapter.type)
                         {
                             return false;
                         }
 
-                        if (_tile->BlockId.HasFrames() &&
-                                (_tile->BlockFrameX != compTile.frameX || _tile->BlockFrameY != compTile.frameY))
+                        if (_tile->BlockId.HasFrames() && BlockFrames != adapter.BlockFrames)
                         {
                             return false;
                         }
                     }
 
-                    if (_tile->WallId != (WallId)compTile.wall || _tile->LiquidAmount != compTile.liquid)
+                    if (wall != adapter.wall || liquid != adapter.liquid)
+                    {
+                        return false;
+                    }
+                }
+                else
+                {
+                    if (sTileHeader != compTile.sTileHeader)
                     {
                         return false;
                     }
 
-                    if (_tile->LiquidAmount == 0)
+                    if (active())
                     {
-                        if (_tile->WallColor != (PaintColor)compTile.wallColor())
+                        if (type != compTile.type)
                         {
                             return false;
                         }
 
-                        if (_tile->HasYellowWire != compTile.wire4())
+                        if (_tile->BlockId.HasFrames() && (frameX != compTile.frameX || frameY != compTile.frameY))
                         {
                             return false;
                         }
                     }
-                    else if (_tile->HeaderPart2 != compTile.bTileHeader)
+
+                    if (wall != compTile.wall || liquid != compTile.liquid)
+                    {
+                        return false;
+                    }
+
+                    if (liquid == 0)
+                    {
+                        if (wallColor() != compTile.wallColor())
+                        {
+                            return false;
+                        }
+
+                        if (wire4() != compTile.wire4())
+                        {
+                            return false;
+                        }
+                    }
+                    else if (bTileHeader != compTile.bTileHeader)
                     {
                         return false;
                     }
@@ -462,57 +468,61 @@ namespace Orion.Launcher.World
 
             public void ClearTile()
             {
-                var mask = Tile.SlopeMask | Tile.IsBlockHalvedMask | Tile.IsBlockActiveMask | Tile.IsBlockActuatedMask;
-                _tile->Header &= ~mask;
+                active(false);
+                inActive(false);
+                slope(0);
+                halfBrick(false);
             }
 
             public void Clear(Terraria.DataStructures.TileDataType types)
             {
                 if ((types & Terraria.DataStructures.TileDataType.Tile) != 0)
                 {
-                    _tile->BlockId = BlockId.Dirt;
-                    _tile->IsBlockActive = false;
-                    _tile->BlockFrames = 0;
+                    type = 0;
+                    active(false);
+                    BlockFrames = 0;
                 }
 
                 if ((types & Terraria.DataStructures.TileDataType.TilePaint) != 0)
                 {
-                    _tile->BlockColor = PaintColor.None;
+                    color(0);
                 }
 
                 if ((types & Terraria.DataStructures.TileDataType.Wall) != 0)
                 {
-                    _tile->WallId = WallId.None;
+                    wall = 0;
                 }
 
                 if ((types & Terraria.DataStructures.TileDataType.WallPaint) != 0)
                 {
-                    _tile->WallColor = PaintColor.None;
+                    wallColor(0);
                 }
 
                 if ((types & Terraria.DataStructures.TileDataType.Liquid) != 0)
                 {
-                    var mask = Tile.LiquidMask | Tile.IsCheckingLiquidMask;
-                    _tile->LiquidAmount = 0;
-                    _tile->Header &= ~mask;
+                    liquid = 0;
+                    liquidType(0);
+                    checkingLiquid(false);
                 }
 
                 if ((types & Terraria.DataStructures.TileDataType.Wiring) != 0)
                 {
-                    var mask = Tile.HasRedWireMask | Tile.HasBlueWireMask | Tile.HasGreenWireMask | Tile.HasYellowWireMask;
-                    _tile->Header &= ~mask;
+                    wire(false);
+                    wire2(false);
+                    wire3(false);
+                    wire4(false);
                 }
 
                 if ((types & Terraria.DataStructures.TileDataType.Actuator) != 0)
                 {
-                    var mask = Tile.HasActuatorMask | Tile.IsBlockActuatedMask;
-                    _tile->Header &= ~mask;
+                    actuator(false);
+                    inActive(false);
                 }
 
                 if ((types & Terraria.DataStructures.TileDataType.Slope) != 0)
                 {
-                    var mask = Tile.SlopeMask | Tile.IsBlockHalvedMask;
-                    _tile->Header &= ~mask;
+                    slope(0);
+                    halfBrick(false);
                 }
             }
 
@@ -520,16 +530,14 @@ namespace Orion.Launcher.World
             {
                 ClearMetadata();
                 this.type = type;
-                _tile->IsBlockActive = true;
+                active(true);
             }
 
             public bool topSlope() => IsSlope(Slope.TopRight, Slope.TopLeft);
             public bool bottomSlope() => IsSlope(Slope.BottomRight, Slope.BottomLeft);
             public bool leftSlope() => IsSlope(Slope.TopLeft, Slope.BottomLeft);
             public bool rightSlope() => IsSlope(Slope.TopRight, Slope.BottomRight);
-
-            public bool HasSameSlope(OTAPI.Tile.ITile tile) =>
-                (_tile->HeaderPart & 29696) == (tile.sTileHeader & 29696);
+            public bool HasSameSlope(OTAPI.Tile.ITile tile) => (sTileHeader & 29696) == (tile.sTileHeader & 29696);
 
             public int blockType()
             {

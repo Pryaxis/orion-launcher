@@ -34,28 +34,6 @@ namespace Orion.Launcher.World
     [Collection("TerrariaTestsCollection")]
     public class OrionWorldServiceTests
     {
-        private static readonly byte[] _breakBlockBytes = { 11, 0, 17, 0, 100, 0, 0, 1, 0, 0, 0 };
-        private static readonly byte[] _breakBlockFailureBytes = { 11, 0, 17, 0, 100, 0, 0, 1, 1, 0, 0 };
-        private static readonly byte[] _placeBlockBytes = { 11, 0, 17, 1, 100, 0, 0, 1, 4, 0, 1 };
-        private static readonly byte[] _breakWallBytes = { 11, 0, 17, 2, 100, 0, 0, 1, 0, 0, 0 };
-        private static readonly byte[] _breakWallFailureBytes = { 11, 0, 17, 2, 100, 0, 0, 1, 1, 0, 0 };
-        private static readonly byte[] _placeWallBytes = { 11, 0, 17, 3, 100, 0, 0, 1, 1, 0, 0 };
-        private static readonly byte[] _breakBlockItemlessBytes = { 11, 0, 17, 4, 100, 0, 0, 1, 0, 0, 0 };
-        private static readonly byte[] _breakBlockItemlessFailureBytes = { 11, 0, 17, 4, 100, 0, 0, 1, 1, 0, 0 };
-        private static readonly byte[] _replaceBlockBytes = { 11, 0, 17, 21, 100, 0, 0, 1, 1, 0, 0 };
-        private static readonly byte[] _replaceWallBytes = { 11, 0, 17, 22, 100, 0, 0, 1, 1, 0, 0 };
-
-        private static readonly byte[] _tileSquareBytes =
-        {
-            41, 0, 20, 3, 0, 100, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 4, 0, 1, 0, 2, 0, 4, 0, 1, 0, 8, 0, 255, 1, 0, 4, 1,
-            0, 8, 1, 240, 131, 0, 0
-        };
-
-        private static readonly byte[] _tileLiquidBytes = { 9, 0, 48, 0, 1, 100, 0, 255, 2 };
-        private static readonly byte[] _wireActivateBytes = { 7, 0, 59, 0, 1, 100, 0 };
-        private static readonly byte[] _blockPaintBytes = { 8, 0, 63, 0, 1, 100, 0, 1 };
-        private static readonly byte[] _wallPaintBytes = { 8, 0, 64, 0, 1, 100, 0, 1 };
-
         [Fact]
         public void Main_tile_Width_Get()
         {
@@ -155,9 +133,9 @@ namespace Orion.Launcher.World
             var log = Mock.Of<ILogger>();
             using var worldService = new OrionWorldService(server, log);
 
-            worldService.World[0, 0] = new Tile { HeaderPart = 12345 };
+            worldService.World[0, 0] = new Tile { Header = 0x00001234u };
 
-            Assert.Equal(12345, Terraria.Main.tile[0, 0].sTileHeader);
+            Assert.Equal(0x1234, Terraria.Main.tile[0, 0].sTileHeader);
         }
 
         [Fact]
@@ -167,9 +145,9 @@ namespace Orion.Launcher.World
             var log = Mock.Of<ILogger>();
             using var worldService = new OrionWorldService(server, log);
 
-            Terraria.Main.tile[0, 0].sTileHeader = 12345;
+            Terraria.Main.tile[0, 0].sTileHeader = 0x1234;
 
-            Assert.Equal(12345, worldService.World[0, 0].HeaderPart);
+            Assert.Equal(0x00001234u, worldService.World[0, 0].Header & 0x0000ffffu);
         }
 
         [Fact]
@@ -179,9 +157,9 @@ namespace Orion.Launcher.World
             var log = Mock.Of<ILogger>();
             using var worldService = new OrionWorldService(server, log);
 
-            worldService.World[0, 0] = new Tile { HeaderPart2 = 100 };
+            worldService.World[0, 0] = new Tile { Header = 0x00120000u };
 
-            Assert.Equal(100, Terraria.Main.tile[0, 0].bTileHeader);
+            Assert.Equal(0x12, Terraria.Main.tile[0, 0].bTileHeader);
         }
 
         [Fact]
@@ -191,9 +169,9 @@ namespace Orion.Launcher.World
             var log = Mock.Of<ILogger>();
             using var worldService = new OrionWorldService(server, log);
 
-            Terraria.Main.tile[0, 0].bTileHeader = 100;
+            Terraria.Main.tile[0, 0].bTileHeader = 0x12;
 
-            Assert.Equal(100, worldService.World[0, 0].HeaderPart2);
+            Assert.Equal(0x00120000u, worldService.World[0, 0].Header & 0x00ff0000u);
         }
 
         [Fact]
@@ -203,9 +181,9 @@ namespace Orion.Launcher.World
             var log = Mock.Of<ILogger>();
             using var worldService = new OrionWorldService(server, log);
 
-            worldService.World[0, 0] = new Tile { HeaderPart3 = 100 };
+            worldService.World[0, 0] = new Tile { Header = 0x12000000u };
 
-            Assert.Equal(100, Terraria.Main.tile[0, 0].bTileHeader3);
+            Assert.Equal(0x12, Terraria.Main.tile[0, 0].bTileHeader3);
         }
 
         [Fact]
@@ -215,9 +193,9 @@ namespace Orion.Launcher.World
             var log = Mock.Of<ILogger>();
             using var worldService = new OrionWorldService(server, log);
 
-            Terraria.Main.tile[0, 0].bTileHeader3 = 100;
+            Terraria.Main.tile[0, 0].bTileHeader3 = 0x12;
 
-            Assert.Equal(100, worldService.World[0, 0].HeaderPart3);
+            Assert.Equal(0x12000000u, worldService.World[0, 0].Header & 0xff000000u);
         }
 
         [Fact]
@@ -576,9 +554,7 @@ namespace Orion.Launcher.World
                 BlockId = (BlockId)1,
                 WallId = (WallId)2,
                 LiquidAmount = 3,
-                HeaderPart = 12345,
-                HeaderPart2 = 100,
-                HeaderPart3 = 101,
+                Header = 12345678u,
                 BlockFrameX = 4,
                 BlockFrameY = 5
             };
@@ -588,9 +564,7 @@ namespace Orion.Launcher.World
             Assert.Equal(BlockId.Dirt, worldService.World[0, 0].BlockId);
             Assert.Equal(WallId.None, worldService.World[0, 0].WallId);
             Assert.Equal(0, worldService.World[0, 0].LiquidAmount);
-            Assert.Equal(0, worldService.World[0, 0].HeaderPart);
-            Assert.Equal(0, worldService.World[0, 0].HeaderPart2);
-            Assert.Equal(0, worldService.World[0, 0].HeaderPart3);
+            Assert.Equal(0u, worldService.World[0, 0].Header);
             Assert.Equal(0, worldService.World[0, 0].BlockFrameX);
             Assert.Equal(0, worldService.World[0, 0].BlockFrameY);
         }
@@ -607,9 +581,7 @@ namespace Orion.Launcher.World
                 BlockId = BlockId.Stone,
                 WallId = WallId.Dirt,
                 LiquidAmount = 3,
-                HeaderPart = 12345,
-                HeaderPart2 = 100,
-                HeaderPart3 = 101,
+                Header = 12345678u,
                 BlockFrameX = 4,
                 BlockFrameY = 5
             };
@@ -619,9 +591,7 @@ namespace Orion.Launcher.World
             Assert.Equal(BlockId.Stone, worldService.World[0, 1].BlockId);
             Assert.Equal(WallId.Dirt, worldService.World[0, 1].WallId);
             Assert.Equal(3, worldService.World[0, 1].LiquidAmount);
-            Assert.Equal(12345, worldService.World[0, 1].HeaderPart);
-            Assert.Equal(100, worldService.World[0, 1].HeaderPart2);
-            Assert.Equal(101, worldService.World[0, 1].HeaderPart3);
+            Assert.Equal(12345678u, worldService.World[0, 1].Header);
             Assert.Equal(4, worldService.World[0, 1].BlockFrameX);
             Assert.Equal(5, worldService.World[0, 1].BlockFrameY);
         }
@@ -659,12 +629,12 @@ namespace Orion.Launcher.World
             worldService.World[0, 0] = new Tile
             {
                 LiquidAmount = 1,
-                HeaderPart2 = 1
+                Header = 0x00010000u
             };
             worldService.World[0, 1] = new Tile
             {
                 LiquidAmount = 1,
-                HeaderPart2 = 2
+                Header = 0x00020000u
             };
 
             Assert.False(Terraria.Main.tile[0, 0].isTheSameAs(Terraria.Main.tile[0, 1]));
@@ -850,7 +820,7 @@ namespace Orion.Launcher.World
             worldService.World[0, 0] = new Tile
             {
                 LiquidAmount = 1,
-                HeaderPart2 = 1
+                Header = 0x00010000u
             };
             var tile = Mock.Of<OTAPI.Tile.ITile>(t => t.liquid == 1 && t.bTileHeader == 2);
 
@@ -1009,9 +979,7 @@ namespace Orion.Launcher.World
                 BlockId = BlockId.Stone,
                 WallId = WallId.Dirt,
                 LiquidAmount = 3,
-                HeaderPart = 12345,
-                HeaderPart2 = 100,
-                HeaderPart3 = 101,
+                Header = 12345678u,
                 BlockFrameX = 4,
                 BlockFrameY = 5
             };
@@ -1021,9 +989,7 @@ namespace Orion.Launcher.World
             Assert.Equal(BlockId.Dirt, worldService.World[0, 0].BlockId);
             Assert.Equal(WallId.None, worldService.World[0, 0].WallId);
             Assert.Equal(0, worldService.World[0, 0].LiquidAmount);
-            Assert.Equal(0, worldService.World[0, 0].HeaderPart);
-            Assert.Equal(0, worldService.World[0, 0].HeaderPart2);
-            Assert.Equal(0, worldService.World[0, 0].HeaderPart3);
+            Assert.Equal(0u, worldService.World[0, 0].Header);
             Assert.Equal(0, worldService.World[0, 0].BlockFrameX);
             Assert.Equal(0, worldService.World[0, 0].BlockFrameY);
         }
@@ -1040,9 +1006,7 @@ namespace Orion.Launcher.World
                 BlockId = BlockId.Stone,
                 WallId = WallId.Dirt,
                 LiquidAmount = 3,
-                HeaderPart = 12345,
-                HeaderPart2 = 100,
-                HeaderPart3 = 101,
+                Header = 12345678u,
                 BlockFrameX = 4,
                 BlockFrameY = 5
             };
@@ -1052,9 +1016,7 @@ namespace Orion.Launcher.World
             Assert.Equal(BlockId.Stone, worldService.World[0, 0].BlockId);
             Assert.Equal(WallId.Dirt, worldService.World[0, 0].WallId);
             Assert.Equal(0, worldService.World[0, 0].LiquidAmount);
-            Assert.Equal(0, worldService.World[0, 0].HeaderPart);
-            Assert.Equal(0, worldService.World[0, 0].HeaderPart2);
-            Assert.Equal(0, worldService.World[0, 0].HeaderPart3);
+            Assert.Equal(0u, worldService.World[0, 0].Header);
             Assert.Equal(0, worldService.World[0, 0].BlockFrameX);
             Assert.Equal(0, worldService.World[0, 0].BlockFrameY);
         }
@@ -1241,9 +1203,7 @@ namespace Orion.Launcher.World
                 BlockId = BlockId.Stone,
                 WallId = WallId.Dirt,
                 LiquidAmount = 3,
-                HeaderPart = 12345,
-                HeaderPart2 = 100,
-                HeaderPart3 = 101,
+                Header = 12345678u,
                 BlockFrameX = 4,
                 BlockFrameY = 5
             };
@@ -1253,9 +1213,7 @@ namespace Orion.Launcher.World
             Assert.Equal(BlockId.Stone, worldService.World[0, 0].BlockId);
             Assert.Equal(WallId.Dirt, worldService.World[0, 0].WallId);
             Assert.Equal(0, worldService.World[0, 0].LiquidAmount);
-            Assert.Equal(32, worldService.World[0, 0].HeaderPart);
-            Assert.Equal(0, worldService.World[0, 0].HeaderPart2);
-            Assert.Equal(0, worldService.World[0, 0].HeaderPart3);
+            Assert.Equal(32u, worldService.World[0, 0].Header);
             Assert.Equal(0, worldService.World[0, 0].BlockFrameX);
             Assert.Equal(0, worldService.World[0, 0].BlockFrameY);
         }
