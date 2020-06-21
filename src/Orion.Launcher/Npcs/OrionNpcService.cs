@@ -177,16 +177,16 @@ namespace Orion.Launcher.Npcs
             Debug.Assert(terrariaNpc != null);
 
             var npc = GetNpc(terrariaNpc);
-            var evt = new NpcLootEvent(npc) { Id = (ItemId)itemId, StackSize = stackSize, Prefix = (ItemPrefix)prefix };
+            var evt = new NpcLootEvent(npc) { ItemStack = new ItemStack((ItemId)itemId, stackSize, (ItemPrefix)prefix) };
             _events.Raise(evt, _log);
             if (evt.IsCanceled)
             {
                 return OTAPI.HookResult.Cancel;
             }
 
-            itemId = (int)evt.Id;
-            stackSize = evt.StackSize;
-            prefix = (int)evt.Prefix;
+            itemId = (int)evt.ItemStack.Id;
+            stackSize = evt.ItemStack.StackSize;
+            prefix = (int)evt.ItemStack.Prefix;
             return OTAPI.HookResult.Continue;
         }
 

@@ -266,8 +266,10 @@ namespace Orion.Launcher.Npcs
             Mock.Get(events)
                 .Setup(em => em.Raise(
                     It.Is<NpcLootEvent>(
-                        evt => ((OrionNpc)evt.Npc).Wrapped == Terraria.Main.npc[0] && evt.Id == ItemId.Gel &&
-                            (evt.StackSize >= 1 || evt.StackSize <= 2) && evt.Prefix == ItemPrefix.Random),
+                        evt => ((OrionNpc)evt.Npc).Wrapped == Terraria.Main.npc[0] &&
+                            evt.ItemStack.Id == ItemId.Gel &&
+                            (evt.ItemStack.StackSize >= 1 || evt.ItemStack.StackSize <= 2) &&
+                            evt.ItemStack.Prefix == ItemPrefix.Random),
                     log));
 
             Terraria.Main.npc[0].SetDefaults((int)NpcId.BlueSlime);
@@ -294,9 +296,7 @@ namespace Orion.Launcher.Npcs
                 .Setup(em => em.Raise(It.IsAny<NpcLootEvent>(), log))
                 .Callback<NpcLootEvent, ILogger>((evt, log) =>
                 {
-                    evt.Id = ItemId.Sdmg;
-                    evt.StackSize = 1;
-                    evt.Prefix = ItemPrefix.Unreal;
+                    evt.ItemStack = new ItemStack(ItemId.Sdmg, 1, ItemPrefix.Unreal);
                 });
 
             Terraria.Main.npc[0].SetDefaults((int)NpcId.BlueSlime);
