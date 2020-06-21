@@ -16,6 +16,7 @@
 // along with Orion.  If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -51,6 +52,7 @@ namespace Orion.Launcher.Players
 
         private readonly IEventManager _events;
         private readonly ILogger _log;
+        private readonly IReadOnlyList<IPlayer> _players;
 
         private readonly PacketHandler?[] _onReceivePacketHandlers = new PacketHandler?[256];
         private readonly PacketHandler?[] _onReceiveModuleHandlers = new PacketHandler?[65536];
@@ -65,8 +67,8 @@ namespace Orion.Launcher.Players
             _events = events;
             _log = log;
 
-            // Construct the `Players` array. Note that the last player should be ignored, as it is not a real player.
-            Players = new WrappedReadOnlyList<OrionPlayer, Terraria.Player>(
+            // Note that the last player should be ignored, as it is not a real player.
+            _players = new WrappedReadOnlyList<OrionPlayer, Terraria.Player>(
                 Terraria.Main.player.AsMemory(..^1),
                 (playerIndex, terrariaPlayer) => new OrionPlayer(playerIndex, terrariaPlayer, events, log));
 
@@ -107,7 +109,14 @@ namespace Orion.Launcher.Players
                     .CreateDelegate(typeof(PacketHandler), this);
         }
 
-        public IReadOnlyList<IPlayer> Players { get; }
+        public IPlayer this[int index] => _players[index];
+
+        public int Count => _players.Count;
+
+        public IEnumerator<IPlayer> GetEnumerator() => _players.GetEnumerator();
+
+        [ExcludeFromCodeCoverage]
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
         public void Dispose()
         {
@@ -128,7 +137,7 @@ namespace Orion.Launcher.Players
             Terraria.MessageBuffer buffer, ref byte packetId, ref int readOffset, ref int start, ref int length)
         {
             Debug.Assert(buffer != null);
-            Debug.Assert(buffer.whoAmI >= 0 && buffer.whoAmI < Players.Count);
+            Debug.Assert(buffer.whoAmI >= 0 && buffer.whoAmI < Count);
             Debug.Assert(start >= 0 && start + length <= buffer.readBuffer.Length);
             Debug.Assert(length > 0);
 
@@ -158,7 +167,7 @@ namespace Orion.Launcher.Players
             ref int playerIndex, ref byte[] data, ref int offset, ref int size,
             ref Terraria.Net.Sockets.SocketSendCallback callback, ref object state)
         {
-            Debug.Assert(playerIndex >= 0 && playerIndex < Players.Count);
+            Debug.Assert(playerIndex >= 0 && playerIndex < Count);
             Debug.Assert(data != null);
             Debug.Assert(offset >= 0 && offset + size <= data.Length);
             Debug.Assert(size >= 3);
@@ -192,7 +201,7 @@ namespace Orion.Launcher.Players
                 }
             }
 
-            Debug.Assert(playerIndex >= 0 && playerIndex < Players.Count);
+            Debug.Assert(playerIndex >= 0 && playerIndex < Count);
 
             var span = packet.Buffer.Data.AsSpan(2..((int)packet.Writer.BaseStream.Position));
             var moduleId = Unsafe.ReadUnaligned<ushort>(ref span[1]);
@@ -205,9 +214,9 @@ namespace Orion.Launcher.Players
 
         private OTAPI.HookResult PreUpdateHandler(Terraria.Player terrariaPlayer, ref int playerIndex)
         {
-            Debug.Assert(playerIndex >= 0 && playerIndex < Players.Count);
+            Debug.Assert(playerIndex >= 0 && playerIndex < Count);
 
-            var evt = new PlayerTickEvent(Players[playerIndex]);
+            var evt = new PlayerTickEvent(this[playerIndex]);
             _events.Raise(evt, _log);
             return evt.IsCanceled ? OTAPI.HookResult.Cancel : OTAPI.HookResult.Continue;
         }
@@ -215,7 +224,7 @@ namespace Orion.Launcher.Players
         private OTAPI.HookResult PreResetHandler(Terraria.RemoteClient remoteClient)
         {
             Debug.Assert(remoteClient != null);
-            Debug.Assert(remoteClient.Id >= 0 && remoteClient.Id < Players.Count);
+            Debug.Assert(remoteClient.Id >= 0 && remoteClient.Id < Count);
 
             // Check if the client was active since this gets called when setting up `RemoteClient` as well.
             if (!remoteClient.IsActive)
@@ -223,7 +232,7 @@ namespace Orion.Launcher.Players
                 return OTAPI.HookResult.Continue;
             }
 
-            var evt = new PlayerQuitEvent(Players[remoteClient.Id]);
+            var evt = new PlayerQuitEvent(this[remoteClient.Id]);
             _events.Raise(evt, _log);
             return OTAPI.HookResult.Continue;
         }
@@ -234,7 +243,7 @@ namespace Orion.Launcher.Players
 
         private void OnReceivePacket<TPacket>(int playerIndex, Span<byte> span) where TPacket : struct, IPacket
         {
-            Debug.Assert(playerIndex >= 0 && playerIndex < Players.Count);
+            Debug.Assert(playerIndex >= 0 && playerIndex < Count);
             Debug.Assert(span.Length > 0);
 
             var packet = new TPacket();
@@ -247,12 +256,12 @@ namespace Orion.Launcher.Players
             var packetLength = packet.Read(span[1..], PacketContext.Server);
             Debug.Assert(packetLength == span.Length - 1);
 
-            Players[playerIndex].ReceivePacket(ref packet);
+            this[playerIndex].ReceivePacket(ref packet);
         }
 
         private void OnSendPacket<TPacket>(int playerIndex, Span<byte> span) where TPacket : struct, IPacket
         {
-            Debug.Assert(playerIndex >= 0 && playerIndex < Players.Count);
+            Debug.Assert(playerIndex >= 0 && playerIndex < Count);
             Debug.Assert(span.Length > 0);
 
             var packet = new TPacket();
@@ -265,7 +274,7 @@ namespace Orion.Launcher.Players
             var packetLength = packet.Read(span[1..], PacketContext.Client);
             Debug.Assert(packetLength == span.Length - 1);
 
-            Players[playerIndex].SendPacket(ref packet);
+            this[playerIndex].SendPacket(ref packet);
         }
 
         // =============================================================================================================

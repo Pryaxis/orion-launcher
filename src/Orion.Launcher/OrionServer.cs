@@ -48,7 +48,7 @@ namespace Orion.Launcher
         private readonly Lazy<IProjectileService> _projectiles;
         private readonly Lazy<IChestService> _chests;
         private readonly Lazy<ISignService> _signs;
-        private readonly Lazy<IWorldService> _world;
+        private readonly Lazy<IWorld> _world;
 
         private readonly IKernel _kernel = new StandardKernel();
         private readonly ISet<Type> _serviceInterfaceTypes = new HashSet<Type>();
@@ -92,7 +92,7 @@ namespace Orion.Launcher
             _projectiles = new Lazy<IProjectileService>(() => _kernel.Get<IProjectileService>());
             _chests = new Lazy<IChestService>(() => _kernel.Get<IChestService>());
             _signs = new Lazy<ISignService>(() => _kernel.Get<ISignService>());
-            _world = new Lazy<IWorldService>(() => _kernel.Get<IWorldService>());
+            _world = new Lazy<IWorld>(() => _kernel.Get<IWorld>());
 
             OTAPI.Hooks.Game.PreInitialize = PreInitializeHandler;
             OTAPI.Hooks.Game.Started = StartedHandler;
@@ -107,7 +107,7 @@ namespace Orion.Launcher
         public IProjectileService Projectiles => _projectiles.Value;
         public IChestService Chests => _chests.Value;
         public ISignService Signs => _signs.Value;
-        public IWorldService World => _world.Value;
+        public IWorld World => _world.Value;
 
         public void Dispose()
         {

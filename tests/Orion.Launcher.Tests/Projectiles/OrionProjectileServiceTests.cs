@@ -34,49 +34,49 @@ namespace Orion.Launcher.Projectiles
         [Theory]
         [InlineData(-1)]
         [InlineData(10000)]
-        public void Projectiles_Item_GetInvalidIndex_ThrowsIndexOutOfRangeException(int index)
+        public void Item_GetInvalidIndex_ThrowsIndexOutOfRangeException(int index)
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             using var projectileService = new OrionProjectileService(events, log);
 
-            Assert.Throws<IndexOutOfRangeException>(() => projectileService.Projectiles[index]);
+            Assert.Throws<IndexOutOfRangeException>(() => projectileService[index]);
         }
 
         [Fact]
-        public void Projectiles_Item_Get()
+        public void Item_Get()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             using var projectileService = new OrionProjectileService(events, log);
 
-            var projectile = projectileService.Projectiles[1];
+            var projectile = projectileService[1];
 
             Assert.Equal(1, projectile.Index);
             Assert.Same(Terraria.Main.projectile[1], ((OrionProjectile)projectile).Wrapped);
         }
 
         [Fact]
-        public void Projectiles_Item_GetMultipleTimes_ReturnsSameInstance()
+        public void Item_GetMultipleTimes_ReturnsSameInstance()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             using var projectileService = new OrionProjectileService(events, log);
 
-            var projectile = projectileService.Projectiles[0];
-            var projectile2 = projectileService.Projectiles[0];
+            var projectile = projectileService[0];
+            var projectile2 = projectileService[0];
 
             Assert.Same(projectile, projectile2);
         }
 
         [Fact]
-        public void Projectiles_GetEnumerator()
+        public void GetEnumerator()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             using var projectileService = new OrionProjectileService(events, log);
 
-            var projectiles = projectileService.Projectiles.ToList();
+            var projectiles = projectileService.ToList();
 
             for (var i = 0; i < projectiles.Count; ++i)
             {

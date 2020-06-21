@@ -36,17 +36,17 @@ namespace Orion.Launcher.World.Chests
         [Theory]
         [InlineData(-1)]
         [InlineData(10000)]
-        public void Chests_Item_GetInvalidIndex_ThrowsIndexOutOfRangeException(int index)
+        public void Item_GetInvalidIndex_ThrowsIndexOutOfRangeException(int index)
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             using var chestService = new OrionChestService(events, log);
 
-            Assert.Throws<IndexOutOfRangeException>(() => chestService.Chests[index]);
+            Assert.Throws<IndexOutOfRangeException>(() => chestService[index]);
         }
 
         [Fact]
-        public void Chests_Item_Get()
+        public void Item_Get()
         {
             Terraria.Main.chest[1] = new Terraria.Chest();
 
@@ -54,14 +54,14 @@ namespace Orion.Launcher.World.Chests
             var log = Mock.Of<ILogger>();
             using var chestService = new OrionChestService(events, log);
 
-            var chest = chestService.Chests[1];
+            var chest = chestService[1];
 
             Assert.Equal(1, chest.Index);
             Assert.Same(Terraria.Main.chest[1], ((OrionChest)chest).Wrapped);
         }
 
         [Fact]
-        public void Chests_Item_GetMultipleTimes_ReturnsSameInstance()
+        public void Item_GetMultipleTimes_ReturnsSameInstance()
         {
             Terraria.Main.chest[0] = new Terraria.Chest();
 
@@ -69,14 +69,14 @@ namespace Orion.Launcher.World.Chests
             var log = Mock.Of<ILogger>();
             using var chestService = new OrionChestService(events, log);
 
-            var chest = chestService.Chests[0];
-            var chest2 = chestService.Chests[0];
+            var chest = chestService[0];
+            var chest2 = chestService[0];
 
             Assert.Same(chest, chest2);
         }
 
         [Fact]
-        public void Chests_GetEnumerator()
+        public void GetEnumerator()
         {
             for (var i = 0; i < Terraria.Main.maxChests; ++i)
             {
@@ -87,7 +87,7 @@ namespace Orion.Launcher.World.Chests
             var log = Mock.Of<ILogger>();
             using var chestService = new OrionChestService(events, log);
 
-            var chests = chestService.Chests.ToList();
+            var chests = chestService.ToList();
 
             for (var i = 0; i < chests.Count; ++i)
             {
@@ -117,7 +117,7 @@ namespace Orion.Launcher.World.Chests
 
             Mock.Get(events)
                 .Setup(em => em.Raise(
-                    It.Is<ChestOpenEvent>(evt => evt.Player == sender && evt.Chest == chestService.Chests[0]), log));
+                    It.Is<ChestOpenEvent>(evt => evt.Player == sender && evt.Chest == chestService[0]), log));
 
             Assert.NotNull(registeredHandler);
             registeredHandler!(evt);
@@ -216,7 +216,7 @@ namespace Orion.Launcher.World.Chests
             Mock.Get(events)
                 .Setup(em => em.Raise(
                     It.Is<ChestInventoryEvent>(
-                        evt => evt.Player == sender && evt.Chest == chestService.Chests[5] &&
+                        evt => evt.Player == sender && evt.Chest == chestService[5] &&
                             evt.ItemStack == new ItemStack(ItemId.Sdmg, 1, ItemPrefix.Unreal)),
                     log));
 

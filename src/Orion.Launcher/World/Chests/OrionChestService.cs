@@ -16,6 +16,7 @@
 // along with Orion.  If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -37,6 +38,7 @@ namespace Orion.Launcher.World.Chests
     {
         private readonly IEventManager _events;
         private readonly ILogger _log;
+        private readonly IReadOnlyList<IChest> _chests;
 
         public OrionChestService(IEventManager events, ILogger log)
         {
@@ -46,21 +48,27 @@ namespace Orion.Launcher.World.Chests
             _events = events;
             _log = log;
 
-            // Construct the `Chests` array.
-            Chests = new WrappedReadOnlyList<OrionChest, Terraria.Chest?>(
+            _chests = new WrappedReadOnlyList<OrionChest, Terraria.Chest?>(
                 Terraria.Main.chest, (chestIndex, terrariaChest) => new OrionChest(chestIndex, terrariaChest));
 
             _events.RegisterHandlers(this, _log);
         }
 
-        public IReadOnlyList<IChest> Chests { get; }
+        public IChest this[int index] => _chests[index];
+
+        public int Count => _chests.Count;
+
+        public IEnumerator<IChest> GetEnumerator() => _chests.GetEnumerator();
+
+        [ExcludeFromCodeCoverage]
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
         public void Dispose()
         {
             _events.DeregisterHandlers(this, _log);
         }
 
-        private IChest? FindChest(int x, int y) => Chests.FirstOrDefault(s => s.IsActive && s.X == x && s.Y == y);
+        private IChest? FindChest(int x, int y) => this.FirstOrDefault(s => s.IsActive && s.X == x && s.Y == y);
 
         // =============================================================================================================
         // Chest event publishers
@@ -87,7 +95,7 @@ namespace Orion.Launcher.World.Chests
             ref var packet = ref evt.Packet;
             var itemStack = new ItemStack(packet.Id, packet.StackSize, packet.Prefix);
 
-            ForwardEvent(evt, new ChestInventoryEvent(Chests[packet.ChestIndex], evt.Sender, packet.Slot, itemStack));
+            ForwardEvent(evt, new ChestInventoryEvent(this[packet.ChestIndex], evt.Sender, packet.Slot, itemStack));
         }
 
         // Forwards `evt` as `newEvt`.

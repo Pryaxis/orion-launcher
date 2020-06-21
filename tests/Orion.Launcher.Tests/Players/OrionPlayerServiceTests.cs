@@ -51,49 +51,49 @@ namespace Orion.Launcher.Players
         [Theory]
         [InlineData(-1)]
         [InlineData(10000)]
-        public void Players_Item_GetInvalidIndex_ThrowsIndexOutOfRangeException(int index)
+        public void Item_GetInvalidIndex_ThrowsIndexOutOfRangeException(int index)
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             using var playerService = new OrionPlayerService(events, log);
 
-            Assert.Throws<IndexOutOfRangeException>(() => playerService.Players[index]);
+            Assert.Throws<IndexOutOfRangeException>(() => playerService[index]);
         }
 
         [Fact]
-        public void Players_Item_Get()
+        public void Item_Get()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             using var playerService = new OrionPlayerService(events, log);
 
-            var player = playerService.Players[1];
+            var player = playerService[1];
 
             Assert.Equal(1, player.Index);
             Assert.Equal(Terraria.Main.player[1], ((OrionPlayer)player).Wrapped);
         }
 
         [Fact]
-        public void Players_Item_GetMultipleTimes_ReturnsSameInstance()
+        public void Item_GetMultipleTimes_ReturnsSameInstance()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             using var playerService = new OrionPlayerService(events, log);
 
-            var player = playerService.Players[0];
-            var player2 = playerService.Players[0];
+            var player = playerService[0];
+            var player2 = playerService[0];
 
             Assert.Same(player2, player);
         }
 
         [Fact]
-        public void Players_GetEnumerator()
+        public void GetEnumerator()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             using var playerService = new OrionPlayerService(events, log);
 
-            var players = playerService.Players.ToList();
+            var players = playerService.ToList();
 
             for (var i = 0; i < players.Count; ++i)
             {

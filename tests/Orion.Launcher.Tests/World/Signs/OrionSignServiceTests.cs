@@ -35,17 +35,17 @@ namespace Orion.Launcher.World.Signs
         [Theory]
         [InlineData(-1)]
         [InlineData(10000)]
-        public void Signs_Item_GetInvalidIndex_ThrowsIndexOutOfRangeException(int index)
+        public void Item_GetInvalidIndex_ThrowsIndexOutOfRangeException(int index)
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             using var signService = new OrionSignService(events, log);
 
-            Assert.Throws<IndexOutOfRangeException>(() => signService.Signs[index]);
+            Assert.Throws<IndexOutOfRangeException>(() => signService[index]);
         }
 
         [Fact]
-        public void Signs_Item_Get()
+        public void Item_Get()
         {
             Terraria.Main.sign[1] = new Terraria.Sign();
 
@@ -53,14 +53,14 @@ namespace Orion.Launcher.World.Signs
             var log = Mock.Of<ILogger>();
             using var signService = new OrionSignService(events, log);
 
-            var sign = signService.Signs[1];
+            var sign = signService[1];
 
             Assert.Equal(1, sign.Index);
             Assert.Same(Terraria.Main.sign[1], ((OrionSign)sign).Wrapped);
         }
 
         [Fact]
-        public void Signs_Item_GetMultipleTimes_ReturnsSameInstance()
+        public void Item_GetMultipleTimes_ReturnsSameInstance()
         {
             Terraria.Main.sign[0] = new Terraria.Sign();
             
@@ -68,14 +68,14 @@ namespace Orion.Launcher.World.Signs
             var log = Mock.Of<ILogger>();
             using var signService = new OrionSignService(events, log);
 
-            var sign = signService.Signs[0];
-            var sign2 = signService.Signs[0];
+            var sign = signService[0];
+            var sign2 = signService[0];
 
             Assert.Same(sign, sign2);
         }
 
         [Fact]
-        public void Signs_GetEnumerator()
+        public void GetEnumerator()
         {
             for (var i = 0; i < Terraria.Sign.maxSigns; ++i)
             {
@@ -86,7 +86,7 @@ namespace Orion.Launcher.World.Signs
             var log = Mock.Of<ILogger>();
             using var signService = new OrionSignService(events, log);
 
-            var signs = signService.Signs.ToList();
+            var signs = signService.ToList();
 
             for (var i = 0; i < signs.Count; ++i)
             {
@@ -116,7 +116,7 @@ namespace Orion.Launcher.World.Signs
 
             Mock.Get(events)
                 .Setup(em => em.Raise(
-                    It.Is<SignReadEvent>(evt => evt.Sign == signService.Signs[0] && evt.Player == sender), log));
+                    It.Is<SignReadEvent>(evt => evt.Sign == signService[0] && evt.Player == sender), log));
 
             Assert.NotNull(registeredHandler);
             registeredHandler!(evt);

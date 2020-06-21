@@ -16,6 +16,7 @@
 // along with Orion.  If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -36,6 +37,7 @@ namespace Orion.Launcher.World.Signs
     {
         private readonly IEventManager _events;
         private readonly ILogger _log;
+        private readonly IReadOnlyList<ISign> _signs;
 
         public OrionSignService(IEventManager events, ILogger log)
         {
@@ -45,21 +47,27 @@ namespace Orion.Launcher.World.Signs
             _events = events;
             _log = log;
 
-            // Construct the `Signs` array.
-            Signs = new WrappedReadOnlyList<OrionSign, Terraria.Sign?>(
+            _signs = new WrappedReadOnlyList<OrionSign, Terraria.Sign?>(
                 Terraria.Main.sign, (signIndex, terrariaSign) => new OrionSign(signIndex, terrariaSign));
 
             _events.RegisterHandlers(this, _log);
         }
 
-        public IReadOnlyList<ISign> Signs { get; }
+        public ISign this[int index] => _signs[index];
+
+        public int Count => _signs.Count;
+
+        public IEnumerator<ISign> GetEnumerator() => _signs.GetEnumerator();
+
+        [ExcludeFromCodeCoverage]
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
         public void Dispose()
         {
             _events.DeregisterHandlers(this, _log);
         }
 
-        private ISign? FindSign(int x, int y) => Signs.FirstOrDefault(s => s.IsActive && s.X == x && s.Y == y);
+        private ISign? FindSign(int x, int y) => this.FirstOrDefault(s => s.IsActive && s.X == x && s.Y == y);
 
         // =============================================================================================================
         // Sign event publishers
