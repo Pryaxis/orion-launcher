@@ -35,49 +35,49 @@ namespace Orion.Launcher.Items
         [Theory]
         [InlineData(-1)]
         [InlineData(10000)]
-        public void Items_Item_GetInvalidIndex_ThrowsIndexOutOfRangeException(int index)
+        public void Item_GetInvalidIndex_ThrowsIndexOutOfRangeException(int index)
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             using var itemService = new OrionItemService(events, log);
 
-            Assert.Throws<IndexOutOfRangeException>(() => itemService.Items[index]);
+            Assert.Throws<IndexOutOfRangeException>(() => itemService[index]);
         }
 
         [Fact]
-        public void Items_Item_Get()
+        public void Item_Get()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             using var itemService = new OrionItemService(events, log);
 
-            var item = itemService.Items[1];
+            var item = itemService[1];
 
             Assert.Equal(1, item.Index);
             Assert.Same(Terraria.Main.item[1], ((OrionItem)item).Wrapped);
         }
 
         [Fact]
-        public void Items_Item_GetMultipleTimes_ReturnsSameInstance()
+        public void Item_GetMultipleTimes_ReturnsSameInstance()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             using var itemService = new OrionItemService(events, log);
 
-            var item = itemService.Items[0];
-            var item2 = itemService.Items[0];
+            var item = itemService[0];
+            var item2 = itemService[0];
 
             Assert.Same(item, item2);
         }
 
         [Fact]
-        public void Items_GetEnumerator()
+        public void GetEnumerator()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             using var itemService = new OrionItemService(events, log);
 
-            var items = itemService.Items.ToList();
+            var items = itemService.ToList();
 
             for (var i = 0; i < items.Count; ++i)
             {

@@ -32,9 +32,6 @@ using Orion.Core.Projectiles;
 using Orion.Core.World;
 using Orion.Core.World.Chests;
 using Orion.Core.World.Signs;
-using Orion.Launcher.Events;
-using Orion.Launcher.Extensions;
-using Orion.Launcher.Items;
 using Orion.Launcher.Properties;
 using Serilog;
 
@@ -58,7 +55,7 @@ namespace Orion.Launcher
         private readonly IDictionary<Type, ISet<Type>> _serviceBindingTypes = new Dictionary<Type, ISet<Type>>();
         private readonly ISet<Type> _pluginTypes = new HashSet<Type>();
 
-        private readonly Dictionary<string, OrionExtension> _plugins = new Dictionary<string, OrionExtension>();
+        private readonly Dictionary<string, OrionPlugin> _plugins = new Dictionary<string, OrionPlugin>();
 
         public OrionServer(ILogger log)
         {
@@ -240,7 +237,7 @@ namespace Orion.Launcher
                     var pluginAuthor = attribute.Author;
                     _log.Information(Resources.InitializedPlugin, pluginName, pluginVersion, pluginAuthor);
 
-                    var plugin = (OrionExtension)_kernel.Get(pluginType);
+                    var plugin = (OrionPlugin)_kernel.Get(pluginType);
                     _plugins[pluginName] = plugin;
                 }
             }

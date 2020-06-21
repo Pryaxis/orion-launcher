@@ -16,8 +16,10 @@
 // along with Orion.  If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Orion.Core;
 using Orion.Core.DataStructures;
 using Orion.Core.Events;
@@ -34,6 +36,8 @@ namespace Orion.Launcher.Items
     {
         private readonly IEventManager _events;
         private readonly ILogger _log;
+        private readonly IReadOnlyList<IItem> _items;
+
         private readonly object _lock = new object();
 
         public OrionItemService(IEventManager events, ILogger log)
@@ -44,8 +48,8 @@ namespace Orion.Launcher.Items
             _events = events;
             _log = log;
 
-            // Construct the `Items` array. Note that the last item should be ignored, as it is not a real item.
-            Items = new WrappedReadOnlyList<OrionItem, Terraria.Item>(
+            // Note that the last item should be ignored, as it is not a real item.
+            _items = new WrappedReadOnlyList<OrionItem, Terraria.Item>(
                 Terraria.Main.item.AsMemory(..^1),
                 (itemIndex, terrariaItem) => new OrionItem(itemIndex, terrariaItem));
 
@@ -53,13 +57,20 @@ namespace Orion.Launcher.Items
             OTAPI.Hooks.Item.PreUpdate = PreUpdateHandler;
         }
 
-        public IReadOnlyList<IItem> Items { get; }
+        public IItem this[int index] => _items[index];
+
+        public int Count => _items.Count;
 
         public void Dispose()
         {
             OTAPI.Hooks.Item.PreSetDefaultsById = null;
             OTAPI.Hooks.Item.PreUpdate = null;
         }
+
+        public IEnumerator<IItem> GetEnumerator() => _items.GetEnumerator();
+
+        [ExcludeFromCodeCoverage]
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
         public IItem SpawnItem(ItemStack itemStack, Vector2f position)
         {
@@ -71,9 +82,9 @@ namespace Orion.Launcher.Items
                 var itemIndex = Terraria.Item.NewItem(
                     (int)position.X, (int)position.Y, 0, 0, (int)itemStack.Id, itemStack.StackSize, false,
                     (int)itemStack.Prefix);
-                Debug.Assert(itemIndex >= 0 && itemIndex < Items.Count);
+                Debug.Assert(itemIndex >= 0 && itemIndex < Count);
 
-                return Items[itemIndex];
+                return this[itemIndex];
             }
         }
 
@@ -101,13 +112,13 @@ namespace Orion.Launcher.Items
         private OTAPI.HookResult PreUpdateHandler(Terraria.Item terrariaItem, ref int itemIndex)
         {
             Debug.Assert(terrariaItem != null);
-            Debug.Assert(itemIndex >= 0 && itemIndex < Items.Count);
+            Debug.Assert(itemIndex >= 0 && itemIndex < Count);
 
             // Set `whoAmI` since this is never done in the vanilla server, and we depend on this field being set in
             // `GetItem`.
             terrariaItem.whoAmI = itemIndex;
 
-            var evt = new ItemTickEvent(Items[itemIndex]);
+            var evt = new ItemTickEvent(this[itemIndex]);
             _events.Raise(evt, _log);
             return evt.IsCanceled ? OTAPI.HookResult.Cancel : OTAPI.HookResult.Continue;
         }
@@ -119,10 +130,10 @@ namespace Orion.Launcher.Items
             Debug.Assert(terrariaItem != null);
 
             var itemIndex = terrariaItem.whoAmI;
-            Debug.Assert(itemIndex >= 0 && itemIndex < Items.Count);
+            Debug.Assert(itemIndex >= 0 && itemIndex < Count);
 
             var isConcrete = ReferenceEquals(terrariaItem, Terraria.Main.item[itemIndex]);
-            return isConcrete ? Items[itemIndex] : new OrionItem(terrariaItem);
+            return isConcrete ? this[itemIndex] : new OrionItem(terrariaItem);
         }
     }
 }
