@@ -16,11 +16,11 @@
 // along with Orion.  If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
-using Orion.Core;
 using Orion.Core.Buffs;
 using Orion.Core.DataStructures;
 using Orion.Core.Events;
@@ -40,6 +40,7 @@ namespace Orion.Launcher.Npcs
     {
         private readonly IEventManager _events;
         private readonly ILogger _log;
+        private readonly IReadOnlyList<INpc> _npcs;
 
         private readonly object _lock = new object();
         private readonly ThreadLocal<int> _setDefaultsToIgnore = new ThreadLocal<int>();
@@ -52,8 +53,8 @@ namespace Orion.Launcher.Npcs
             _events = events;
             _log = log;
 
-            // Construct the `Npcs` array. Note that the last NPC should be ignored, as it is not a real NPC.
-            Npcs = new WrappedReadOnlyList<OrionNpc, Terraria.NPC>(
+            // Note that the last NPC should be ignored, as it is not a real NPC.
+            _npcs = new WrappedReadOnlyList<OrionNpc, Terraria.NPC>(
                 Terraria.Main.npc.AsMemory(..^1),
                 (npcIndex, terrariaNpc) => new OrionNpc(npcIndex, terrariaNpc));
 
@@ -66,7 +67,26 @@ namespace Orion.Launcher.Npcs
             _events.RegisterHandlers(this, _log);
         }
 
-        public IReadOnlyList<INpc> Npcs { get; }
+        public INpc this[int index] => _npcs[index];
+
+        public int Count => _npcs.Count;
+
+        public IEnumerator<INpc> GetEnumerator() => _npcs.GetEnumerator();
+
+        [ExcludeFromCodeCoverage]
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+        public INpc? SpawnNpc(NpcId id, Vector2f position)
+        {
+            // Not localized because this string is developer-facing.
+            Log.Debug("Spawning {NpcId} at {Position}", id, position);
+
+            lock (_lock)
+            {
+                var npcIndex = Terraria.NPC.NewNPC((int)position.X, (int)position.Y, (int)id);
+                return npcIndex >= 0 && npcIndex < Count ? this[npcIndex] : null;
+            }
+        }
 
         public void Dispose()
         {
@@ -79,18 +99,6 @@ namespace Orion.Launcher.Npcs
             OTAPI.Hooks.Npc.PreDropLoot = null;
 
             _events.DeregisterHandlers(this, _log);
-        }
-
-        public INpc? SpawnNpc(NpcId id, Vector2f position)
-        {
-            // Not localized because this string is developer-facing.
-            Log.Debug("Spawning {NpcId} at {Position}", id, position);
-
-            lock (_lock)
-            {
-                var npcIndex = Terraria.NPC.NewNPC((int)position.X, (int)position.Y, (int)id);
-                return npcIndex >= 0 && npcIndex < Npcs.Count ? Npcs[npcIndex] : null;
-            }
         }
 
         // =============================================================================================================
@@ -128,16 +136,16 @@ namespace Orion.Launcher.Npcs
 
         private OTAPI.HookResult SpawnHandler(ref int npcIndex)
         {
-            Debug.Assert(npcIndex >= 0 && npcIndex < Npcs.Count);
+            Debug.Assert(npcIndex >= 0 && npcIndex < Count);
 
-            var npc = Npcs[npcIndex];
+            var npc = this[npcIndex];
             var evt = new NpcSpawnEvent(npc);
             _events.Raise(evt, _log);
             if (evt.IsCanceled)
             {
                 // To cancel the event, remove the NPC and return the failure index.
                 npc.IsActive = false;
-                npcIndex = Npcs.Count;
+                npcIndex = Count;
                 return OTAPI.HookResult.Cancel;
             }
 
@@ -146,9 +154,9 @@ namespace Orion.Launcher.Npcs
 
         private OTAPI.HookResult PreUpdateHandler(Terraria.NPC terrariaNpc, ref int npcIndex)
         {
-            Debug.Assert(npcIndex >= 0 && npcIndex < Npcs.Count);
+            Debug.Assert(npcIndex >= 0 && npcIndex < Count);
 
-            var evt = new NpcTickEvent(Npcs[npcIndex]);
+            var evt = new NpcTickEvent(this[npcIndex]);
             _events.Raise(evt, _log);
             return evt.IsCanceled ? OTAPI.HookResult.Cancel : OTAPI.HookResult.Continue;
         }
@@ -190,10 +198,10 @@ namespace Orion.Launcher.Npcs
             Debug.Assert(terrariaNpc != null);
 
             var npcIndex = terrariaNpc.whoAmI;
-            Debug.Assert(npcIndex >= 0 && npcIndex < Npcs.Count);
+            Debug.Assert(npcIndex >= 0 && npcIndex < Count);
 
             var isConcrete = terrariaNpc == Terraria.Main.npc[npcIndex];
-            return isConcrete ? Npcs[npcIndex] : new OrionNpc(terrariaNpc);
+            return isConcrete ? this[npcIndex] : new OrionNpc(terrariaNpc);
         }
 
         // =============================================================================================================
@@ -207,7 +215,7 @@ namespace Orion.Launcher.Npcs
             ref var packet = ref evt.Packet;
             var buff = new Buff(packet.Id, packet.Ticks);
 
-            ForwardEvent(evt, new NpcBuffEvent(Npcs[packet.NpcIndex], evt.Sender, buff));
+            ForwardEvent(evt, new NpcBuffEvent(this[packet.NpcIndex], evt.Sender, buff));
         }
 
         [EventHandler("orion-npcs", Priority = EventPriority.Lowest)]
@@ -216,7 +224,7 @@ namespace Orion.Launcher.Npcs
         {
             ref var packet = ref evt.Packet;
 
-            ForwardEvent(evt, new NpcCatchEvent(Npcs[packet.NpcIndex], evt.Sender));
+            ForwardEvent(evt, new NpcCatchEvent(this[packet.NpcIndex], evt.Sender));
         }
 
         [EventHandler("orion-npcs", Priority = EventPriority.Lowest)]

@@ -21,7 +21,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Text;
 using Destructurama.Attributed;
-using Orion.Core;
 using Orion.Core.Buffs;
 using Orion.Core.Collections;
 using Orion.Core.Events;

@@ -20,7 +20,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using Orion.Core;
 using Orion.Core.DataStructures;
 using Orion.Core.Events;
 using Orion.Core.Events.Items;
@@ -61,12 +60,6 @@ namespace Orion.Launcher.Items
 
         public int Count => _items.Count;
 
-        public void Dispose()
-        {
-            OTAPI.Hooks.Item.PreSetDefaultsById = null;
-            OTAPI.Hooks.Item.PreUpdate = null;
-        }
-
         public IEnumerator<IItem> GetEnumerator() => _items.GetEnumerator();
 
         [ExcludeFromCodeCoverage]
@@ -86,6 +79,12 @@ namespace Orion.Launcher.Items
 
                 return this[itemIndex];
             }
+        }
+
+        public void Dispose()
+        {
+            OTAPI.Hooks.Item.PreSetDefaultsById = null;
+            OTAPI.Hooks.Item.PreUpdate = null;
         }
 
         // =============================================================================================================

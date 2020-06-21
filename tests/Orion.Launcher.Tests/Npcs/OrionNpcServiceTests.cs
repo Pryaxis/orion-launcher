@@ -18,7 +18,6 @@
 using System;
 using System.Linq;
 using Moq;
-using Orion.Core;
 using Orion.Core.Buffs;
 using Orion.Core.DataStructures;
 using Orion.Core.Events;
@@ -40,49 +39,49 @@ namespace Orion.Launcher.Npcs
         [Theory]
         [InlineData(-1)]
         [InlineData(10000)]
-        public void Npcs_Item_GetInvalidIndex_ThrowsIndexOutOfRangeException(int index)
+        public void Item_GetInvalidIndex_ThrowsIndexOutOfRangeException(int index)
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             using var npcService = new OrionNpcService(events, log);
 
-            Assert.Throws<IndexOutOfRangeException>(() => npcService.Npcs[index]);
+            Assert.Throws<IndexOutOfRangeException>(() => npcService[index]);
         }
 
         [Fact]
-        public void Npcs_Item_Get()
+        public void Item_Get()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             using var npcService = new OrionNpcService(events, log);
 
-            var npc = npcService.Npcs[1];
+            var npc = npcService[1];
 
             Assert.Equal(1, npc.Index);
             Assert.Same(Terraria.Main.npc[1], ((OrionNpc)npc).Wrapped);
         }
 
         [Fact]
-        public void Npcs_Item_GetMultipleTimes_ReturnsSameInstance()
+        public void Item_GetMultipleTimes_ReturnsSameInstance()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             using var npcService = new OrionNpcService(events, log);
 
-            var npc = npcService.Npcs[0];
-            var npc2 = npcService.Npcs[0];
+            var npc = npcService[0];
+            var npc2 = npcService[0];
 
             Assert.Same(npc, npc2);
         }
 
         [Fact]
-        public void Npcs_GetEnumerator()
+        public void GetEnumerator()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             using var npcService = new OrionNpcService(events, log);
 
-            var npcs = npcService.Npcs.ToList();
+            var npcs = npcService.ToList();
 
             for (var i = 0; i < npcs.Count; ++i)
             {
@@ -190,7 +189,7 @@ namespace Orion.Launcher.Npcs
 
             var npcIndex = Terraria.NPC.NewNPC(0, 0, (int)NpcId.BlueSlime);
 
-            Assert.Equal(npcService.Npcs.Count, npcIndex);
+            Assert.Equal(npcService.Count, npcIndex);
             Assert.False(Terraria.Main.npc[0].active);
 
             Mock.Get(events).VerifyAll();
@@ -357,7 +356,7 @@ namespace Orion.Launcher.Npcs
             Mock.Get(events)
                 .Setup(em => em.Raise(
                     It.Is<NpcBuffEvent>(
-                        evt => evt.Npc == npcService.Npcs[1] && evt.Player == sender &&
+                        evt => evt.Npc == npcService[1] && evt.Player == sender &&
                             evt.Buff == new Buff(BuffId.Poisoned, 60)),
                     log));
 
@@ -416,7 +415,7 @@ namespace Orion.Launcher.Npcs
             var evt = new PacketReceiveEvent<NpcCatchPacket>(ref packet, sender);
 
             Mock.Get(events)
-                .Setup(em => em.Raise(It.Is<NpcCatchEvent>(evt => evt.Npc == npcService.Npcs[1]), log));
+                .Setup(em => em.Raise(It.Is<NpcCatchEvent>(evt => evt.Npc == npcService[1]), log));
 
             Assert.NotNull(registeredHandler);
             registeredHandler!(evt);

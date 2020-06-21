@@ -18,7 +18,6 @@
 using System;
 using System.Linq;
 using Moq;
-using Orion.Core;
 using Orion.Core.Events;
 using Orion.Core.Events.Packets;
 using Orion.Core.Events.World.Chests;

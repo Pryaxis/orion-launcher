@@ -19,7 +19,6 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using Moq;
-using Orion.Core;
 using Orion.Core.Buffs;
 using Orion.Core.Events;
 using Orion.Core.Events.Packets;

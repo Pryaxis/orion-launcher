@@ -21,7 +21,6 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using Orion.Core;
 using Orion.Core.Events;
 using Orion.Core.Events.Packets;
 using Orion.Core.Events.Players;

@@ -15,13 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Orion.  If not, see <https://www.gnu.org/licenses/>.
 
-using System;
-using System.Reflection;
-using Moq;
-using Orion.Core;
 using Orion.Core.Framework;
-using Serilog;
-using Xunit;
 
 namespace Orion.Launcher.Extensions
 {

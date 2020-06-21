@@ -18,7 +18,6 @@
 using System;
 using System.Linq;
 using Moq;
-using Orion.Core;
 using Orion.Core.DataStructures;
 using Orion.Core.Events;
 using Orion.Core.Events.Projectiles;

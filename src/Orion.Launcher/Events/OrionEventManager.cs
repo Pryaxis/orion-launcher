@@ -18,7 +18,6 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Orion.Core;
 using Orion.Core.Events;
 using Orion.Core.Framework;
 using Serilog;
