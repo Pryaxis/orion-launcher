@@ -37,7 +37,7 @@ using Serilog;
 namespace Orion.Launcher.Players
 {
     [Binding("orion-players", Author = "Pryaxis", Priority = BindingPriority.Lowest)]
-    internal sealed class OrionPlayerService : OrionExtension, IPlayerService
+    internal sealed class OrionPlayerService : IPlayerService, IDisposable
     {
         private delegate void PacketHandler(int playerIndex, Span<byte> span);
 
@@ -50,17 +50,26 @@ namespace Orion.Launcher.Players
 
         [ThreadStatic] internal static bool _ignoreGetData;
 
+        private readonly IEventManager _events;
+        private readonly ILogger _log;
+
         private readonly PacketHandler?[] _onReceivePacketHandlers = new PacketHandler?[256];
         private readonly PacketHandler?[] _onReceiveModuleHandlers = new PacketHandler?[65536];
         private readonly PacketHandler?[] _onSendPacketHandlers = new PacketHandler?[256];
         private readonly PacketHandler?[] _onSendModuleHandlers = new PacketHandler?[65536];
 
-        public OrionPlayerService(IServer server, ILogger log) : base(server, log)
+        public OrionPlayerService(IEventManager events, ILogger log)
         {
+            Debug.Assert(events != null);
+            Debug.Assert(log != null);
+
+            _events = events;
+            _log = log;
+
             // Construct the `Players` array. Note that the last player should be ignored, as it is not a real player.
             Players = new WrappedReadOnlyList<OrionPlayer, Terraria.Player>(
                 Terraria.Main.player.AsMemory(..^1),
-                (playerIndex, terrariaPlayer) => new OrionPlayer(playerIndex, terrariaPlayer, server, log));
+                (playerIndex, terrariaPlayer) => new OrionPlayer(playerIndex, terrariaPlayer, events, log));
 
             // Construct the `_onReceivePacketHandlers` and `_onSendPacketHandlers` arrays ahead of time for the valid
             // `PacketId` instances. The invalid instances are handled by defaulting to `UnknownPacket`.
@@ -86,7 +95,7 @@ namespace Orion.Launcher.Players
             OTAPI.Hooks.Player.PreUpdate = PreUpdateHandler;
             OTAPI.Hooks.Net.RemoteClient.PreReset = PreResetHandler;
 
-            Server.Events.RegisterHandlers(this, Log);
+            _events.RegisterHandlers(this, _log);
 
             PacketHandler MakeOnReceivePacketHandler(Type packetType) =>
                 (PacketHandler)_onReceivePacket
@@ -101,7 +110,7 @@ namespace Orion.Launcher.Players
 
         public IReadOnlyList<IPlayer> Players { get; }
 
-        public override void Dispose()
+        public void Dispose()
         {
             OTAPI.Hooks.Net.ReceiveData = null;
             OTAPI.Hooks.Net.SendBytes = null;
@@ -109,7 +118,7 @@ namespace Orion.Launcher.Players
             OTAPI.Hooks.Player.PreUpdate = null;
             OTAPI.Hooks.Net.RemoteClient.PreReset = null;
 
-            Server.Events.DeregisterHandlers(this, Log);
+            _events.DeregisterHandlers(this, _log);
         }
 
         // =============================================================================================================
@@ -200,7 +209,7 @@ namespace Orion.Launcher.Players
             Debug.Assert(playerIndex >= 0 && playerIndex < Players.Count);
 
             var evt = new PlayerTickEvent(Players[playerIndex]);
-            Server.Events.Raise(evt, Log);
+            _events.Raise(evt, _log);
             return evt.IsCanceled ? OTAPI.HookResult.Cancel : OTAPI.HookResult.Continue;
         }
 
@@ -216,7 +225,7 @@ namespace Orion.Launcher.Players
             }
 
             var evt = new PlayerQuitEvent(Players[remoteClient.Id]);
-            Server.Events.Raise(evt, Log);
+            _events.Raise(evt, _log);
             return OTAPI.HookResult.Continue;
         }
 
@@ -337,7 +346,7 @@ namespace Orion.Launcher.Players
         // Forwards `evt` as `newEvt`.
         private void ForwardEvent<TEvent>(Event evt, TEvent newEvt) where TEvent : Event
         {
-            Server.Events.Raise(newEvt, Log);
+            _events.Raise(newEvt, _log);
             if (newEvt.IsCanceled)
             {
                 evt.Cancel(newEvt.CancellationReason);

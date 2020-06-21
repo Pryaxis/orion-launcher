@@ -37,9 +37,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_Width_Get()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             Assert.Equal(Terraria.Main.maxTilesX, Terraria.Main.tile.Width);
         }
@@ -47,9 +47,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_Height_Get()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             Assert.Equal(Terraria.Main.maxTilesY, Terraria.Main.tile.Height);
         }
@@ -57,9 +57,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_type_Get()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             worldService.World[0, 0] = new Tile { BlockId = BlockId.Stone };
 
@@ -69,9 +69,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_type_Set()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             Terraria.Main.tile[0, 0].type = (ushort)BlockId.Stone;
 
@@ -81,9 +81,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_wall_Get()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             worldService.World[0, 0] = new Tile { WallId = WallId.Stone };
 
@@ -93,9 +93,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_wall_Set()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             Terraria.Main.tile[0, 0].wall = (ushort)WallId.Stone;
 
@@ -105,9 +105,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_liquid_Get()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             worldService.World[0, 0] = new Tile { LiquidAmount = 100 };
 
@@ -117,9 +117,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_liquid_Set()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             Terraria.Main.tile[0, 0].liquid = 100;
 
@@ -129,9 +129,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_sTileHeader_Get()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             worldService.World[0, 0] = new Tile { Header = 0x00001234u };
 
@@ -141,9 +141,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_sTileHeader_Set()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             Terraria.Main.tile[0, 0].sTileHeader = 0x1234;
 
@@ -153,9 +153,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_bTileHeader_Get()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             worldService.World[0, 0] = new Tile { Header = 0x00120000u };
 
@@ -165,9 +165,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_bTileHeader_Set()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             Terraria.Main.tile[0, 0].bTileHeader = 0x12;
 
@@ -177,9 +177,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_bTileHeader3_Get()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             worldService.World[0, 0] = new Tile { Header = 0x12000000u };
 
@@ -189,9 +189,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_bTileHeader3_Set()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             Terraria.Main.tile[0, 0].bTileHeader3 = 0x12;
 
@@ -201,9 +201,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_frameX_Get()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             worldService.World[0, 0] = new Tile { BlockFrameX = 12345 };
 
@@ -213,9 +213,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_frameX_Set()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             Terraria.Main.tile[0, 0].frameX = 12345;
 
@@ -225,9 +225,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_frameY_Get()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             worldService.World[0, 0] = new Tile { BlockFrameY = 12345 };
 
@@ -237,9 +237,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_frameY_Set()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             Terraria.Main.tile[0, 0].frameY = 12345;
 
@@ -249,9 +249,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_color()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             worldService.World[0, 0] = new Tile { BlockColor = PaintColor.Red };
 
@@ -265,9 +265,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_active()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             worldService.World[0, 0] = new Tile { IsBlockActive = true };
 
@@ -281,9 +281,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_inActive()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             worldService.World[0, 0] = new Tile { IsBlockActuated = true };
 
@@ -297,9 +297,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_nactive()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             worldService.World[0, 0] = new Tile { IsBlockActive = true };
 
@@ -313,9 +313,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_wire()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             worldService.World[0, 0] = new Tile { HasRedWire = true };
 
@@ -329,9 +329,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_wire2()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             worldService.World[0, 0] = new Tile { HasBlueWire = true };
 
@@ -345,9 +345,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_wire3()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             worldService.World[0, 0] = new Tile { HasGreenWire = true };
 
@@ -361,9 +361,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_halfBrick()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             worldService.World[0, 0] = new Tile { IsBlockHalved = true };
 
@@ -377,9 +377,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_actuator()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             worldService.World[0, 0] = new Tile { HasActuator = true };
 
@@ -393,9 +393,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_slope()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             worldService.World[0, 0] = new Tile { Slope = Slope.BottomRight };
 
@@ -409,9 +409,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_wallColor()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             worldService.World[0, 0] = new Tile { WallColor = PaintColor.Red };
 
@@ -425,9 +425,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_lava()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             worldService.World[0, 0] = new Tile { Liquid = Liquid.Lava };
 
@@ -445,9 +445,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_honey()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             worldService.World[0, 0] = new Tile { Liquid = Liquid.Honey };
 
@@ -465,9 +465,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_liquidType()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             worldService.World[0, 0] = new Tile { Liquid = Liquid.Lava };
 
@@ -481,9 +481,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_wire4()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             worldService.World[0, 0] = new Tile { HasYellowWire = true };
 
@@ -497,9 +497,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_frameNumber()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             worldService.World[0, 0] = new Tile { BlockFrameNumber = 7 };
 
@@ -513,9 +513,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_checkingLiquid()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             worldService.World[0, 0] = new Tile { IsCheckingLiquid = true };
 
@@ -529,9 +529,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_skipLiquid()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             worldService.World[0, 0] = new Tile { ShouldSkipLiquid = true };
 
@@ -545,9 +545,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_CopyFrom_NullTile()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             worldService.World[0, 0] = new Tile
             {
@@ -572,9 +572,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_CopyFrom_TileAdapter()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             worldService.World[0, 0] = new Tile
             {
@@ -599,9 +599,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_isTheSameAs_NullTile_ReturnsFalse()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             Assert.False(Terraria.Main.tile[0, 0].isTheSameAs(null));
         }
@@ -609,9 +609,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_isTheSameAs_TileAdapterDifferentHeader_ReturnsFalse()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             worldService.World[0, 0] = new Tile { IsBlockActive = true };
             worldService.World[0, 1] = new Tile();
@@ -622,9 +622,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_isTheSameAs_TileAdapterDifferentHeader2_ReturnsFalse()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             worldService.World[0, 0] = new Tile
             {
@@ -643,9 +643,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_isTheSameAs_TileAdapterDifferentBlockIdAndBlockActive_ReturnsFalse()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             worldService.World[0, 0] = new Tile
             {
@@ -664,9 +664,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_isTheSameAs_TileAdapterDifferentBlockIdButNotBlockActive_ReturnsTrue()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             worldService.World[0, 0] = new Tile { BlockId = BlockId.Stone };
             worldService.World[0, 1] = new Tile { BlockId = BlockId.Dirt };
@@ -677,9 +677,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_isTheSameAs_TileAdapterDifferentBlockFrameXAndHasFrames_ReturnsFalse()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             worldService.World[0, 0] = new Tile
             {
@@ -700,9 +700,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_isTheSameAs_TileAdapterDifferentBlockFrameYAndHasFrames_ReturnsFalse()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             worldService.World[0, 0] = new Tile
             {
@@ -723,9 +723,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_isTheSameAs_TileAdapterDifferentBlockFramesButNotHasFrames_ReturnsTrue()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             worldService.World[0, 0] = new Tile
             {
@@ -748,9 +748,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_isTheSameAs_TileAdapterDifferentWallId_ReturnsFalse()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             worldService.World[0, 0] = new Tile { WallId = WallId.Stone };
             worldService.World[0, 1] = new Tile { WallId = WallId.NaturalDirt };
@@ -761,9 +761,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_isTheSameAs_TileAdapterDifferentLiquidAmount_ReturnsFalse()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             worldService.World[0, 0] = new Tile { LiquidAmount = 1 };
             worldService.World[0, 1] = new Tile { LiquidAmount = 2 };
@@ -774,9 +774,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_isTheSameAs_TileAdapterDifferentWallColor_ReturnsFalse()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             worldService.World[0, 0] = new Tile { WallColor = PaintColor.Red };
             worldService.World[0, 1] = new Tile { WallColor = PaintColor.DeepRed };
@@ -787,9 +787,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_isTheSameAs_TileAdapterDifferentYellowWire_ReturnsFalse()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             worldService.World[0, 0] = new Tile { HasYellowWire = true };
             worldService.World[0, 1] = new Tile();
@@ -800,9 +800,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_isTheSameAs_ITileDifferentHeader_ReturnsFalse()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             worldService.World[0, 0] = new Tile { IsBlockActive = true };
             var tile = Mock.Of<OTAPI.Tile.ITile>();
@@ -813,9 +813,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_isTheSameAs_ITileDifferentHeader2_ReturnsFalse()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             worldService.World[0, 0] = new Tile
             {
@@ -830,9 +830,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_isTheSameAs_ITileDifferentBlockIdAndBlockActive_ReturnsFalse()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             worldService.World[0, 0] = new Tile
             {
@@ -847,9 +847,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_isTheSameAs_ITileDifferentBlockIdButNotBlockActive_ReturnsTrue()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             worldService.World[0, 0] = new Tile { BlockId = BlockId.Stone };
             var tile = Mock.Of<OTAPI.Tile.ITile>(t => t.type == (ushort)BlockId.Dirt);
@@ -860,9 +860,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_isTheSameAs_ITileDifferentBlockFrameXAndHasFrames_ReturnsFalse()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             worldService.World[0, 0] = new Tile
             {
@@ -879,9 +879,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_isTheSameAs_ITileDifferentBlockFrameYAndHasFrames_ReturnsFalse()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             worldService.World[0, 0] = new Tile
             {
@@ -898,9 +898,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_isTheSameAs_ITileDifferentBlockFramesButNotHasFrames_ReturnsTrue()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             worldService.World[0, 0] = new Tile
             {
@@ -918,9 +918,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_isTheSameAs_ITileDifferentWallId_ReturnsFalse()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             worldService.World[0, 0] = new Tile { WallId = WallId.Stone };
             var tile = Mock.Of<OTAPI.Tile.ITile>(t => t.wall == (ushort)WallId.NaturalDirt);
@@ -931,9 +931,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_isTheSameAs_ITileDifferentLiquidAmount_ReturnsFalse()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             worldService.World[0, 0] = new Tile { LiquidAmount = 1 };
             var tile = Mock.Of<OTAPI.Tile.ITile>(t => t.liquid == 2);
@@ -944,9 +944,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_isTheSameAs_ITileDifferentWallColor_ReturnsFalse()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             worldService.World[0, 0] = new Tile { WallColor = PaintColor.Red };
             var tile = Mock.Of<OTAPI.Tile.ITile>(t => t.bTileHeader == 13);
@@ -957,9 +957,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_isTheSameAs_ITileDifferentYellowWire_ReturnsFalse()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             worldService.World[0, 0] = new Tile { HasYellowWire = true };
             var tile = Mock.Of<OTAPI.Tile.ITile>();
@@ -970,9 +970,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_ClearEverything()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             worldService.World[0, 0] = new Tile
             {
@@ -997,9 +997,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_ClearMetadata()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             worldService.World[0, 0] = new Tile
             {
@@ -1024,9 +1024,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_ClearTile()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             worldService.World[0, 0] = new Tile
             {
@@ -1047,9 +1047,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_Clear_Tile()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             worldService.World[0, 0] = new Tile
             {
@@ -1070,9 +1070,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_Clear_TilePaint()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             worldService.World[0, 0] = new Tile { BlockColor = PaintColor.Red };
 
@@ -1084,9 +1084,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_Clear_Wall()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             worldService.World[0, 0] = new Tile { WallId = WallId.Dirt };
 
@@ -1098,9 +1098,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_Clear_WallPaint()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             worldService.World[0, 0] = new Tile { WallColor = PaintColor.Red };
 
@@ -1112,9 +1112,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_Clear_Liquid()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             worldService.World[0, 0] = new Tile
             {
@@ -1133,9 +1133,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_Clear_Wiring()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             worldService.World[0, 0] = new Tile
             {
@@ -1156,9 +1156,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_Clear_Actuator()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             worldService.World[0, 0] = new Tile
             {
@@ -1175,9 +1175,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_Clear_Slope()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             worldService.World[0, 0] = new Tile
             {
@@ -1194,9 +1194,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_ResetToType()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             worldService.World[0, 0] = new Tile
             {
@@ -1226,9 +1226,9 @@ namespace Orion.Launcher.World
         [InlineData(Slope.BottomRight, false)]
         public void Main_tile_topSlope(Slope slope, bool value)
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             worldService.World[0, 0] = new Tile { Slope = slope };
 
@@ -1243,9 +1243,9 @@ namespace Orion.Launcher.World
         [InlineData(Slope.BottomRight, true)]
         public void Main_tile_bottomSlope(Slope slope, bool value)
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             worldService.World[0, 0] = new Tile { Slope = slope };
 
@@ -1260,9 +1260,9 @@ namespace Orion.Launcher.World
         [InlineData(Slope.BottomRight, false)]
         public void Main_tile_leftSlope(Slope slope, bool value)
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             worldService.World[0, 0] = new Tile { Slope = slope };
 
@@ -1277,9 +1277,9 @@ namespace Orion.Launcher.World
         [InlineData(Slope.BottomRight, true)]
         public void Main_tile_rightSlope(Slope slope, bool value)
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             worldService.World[0, 0] = new Tile { Slope = slope };
 
@@ -1289,9 +1289,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_HasSameSlope()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             worldService.World[0, 0] = new Tile { Slope = Slope.BottomRight };
             worldService.World[0, 1] = new Tile { Slope = Slope.BottomRight };
@@ -1306,9 +1306,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_blockType()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             worldService.World[0, 0] = new Tile();
 
@@ -1318,9 +1318,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_blockType_Halved()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             worldService.World[0, 0] = new Tile { IsBlockHalved = true };
 
@@ -1330,9 +1330,9 @@ namespace Orion.Launcher.World
         [Fact]
         public void Main_tile_blockType_Slope()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             worldService.World[0, 0] = new Tile { Slope = Slope.BottomRight };
 
@@ -1342,18 +1342,18 @@ namespace Orion.Launcher.World
         [Fact]
         public void WorldSave_EventTriggered()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.Raise(It.Is<WorldSaveEvent>(evt => evt.World == worldService.World), log));
 
             Terraria.IO.WorldFile.SaveWorld(false, true);
 
             Assert.Equal(13500.0, Terraria.IO.WorldFile._tempTime);
 
-            Mock.Get(server.Events).VerifyAll();
+            Mock.Get(events).VerifyAll();
         }
 
         [Fact]
@@ -1362,11 +1362,11 @@ namespace Orion.Launcher.World
             // Clear the time so we know it's 0.
             Terraria.IO.WorldFile._tempTime = 0.0;
 
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.Raise(It.IsAny<WorldSaveEvent>(), log))
                 .Callback<WorldSaveEvent, ILogger>((evt, log) => evt.Cancel());
 
@@ -1374,7 +1374,7 @@ namespace Orion.Launcher.World
 
             Assert.Equal(0.0, Terraria.IO.WorldFile._tempTime);
 
-            Mock.Get(server.Events).VerifyAll();
+            Mock.Get(events).VerifyAll();
         }
 
         [Fact]
@@ -1382,20 +1382,20 @@ namespace Orion.Launcher.World
         {
             Action<PacketReceiveEvent<TileModifyPacket>>? registeredHandler = null;
 
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<TileModifyPacket>>>(), log))
                 .Callback<Action<PacketReceiveEvent<TileModifyPacket>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             var packet = new TileModifyPacket { X = 100, Y = 256, Modification = TileModification.BreakBlock };
             var sender = Mock.Of<IPlayer>();
             var evt = new PacketReceiveEvent<TileModifyPacket>(ref packet, sender);
 
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.Raise(
                     It.Is<BlockBreakEvent>(
                         evt => evt.World == worldService.World && evt.Player == sender && evt.X == 100 &&
@@ -1405,7 +1405,7 @@ namespace Orion.Launcher.World
             Assert.NotNull(registeredHandler);
             registeredHandler!(evt);
 
-            Mock.Get(server.Events).VerifyAll();
+            Mock.Get(events).VerifyAll();
         }
 
         [Fact]
@@ -1413,20 +1413,20 @@ namespace Orion.Launcher.World
         {
             Action<PacketReceiveEvent<TileModifyPacket>>? registeredHandler = null;
 
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<TileModifyPacket>>>(), log))
                 .Callback<Action<PacketReceiveEvent<TileModifyPacket>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             var packet = new TileModifyPacket { X = 100, Y = 256, Modification = TileModification.BreakBlock };
             var sender = Mock.Of<IPlayer>();
             var evt = new PacketReceiveEvent<TileModifyPacket>(ref packet, sender);
 
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.Raise(It.IsAny<BlockBreakEvent>(), log))
                 .Callback<BlockBreakEvent, ILogger>((evt, log) => evt.Cancel());
 
@@ -1435,7 +1435,7 @@ namespace Orion.Launcher.World
 
             Assert.True(evt.IsCanceled);
 
-            Mock.Get(server.Events).VerifyAll();
+            Mock.Get(events).VerifyAll();
         }
 
         [Fact]
@@ -1448,14 +1448,14 @@ namespace Orion.Launcher.World
 
             Action<PacketReceiveEvent<TileModifyPacket>>? registeredHandler = null;
 
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<TileModifyPacket>>>(), log))
                 .Callback<Action<PacketReceiveEvent<TileModifyPacket>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             var packet = new TileModifyPacket
             {
@@ -1470,7 +1470,7 @@ namespace Orion.Launcher.World
             Assert.NotNull(registeredHandler);
             registeredHandler!(evt);
 
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Verify(em => em.Raise(It.IsAny<BlockBreakEvent>(), log), Times.Never);
         }
 
@@ -1479,14 +1479,14 @@ namespace Orion.Launcher.World
         {
             Action<PacketReceiveEvent<TileModifyPacket>>? registeredHandler = null;
 
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<TileModifyPacket>>>(), log))
                 .Callback<Action<PacketReceiveEvent<TileModifyPacket>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             var packet = new TileModifyPacket
             {
@@ -1499,7 +1499,7 @@ namespace Orion.Launcher.World
             var sender = Mock.Of<IPlayer>();
             var evt = new PacketReceiveEvent<TileModifyPacket>(ref packet, sender);
 
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.Raise(
                     It.Is<BlockPlaceEvent>(
                         evt => evt.World == worldService.World && evt.Player == sender && evt.X == 100 &&
@@ -1509,7 +1509,7 @@ namespace Orion.Launcher.World
             Assert.NotNull(registeredHandler);
             registeredHandler!(evt);
 
-            Mock.Get(server.Events).VerifyAll();
+            Mock.Get(events).VerifyAll();
         }
 
         [Fact]
@@ -1517,14 +1517,14 @@ namespace Orion.Launcher.World
         {
             Action<PacketReceiveEvent<TileModifyPacket>>? registeredHandler = null;
 
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<TileModifyPacket>>>(), log))
                 .Callback<Action<PacketReceiveEvent<TileModifyPacket>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             var packet = new TileModifyPacket
             {
@@ -1537,7 +1537,7 @@ namespace Orion.Launcher.World
             var sender = Mock.Of<IPlayer>();
             var evt = new PacketReceiveEvent<TileModifyPacket>(ref packet, sender);
 
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.Raise(It.IsAny<BlockPlaceEvent>(), log))
                 .Callback<BlockPlaceEvent, ILogger>((evt, log) => evt.Cancel());
 
@@ -1546,7 +1546,7 @@ namespace Orion.Launcher.World
 
             Assert.True(evt.IsCanceled);
 
-            Mock.Get(server.Events).VerifyAll();
+            Mock.Get(events).VerifyAll();
         }
 
         [Fact]
@@ -1554,20 +1554,20 @@ namespace Orion.Launcher.World
         {
             Action<PacketReceiveEvent<TileModifyPacket>>? registeredHandler = null;
 
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<TileModifyPacket>>>(), log))
                 .Callback<Action<PacketReceiveEvent<TileModifyPacket>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             var packet = new TileModifyPacket { X = 100, Y = 256, Modification = TileModification.BreakWall };
             var sender = Mock.Of<IPlayer>();
             var evt = new PacketReceiveEvent<TileModifyPacket>(ref packet, sender);
 
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.Raise(
                     It.Is<WallBreakEvent>(
                         evt => evt.World == worldService.World && evt.Player == sender && evt.X == 100 && evt.Y == 256),
@@ -1576,7 +1576,7 @@ namespace Orion.Launcher.World
             Assert.NotNull(registeredHandler);
             registeredHandler!(evt);
 
-            Mock.Get(server.Events).VerifyAll();
+            Mock.Get(events).VerifyAll();
         }
 
         [Fact]
@@ -1584,20 +1584,20 @@ namespace Orion.Launcher.World
         {
             Action<PacketReceiveEvent<TileModifyPacket>>? registeredHandler = null;
 
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<TileModifyPacket>>>(), log))
                 .Callback<Action<PacketReceiveEvent<TileModifyPacket>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             var packet = new TileModifyPacket { X = 100, Y = 256, Modification = TileModification.BreakWall };
             var sender = Mock.Of<IPlayer>();
             var evt = new PacketReceiveEvent<TileModifyPacket>(ref packet, sender);
 
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.Raise(It.IsAny<WallBreakEvent>(), log))
                 .Callback<WallBreakEvent, ILogger>((evt, log) => evt.Cancel());
 
@@ -1606,7 +1606,7 @@ namespace Orion.Launcher.World
 
             Assert.True(evt.IsCanceled);
 
-            Mock.Get(server.Events).VerifyAll();
+            Mock.Get(events).VerifyAll();
         }
 
         [Fact]
@@ -1619,14 +1619,14 @@ namespace Orion.Launcher.World
 
             Action<PacketReceiveEvent<TileModifyPacket>>? registeredHandler = null;
 
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<TileModifyPacket>>>(), log))
                 .Callback<Action<PacketReceiveEvent<TileModifyPacket>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             var packet = new TileModifyPacket
             {
@@ -1641,7 +1641,7 @@ namespace Orion.Launcher.World
             Assert.NotNull(registeredHandler);
             registeredHandler!(evt);
 
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Verify(em => em.Raise(It.IsAny<WallBreakEvent>(), log), Times.Never);
         }
 
@@ -1650,14 +1650,14 @@ namespace Orion.Launcher.World
         {
             Action<PacketReceiveEvent<TileModifyPacket>>? registeredHandler = null;
 
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<TileModifyPacket>>>(), log))
                 .Callback<Action<PacketReceiveEvent<TileModifyPacket>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             var packet = new TileModifyPacket
             {
@@ -1669,7 +1669,7 @@ namespace Orion.Launcher.World
             var sender = Mock.Of<IPlayer>();
             var evt = new PacketReceiveEvent<TileModifyPacket>(ref packet, sender);
 
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.Raise(
                     It.Is<WallPlaceEvent>(
                         evt => evt.World == worldService.World && evt.Player == sender && evt.X == 100 &&
@@ -1679,7 +1679,7 @@ namespace Orion.Launcher.World
             Assert.NotNull(registeredHandler);
             registeredHandler!(evt);
 
-            Mock.Get(server.Events).VerifyAll();
+            Mock.Get(events).VerifyAll();
         }
 
         [Fact]
@@ -1687,14 +1687,14 @@ namespace Orion.Launcher.World
         {
             Action<PacketReceiveEvent<TileModifyPacket>>? registeredHandler = null;
 
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<TileModifyPacket>>>(), log))
                 .Callback<Action<PacketReceiveEvent<TileModifyPacket>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             var packet = new TileModifyPacket
             {
@@ -1706,7 +1706,7 @@ namespace Orion.Launcher.World
             var sender = Mock.Of<IPlayer>();
             var evt = new PacketReceiveEvent<TileModifyPacket>(ref packet, sender);
 
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.Raise(It.IsAny<WallPlaceEvent>(), log))
                 .Callback<WallPlaceEvent, ILogger>((evt, log) => evt.Cancel());
 
@@ -1715,7 +1715,7 @@ namespace Orion.Launcher.World
 
             Assert.True(evt.IsCanceled);
 
-            Mock.Get(server.Events).VerifyAll();
+            Mock.Get(events).VerifyAll();
         }
 
         [Fact]
@@ -1723,20 +1723,20 @@ namespace Orion.Launcher.World
         {
             Action<PacketReceiveEvent<TileModifyPacket>>? registeredHandler = null;
 
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<TileModifyPacket>>>(), log))
                 .Callback<Action<PacketReceiveEvent<TileModifyPacket>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             var packet = new TileModifyPacket { X = 100, Y = 256, Modification = TileModification.BreakBlockItemless };
             var sender = Mock.Of<IPlayer>();
             var evt = new PacketReceiveEvent<TileModifyPacket>(ref packet, sender);
 
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.Raise(
                     It.Is<BlockBreakEvent>(
                         evt => evt.World == worldService.World && evt.Player == sender && evt.X == 100 &&
@@ -1746,7 +1746,7 @@ namespace Orion.Launcher.World
             Assert.NotNull(registeredHandler);
             registeredHandler!(evt);
 
-            Mock.Get(server.Events).VerifyAll();
+            Mock.Get(events).VerifyAll();
         }
 
         [Fact]
@@ -1754,20 +1754,20 @@ namespace Orion.Launcher.World
         {
             Action<PacketReceiveEvent<TileModifyPacket>>? registeredHandler = null;
 
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<TileModifyPacket>>>(), log))
                 .Callback<Action<PacketReceiveEvent<TileModifyPacket>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             var packet = new TileModifyPacket { X = 100, Y = 256, Modification = TileModification.BreakBlockItemless };
             var sender = Mock.Of<IPlayer>();
             var evt = new PacketReceiveEvent<TileModifyPacket>(ref packet, sender);
 
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.Raise(It.IsAny<BlockBreakEvent>(), log))
                 .Callback<BlockBreakEvent, ILogger>((evt, log) => evt.Cancel());
 
@@ -1776,7 +1776,7 @@ namespace Orion.Launcher.World
 
             Assert.True(evt.IsCanceled);
 
-            Mock.Get(server.Events).VerifyAll();
+            Mock.Get(events).VerifyAll();
         }
 
         [Fact]
@@ -1789,14 +1789,14 @@ namespace Orion.Launcher.World
 
             Action<PacketReceiveEvent<TileModifyPacket>>? registeredHandler = null;
 
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<TileModifyPacket>>>(), log))
                 .Callback<Action<PacketReceiveEvent<TileModifyPacket>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             var packet = new TileModifyPacket
             {
@@ -1811,7 +1811,7 @@ namespace Orion.Launcher.World
             Assert.NotNull(registeredHandler);
             registeredHandler!(evt);
 
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Verify(em => em.Raise(It.IsAny<BlockBreakEvent>(), log), Times.Never);
         }
 
@@ -1820,14 +1820,14 @@ namespace Orion.Launcher.World
         {
             Action<PacketReceiveEvent<TileModifyPacket>>? registeredHandler = null;
 
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<TileModifyPacket>>>(), log))
                 .Callback<Action<PacketReceiveEvent<TileModifyPacket>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             var packet = new TileModifyPacket
             {
@@ -1839,7 +1839,7 @@ namespace Orion.Launcher.World
             var sender = Mock.Of<IPlayer>();
             var evt = new PacketReceiveEvent<TileModifyPacket>(ref packet, sender);
 
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.Raise(
                     It.Is<BlockPlaceEvent>(
                         evt => evt.World == worldService.World && evt.Player == sender && evt.X == 100 &&
@@ -1849,7 +1849,7 @@ namespace Orion.Launcher.World
             Assert.NotNull(registeredHandler);
             registeredHandler!(evt);
 
-            Mock.Get(server.Events).VerifyAll();
+            Mock.Get(events).VerifyAll();
         }
 
         [Fact]
@@ -1857,14 +1857,14 @@ namespace Orion.Launcher.World
         {
             Action<PacketReceiveEvent<TileModifyPacket>>? registeredHandler = null;
 
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<TileModifyPacket>>>(), log))
                 .Callback<Action<PacketReceiveEvent<TileModifyPacket>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             var packet = new TileModifyPacket
             {
@@ -1876,7 +1876,7 @@ namespace Orion.Launcher.World
             var sender = Mock.Of<IPlayer>();
             var evt = new PacketReceiveEvent<TileModifyPacket>(ref packet, sender);
 
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.Raise(It.IsAny<BlockPlaceEvent>(), log))
                 .Callback<BlockPlaceEvent, ILogger>((evt, log) => evt.Cancel());
 
@@ -1885,7 +1885,7 @@ namespace Orion.Launcher.World
 
             Assert.True(evt.IsCanceled);
 
-            Mock.Get(server.Events).VerifyAll();
+            Mock.Get(events).VerifyAll();
         }
 
         [Fact]
@@ -1893,14 +1893,14 @@ namespace Orion.Launcher.World
         {
             Action<PacketReceiveEvent<TileModifyPacket>>? registeredHandler = null;
 
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<TileModifyPacket>>>(), log))
                 .Callback<Action<PacketReceiveEvent<TileModifyPacket>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             var packet = new TileModifyPacket
             {
@@ -1912,7 +1912,7 @@ namespace Orion.Launcher.World
             var sender = Mock.Of<IPlayer>();
             var evt = new PacketReceiveEvent<TileModifyPacket>(ref packet, sender);
 
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.Raise(
                     It.Is<WallPlaceEvent>(
                         evt => evt.World == worldService.World && evt.Player == sender && evt.X == 100 &&
@@ -1922,7 +1922,7 @@ namespace Orion.Launcher.World
             Assert.NotNull(registeredHandler);
             registeredHandler!(evt);
 
-            Mock.Get(server.Events).VerifyAll();
+            Mock.Get(events).VerifyAll();
         }
 
         [Fact]
@@ -1930,14 +1930,14 @@ namespace Orion.Launcher.World
         {
             Action<PacketReceiveEvent<TileModifyPacket>>? registeredHandler = null;
 
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<TileModifyPacket>>>(), log))
                 .Callback<Action<PacketReceiveEvent<TileModifyPacket>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             var packet = new TileModifyPacket
             {
@@ -1949,7 +1949,7 @@ namespace Orion.Launcher.World
             var sender = Mock.Of<IPlayer>();
             var evt = new PacketReceiveEvent<TileModifyPacket>(ref packet, sender);
 
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.Raise(It.IsAny<WallPlaceEvent>(), log))
                 .Callback<WallPlaceEvent, ILogger>((evt, log) => evt.Cancel());
 
@@ -1958,7 +1958,7 @@ namespace Orion.Launcher.World
 
             Assert.True(evt.IsCanceled);
 
-            Mock.Get(server.Events).VerifyAll();
+            Mock.Get(events).VerifyAll();
         }
 
         [Fact]
@@ -1966,14 +1966,14 @@ namespace Orion.Launcher.World
         {
             Action<PacketReceiveEvent<TileModifyPacket>>? registeredHandler = null;
 
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<TileModifyPacket>>>(), log))
                 .Callback<Action<PacketReceiveEvent<TileModifyPacket>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             var packet = new TileModifyPacket
             {
@@ -1993,20 +1993,20 @@ namespace Orion.Launcher.World
         {
             Action<PacketReceiveEvent<TileSquarePacket>>? registeredHandler = null;
 
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<TileSquarePacket>>>(), log))
                 .Callback<Action<PacketReceiveEvent<TileSquarePacket>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             var packet = new TileSquarePacket { X = 100, Y = 256, Tiles = new TileSlice(3, 3) };
             var sender = Mock.Of<IPlayer>();
             var evt = new PacketReceiveEvent<TileSquarePacket>(ref packet, sender);
 
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.Raise(
                     It.Is<TileSquareEvent>(
                         evt => evt.World == worldService.World && evt.Player == sender && evt.X == 100 &&
@@ -2016,7 +2016,7 @@ namespace Orion.Launcher.World
             Assert.NotNull(registeredHandler);
             registeredHandler!(evt);
 
-            Mock.Get(server.Events).VerifyAll();
+            Mock.Get(events).VerifyAll();
         }
 
         [Fact]
@@ -2024,20 +2024,20 @@ namespace Orion.Launcher.World
         {
             Action<PacketReceiveEvent<TileSquarePacket>>? registeredHandler = null;
 
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<TileSquarePacket>>>(), log))
                 .Callback<Action<PacketReceiveEvent<TileSquarePacket>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             var packet = new TileSquarePacket { X = 100, Y = 256, Tiles = new TileSlice(3, 3) };
             var sender = Mock.Of<IPlayer>();
             var evt = new PacketReceiveEvent<TileSquarePacket>(ref packet, sender);
 
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.Raise(It.IsAny<TileSquareEvent>(), log))
                 .Callback<TileSquareEvent, ILogger>((evt, log) => evt.Cancel());
 
@@ -2046,7 +2046,7 @@ namespace Orion.Launcher.World
 
             Assert.True(evt.IsCanceled);
 
-            Mock.Get(server.Events).VerifyAll();
+            Mock.Get(events).VerifyAll();
         }
 
         [Fact]
@@ -2054,20 +2054,20 @@ namespace Orion.Launcher.World
         {
             Action<PacketReceiveEvent<TileLiquidPacket>>? registeredHandler = null;
 
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<TileLiquidPacket>>>(), log))
                 .Callback<Action<PacketReceiveEvent<TileLiquidPacket>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             var packet = new TileLiquidPacket { X = 100, Y = 256, LiquidAmount = 255, Liquid = Liquid.Honey };
             var sender = Mock.Of<IPlayer>();
             var evt = new PacketReceiveEvent<TileLiquidPacket>(ref packet, sender);
 
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.Raise(
                     It.Is<TileLiquidEvent>(
                         evt => evt.World == worldService.World && evt.Player == sender && evt.X == 100 &&
@@ -2077,7 +2077,7 @@ namespace Orion.Launcher.World
             Assert.NotNull(registeredHandler);
             registeredHandler!(evt);
 
-            Mock.Get(server.Events).VerifyAll();
+            Mock.Get(events).VerifyAll();
         }
 
         [Fact]
@@ -2085,20 +2085,20 @@ namespace Orion.Launcher.World
         {
             Action<PacketReceiveEvent<TileLiquidPacket>>? registeredHandler = null;
 
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<TileLiquidPacket>>>(), log))
                 .Callback<Action<PacketReceiveEvent<TileLiquidPacket>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             var packet = new TileLiquidPacket { X = 100, Y = 256, LiquidAmount = 255, Liquid = Liquid.Honey };
             var sender = Mock.Of<IPlayer>();
             var evt = new PacketReceiveEvent<TileLiquidPacket>(ref packet, sender);
 
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.Raise(It.IsAny<TileLiquidEvent>(), log))
                 .Callback<TileLiquidEvent, ILogger>((evt, log) => evt.Cancel());
 
@@ -2107,7 +2107,7 @@ namespace Orion.Launcher.World
 
             Assert.True(evt.IsCanceled);
 
-            Mock.Get(server.Events).VerifyAll();
+            Mock.Get(events).VerifyAll();
         }
 
         [Fact]
@@ -2115,20 +2115,20 @@ namespace Orion.Launcher.World
         {
             Action<PacketReceiveEvent<WireActivatePacket>>? registeredHandler = null;
 
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<WireActivatePacket>>>(), log))
                 .Callback<Action<PacketReceiveEvent<WireActivatePacket>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             var packet = new WireActivatePacket { X = 100, Y = 256 };
             var sender = Mock.Of<IPlayer>();
             var evt = new PacketReceiveEvent<WireActivatePacket>(ref packet, sender);
 
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.Raise(
                     It.Is<WiringActivateEvent>(
                         evt => evt.World == worldService.World && evt.Player == sender && evt.X == 100 && evt.Y == 256),
@@ -2137,7 +2137,7 @@ namespace Orion.Launcher.World
             Assert.NotNull(registeredHandler);
             registeredHandler!(evt);
 
-            Mock.Get(server.Events).VerifyAll();
+            Mock.Get(events).VerifyAll();
         }
 
         [Fact]
@@ -2145,20 +2145,20 @@ namespace Orion.Launcher.World
         {
             Action<PacketReceiveEvent<WireActivatePacket>>? registeredHandler = null;
 
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<WireActivatePacket>>>(), log))
                 .Callback<Action<PacketReceiveEvent<WireActivatePacket>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             var packet = new WireActivatePacket { X = 100, Y = 256 };
             var sender = Mock.Of<IPlayer>();
             var evt = new PacketReceiveEvent<WireActivatePacket>(ref packet, sender);
 
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.Raise(It.IsAny<WiringActivateEvent>(), log))
                 .Callback<WiringActivateEvent, ILogger>((evt, log) => evt.Cancel());
 
@@ -2167,7 +2167,7 @@ namespace Orion.Launcher.World
 
             Assert.True(evt.IsCanceled);
 
-            Mock.Get(server.Events).VerifyAll();
+            Mock.Get(events).VerifyAll();
         }
 
         [Fact]
@@ -2175,20 +2175,20 @@ namespace Orion.Launcher.World
         {
             Action<PacketReceiveEvent<BlockPaintPacket>>? registeredHandler = null;
 
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<BlockPaintPacket>>>(), log))
                 .Callback<Action<PacketReceiveEvent<BlockPaintPacket>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             var packet = new BlockPaintPacket { X = 100, Y = 256, Color = PaintColor.Red };
             var sender = Mock.Of<IPlayer>();
             var evt = new PacketReceiveEvent<BlockPaintPacket>(ref packet, sender);
 
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.Raise(
                     It.Is<BlockPaintEvent>(
                         evt => evt.World == worldService.World && evt.Player == sender && evt.X == 100 &&
@@ -2198,7 +2198,7 @@ namespace Orion.Launcher.World
             Assert.NotNull(registeredHandler);
             registeredHandler!(evt);
 
-            Mock.Get(server.Events).VerifyAll();
+            Mock.Get(events).VerifyAll();
         }
 
         [Fact]
@@ -2206,20 +2206,20 @@ namespace Orion.Launcher.World
         {
             Action<PacketReceiveEvent<BlockPaintPacket>>? registeredHandler = null;
 
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<BlockPaintPacket>>>(), log))
                 .Callback<Action<PacketReceiveEvent<BlockPaintPacket>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             var packet = new BlockPaintPacket { X = 100, Y = 256, Color = PaintColor.Red };
             var sender = Mock.Of<IPlayer>();
             var evt = new PacketReceiveEvent<BlockPaintPacket>(ref packet, sender);
 
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.Raise(It.IsAny<BlockPaintEvent>(), log))
                 .Callback<BlockPaintEvent, ILogger>((evt, log) => evt.Cancel());
 
@@ -2228,7 +2228,7 @@ namespace Orion.Launcher.World
 
             Assert.True(evt.IsCanceled);
 
-            Mock.Get(server.Events).VerifyAll();
+            Mock.Get(events).VerifyAll();
         }
 
         [Fact]
@@ -2236,20 +2236,20 @@ namespace Orion.Launcher.World
         {
             Action<PacketReceiveEvent<WallPaintPacket>>? registeredHandler = null;
 
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<WallPaintPacket>>>(), log))
                 .Callback<Action<PacketReceiveEvent<WallPaintPacket>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             var packet = new WallPaintPacket { X = 100, Y = 256, Color = PaintColor.Red };
             var sender = Mock.Of<IPlayer>();
             var evt = new PacketReceiveEvent<WallPaintPacket>(ref packet, sender);
 
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.Raise(
                     It.Is<WallPaintEvent>(
                         evt => evt.World == worldService.World && evt.Player == sender && evt.X == 100 &&
@@ -2259,7 +2259,7 @@ namespace Orion.Launcher.World
             Assert.NotNull(registeredHandler);
             registeredHandler!(evt);
 
-            Mock.Get(server.Events).VerifyAll();
+            Mock.Get(events).VerifyAll();
         }
 
         [Fact]
@@ -2267,20 +2267,20 @@ namespace Orion.Launcher.World
         {
             Action<PacketReceiveEvent<WallPaintPacket>>? registeredHandler = null;
 
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<WallPaintPacket>>>(), log))
                 .Callback<Action<PacketReceiveEvent<WallPaintPacket>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
-            using var worldService = new OrionWorldService(server, log);
+            using var worldService = new OrionWorldService(events, log);
 
             var packet = new WallPaintPacket { X = 100, Y = 256, Color = PaintColor.Red };
             var sender = Mock.Of<IPlayer>();
             var evt = new PacketReceiveEvent<WallPaintPacket>(ref packet, sender);
 
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.Raise(It.IsAny<WallPaintEvent>(), log))
                 .Callback<WallPaintEvent, ILogger>((evt, log) => evt.Cancel());
 
@@ -2289,7 +2289,7 @@ namespace Orion.Launcher.World
 
             Assert.True(evt.IsCanceled);
 
-            Mock.Get(server.Events).VerifyAll();
+            Mock.Get(events).VerifyAll();
         }
     }
 }

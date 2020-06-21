@@ -39,10 +39,10 @@ namespace Orion.Launcher.Players
         [Fact]
         public void Name_Get()
         {
-            var server = Mock.Of<IServer>();
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             var terrariaPlayer = new Terraria.Player { name = "test" };
-            var player = new OrionPlayer(terrariaPlayer, server, log);
+            var player = new OrionPlayer(terrariaPlayer, events, log);
 
             Assert.Equal("test", player.Name);
         }
@@ -50,10 +50,10 @@ namespace Orion.Launcher.Players
         [Fact]
         public void Name_SetNullValue_ThrowsArgumentNullException()
         {
-            var server = Mock.Of<IServer>();
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             var terrariaPlayer = new Terraria.Player();
-            var player = new OrionPlayer(terrariaPlayer, server, log);
+            var player = new OrionPlayer(terrariaPlayer, events, log);
 
             Assert.Throws<ArgumentNullException>(() => player.Name = null!);
         }
@@ -61,10 +61,10 @@ namespace Orion.Launcher.Players
         [Fact]
         public void Name_Set()
         {
-            var server = Mock.Of<IServer>();
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             var terrariaPlayer = new Terraria.Player();
-            var player = new OrionPlayer(terrariaPlayer, server, log);
+            var player = new OrionPlayer(terrariaPlayer, events, log);
 
             player.Name = "test";
 
@@ -74,10 +74,10 @@ namespace Orion.Launcher.Players
         [Fact]
         public void Health_Get()
         {
-            var server = Mock.Of<IServer>();
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             var terrariaPlayer = new Terraria.Player { statLife = 100 };
-            var player = new OrionPlayer(terrariaPlayer, server, log);
+            var player = new OrionPlayer(terrariaPlayer, events, log);
 
             Assert.Equal(100, player.Health);
         }
@@ -85,10 +85,10 @@ namespace Orion.Launcher.Players
         [Fact]
         public void Health_Set()
         {
-            var server = Mock.Of<IServer>();
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             var terrariaPlayer = new Terraria.Player();
-            var player = new OrionPlayer(terrariaPlayer, server, log);
+            var player = new OrionPlayer(terrariaPlayer, events, log);
 
             player.Health = 100;
 
@@ -98,10 +98,10 @@ namespace Orion.Launcher.Players
         [Fact]
         public void MaxHealth_Get()
         {
-            var server = Mock.Of<IServer>();
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             var terrariaPlayer = new Terraria.Player { statLifeMax = 500 };
-            var player = new OrionPlayer(terrariaPlayer, server, log);
+            var player = new OrionPlayer(terrariaPlayer, events, log);
 
             Assert.Equal(500, player.MaxHealth);
         }
@@ -109,10 +109,10 @@ namespace Orion.Launcher.Players
         [Fact]
         public void MaxHealth_Set()
         {
-            var server = Mock.Of<IServer>();
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             var terrariaPlayer = new Terraria.Player();
-            var player = new OrionPlayer(terrariaPlayer, server, log);
+            var player = new OrionPlayer(terrariaPlayer, events, log);
 
             player.MaxHealth = 500;
 
@@ -122,10 +122,10 @@ namespace Orion.Launcher.Players
         [Fact]
         public void Mana_Get()
         {
-            var server = Mock.Of<IServer>();
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             var terrariaPlayer = new Terraria.Player { statMana = 100 };
-            var player = new OrionPlayer(terrariaPlayer, server, log);
+            var player = new OrionPlayer(terrariaPlayer, events, log);
 
             Assert.Equal(100, player.Mana);
         }
@@ -133,10 +133,10 @@ namespace Orion.Launcher.Players
         [Fact]
         public void Mana_Set()
         {
-            var server = Mock.Of<IServer>();
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             var terrariaPlayer = new Terraria.Player();
-            var player = new OrionPlayer(terrariaPlayer, server, log);
+            var player = new OrionPlayer(terrariaPlayer, events, log);
 
             player.Mana = 100;
 
@@ -146,10 +146,10 @@ namespace Orion.Launcher.Players
         [Fact]
         public void MaxMana_Get()
         {
-            var server = Mock.Of<IServer>();
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             var terrariaPlayer = new Terraria.Player { statManaMax = 200 };
-            var player = new OrionPlayer(terrariaPlayer, server, log);
+            var player = new OrionPlayer(terrariaPlayer, events, log);
 
             Assert.Equal(200, player.MaxMana);
         }
@@ -157,10 +157,10 @@ namespace Orion.Launcher.Players
         [Fact]
         public void MaxMana_Set()
         {
-            var server = Mock.Of<IServer>();
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             var terrariaPlayer = new Terraria.Player();
-            var player = new OrionPlayer(terrariaPlayer, server, log);
+            var player = new OrionPlayer(terrariaPlayer, events, log);
 
             player.MaxMana = 200;
 
@@ -172,10 +172,10 @@ namespace Orion.Launcher.Players
         [InlineData(100)]
         public void Buffs_Get_Index_GetInvalidIndex_ThrowsIndexOutOfRangeException(int index)
         {
-            var server = Mock.Of<IServer>();
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             var terrariaPlayer = new Terraria.Player();
-            var player = new OrionPlayer(terrariaPlayer, server, log);
+            var player = new OrionPlayer(terrariaPlayer, events, log);
 
             Assert.Throws<IndexOutOfRangeException>(() => player.Buffs[index]);
         }
@@ -183,10 +183,10 @@ namespace Orion.Launcher.Players
         [Fact]
         public void Buffs_Get_Index_Get()
         {
-            var server = Mock.Of<IServer>();
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             var terrariaPlayer = new Terraria.Player();
-            var player = new OrionPlayer(terrariaPlayer, server, log);
+            var player = new OrionPlayer(terrariaPlayer, events, log);
 
             terrariaPlayer.buffType[0] = (int)BuffId.ObsidianSkin;
             terrariaPlayer.buffTime[0] = 28800;
@@ -199,10 +199,10 @@ namespace Orion.Launcher.Players
         [InlineData(0)]
         public void Buffs_Get_Index_InvalidTime_Get(int buffTime)
         {
-            var server = Mock.Of<IServer>();
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             var terrariaPlayer = new Terraria.Player();
-            var player = new OrionPlayer(terrariaPlayer, server, log);
+            var player = new OrionPlayer(terrariaPlayer, events, log);
 
             terrariaPlayer.buffType[0] = (int)BuffId.ObsidianSkin;
             terrariaPlayer.buffTime[0] = buffTime;
@@ -215,10 +215,10 @@ namespace Orion.Launcher.Players
         [InlineData(100)]
         public void Buffs_Get_Index_SetInvalidIndex_ThrowsIndexOutOfRangeException(int index)
         {
-            var server = Mock.Of<IServer>();
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             var terrariaPlayer = new Terraria.Player();
-            var player = new OrionPlayer(terrariaPlayer, server, log);
+            var player = new OrionPlayer(terrariaPlayer, events, log);
 
             Assert.Throws<IndexOutOfRangeException>(() => player.Buffs[index] = default);
         }
@@ -226,10 +226,10 @@ namespace Orion.Launcher.Players
         [Fact]
         public void Buffs_Get_Index_Set()
         {
-            var server = Mock.Of<IServer>();
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             var terrariaPlayer = new Terraria.Player();
-            var player = new OrionPlayer(terrariaPlayer, server, log);
+            var player = new OrionPlayer(terrariaPlayer, events, log);
 
             player.Buffs[0] = new Buff(BuffId.ObsidianSkin, TimeSpan.FromMinutes(8));
 
@@ -240,10 +240,10 @@ namespace Orion.Launcher.Players
         [Fact]
         public void Difficulty_Get()
         {
-            var server = Mock.Of<IServer>();
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             var terrariaPlayer = new Terraria.Player { difficulty = (byte)CharacterDifficulty.Journey };
-            var player = new OrionPlayer(terrariaPlayer, server, log);
+            var player = new OrionPlayer(terrariaPlayer, events, log);
 
             Assert.Equal(CharacterDifficulty.Journey, player.Difficulty);
         }
@@ -251,10 +251,10 @@ namespace Orion.Launcher.Players
         [Fact]
         public void Difficulty_Set()
         {
-            var server = Mock.Of<IServer>();
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             var terrariaPlayer = new Terraria.Player();
-            var player = new OrionPlayer(terrariaPlayer, server, log);
+            var player = new OrionPlayer(terrariaPlayer, events, log);
 
             player.Difficulty = CharacterDifficulty.Journey;
 
@@ -264,10 +264,10 @@ namespace Orion.Launcher.Players
         [Fact]
         public void IsInPvp_Get()
         {
-            var server = Mock.Of<IServer>();
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             var terrariaPlayer = new Terraria.Player { hostile = true };
-            var player = new OrionPlayer(terrariaPlayer, server, log);
+            var player = new OrionPlayer(terrariaPlayer, events, log);
 
             Assert.True(player.IsInPvp);
         }
@@ -275,10 +275,10 @@ namespace Orion.Launcher.Players
         [Fact]
         public void IsInPvp_Set()
         {
-            var server = Mock.Of<IServer>();
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             var terrariaPlayer = new Terraria.Player();
-            var player = new OrionPlayer(terrariaPlayer, server, log);
+            var player = new OrionPlayer(terrariaPlayer, events, log);
 
             player.IsInPvp = true;
 
@@ -288,10 +288,10 @@ namespace Orion.Launcher.Players
         [Fact]
         public void Team_Get()
         {
-            var server = Mock.Of<IServer>();
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             var terrariaPlayer = new Terraria.Player { team = (int)PlayerTeam.Red };
-            var player = new OrionPlayer(terrariaPlayer, server, log);
+            var player = new OrionPlayer(terrariaPlayer, events, log);
 
             Assert.Equal(PlayerTeam.Red, player.Team);
         }
@@ -299,10 +299,10 @@ namespace Orion.Launcher.Players
         [Fact]
         public void Team_Set()
         {
-            var server = Mock.Of<IServer>();
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             var terrariaPlayer = new Terraria.Player();
-            var player = new OrionPlayer(terrariaPlayer, server, log);
+            var player = new OrionPlayer(terrariaPlayer, events, log);
 
             player.Team = PlayerTeam.Red;
 
@@ -316,12 +316,12 @@ namespace Orion.Launcher.Players
             Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5 };
             Terraria.Netplay.ServerPassword = string.Empty;
 
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             var terrariaPlayer = new Terraria.Player { whoAmI = 5 };
-            var player = new OrionPlayer(5, terrariaPlayer, server, log);
+            var player = new OrionPlayer(5, terrariaPlayer, events, log);
 
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.Raise(
                     It.Is<PacketReceiveEvent<ClientConnectPacket>>(
                         evt => ((OrionPlayer)evt.Sender).Wrapped == terrariaPlayer),
@@ -336,7 +336,7 @@ namespace Orion.Launcher.Players
 
             Assert.Equal(1, Terraria.Netplay.Clients[5].State);
 
-            Mock.Get(server.Events).VerifyAll();
+            Mock.Get(events).VerifyAll();
         }
 
         [Fact]
@@ -346,12 +346,12 @@ namespace Orion.Launcher.Players
             Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5 };
             Terraria.Netplay.ServerPassword = string.Empty;
 
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             var terrariaPlayer = new Terraria.Player { whoAmI = 5 };
-            var player = new OrionPlayer(5, terrariaPlayer, server, log);
+            var player = new OrionPlayer(5, terrariaPlayer, events, log);
 
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.Raise(It.IsAny<PacketReceiveEvent<ClientConnectPacket>>(), log))
                 .Callback<PacketReceiveEvent<ClientConnectPacket>, ILogger>(
                     (evt, log) => evt.Packet.Version = "Terraria1");
@@ -369,12 +369,12 @@ namespace Orion.Launcher.Players
             Terraria.Netplay.Clients[5] = new Terraria.RemoteClient { Id = 5 };
             Terraria.Netplay.ServerPassword = string.Empty;
 
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             var terrariaPlayer = new Terraria.Player { whoAmI = 5 };
-            var player = new OrionPlayer(5, terrariaPlayer, server, log);
+            var player = new OrionPlayer(5, terrariaPlayer, events, log);
 
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.Raise(It.IsAny<PacketReceiveEvent<ClientConnectPacket>>(), log))
                 .Callback<PacketReceiveEvent<ClientConnectPacket>, ILogger>((evt, log) => evt.Cancel());
 
@@ -383,7 +383,7 @@ namespace Orion.Launcher.Players
 
             Assert.Equal(0, Terraria.Netplay.Clients[5].State);
 
-            Mock.Get(server.Events).VerifyAll();
+            Mock.Get(events).VerifyAll();
         }
 
         [Fact]
@@ -395,18 +395,18 @@ namespace Orion.Launcher.Players
                 Socket = Mock.Of<Terraria.Net.Sockets.ISocket>(s => !s.IsConnected())
             };
 
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             var terrariaPlayer = new Terraria.Player { whoAmI = 5 };
-            var player = new OrionPlayer(5, terrariaPlayer, server, log);
+            var player = new OrionPlayer(5, terrariaPlayer, events, log);
 
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.Raise(It.IsAny<PacketSendEvent<TestPacket>>(), log));
 
             var packet = new TestPacket { Value = 100 };
             player.SendPacket(ref packet);
 
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Verify(em => em.Raise(It.IsAny<PacketSendEvent<TestPacket>>(), log), Times.Never);
         }
 
@@ -427,12 +427,12 @@ namespace Orion.Launcher.Players
                 .Callback<byte[], int, int, Terraria.Net.Sockets.SocketSendCallback, object>(
                     (data, offset, size, callback, state) => sendData = data[offset..size]);
 
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             var terrariaPlayer = new Terraria.Player { whoAmI = 5 };
-            var player = new OrionPlayer(5, terrariaPlayer, server, log);
+            var player = new OrionPlayer(5, terrariaPlayer, events, log);
 
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.Raise(
                     It.Is<PacketSendEvent<TestPacket>>(
                         evt => ((OrionPlayer)evt.Receiver).Wrapped == terrariaPlayer),
@@ -449,7 +449,7 @@ namespace Orion.Launcher.Players
             Assert.Equal(new byte[] { 4, 0, 255, 100 }, sendData!);
 
             Mock.Get(Terraria.Netplay.Clients[5].Socket).VerifyAll();
-            Mock.Get(server.Events).VerifyAll();
+            Mock.Get(events).VerifyAll();
         }
 
         [Fact]
@@ -469,12 +469,12 @@ namespace Orion.Launcher.Players
                 .Callback<byte[], int, int, Terraria.Net.Sockets.SocketSendCallback, object>(
                     (data, offset, size, callback, state) => sendData = data[offset..size]);
 
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             var terrariaPlayer = new Terraria.Player { whoAmI = 5 };
-            var player = new OrionPlayer(5, terrariaPlayer, server, log);
+            var player = new OrionPlayer(5, terrariaPlayer, events, log);
 
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.Raise(It.IsAny<PacketSendEvent<TestPacket>>(), log))
                 .Callback<PacketSendEvent<TestPacket>, ILogger>((evt, log) => evt.Packet.Value = 200);
 
@@ -485,7 +485,7 @@ namespace Orion.Launcher.Players
             Assert.Equal(new byte[] { 4, 0, 255, 200 }, sendData!);
 
             Mock.Get(Terraria.Netplay.Clients[5].Socket).VerifyAll();
-            Mock.Get(server.Events).VerifyAll();
+            Mock.Get(events).VerifyAll();
         }
 
         [Fact]
@@ -497,12 +497,12 @@ namespace Orion.Launcher.Players
                 Socket = Mock.Of<Terraria.Net.Sockets.ISocket>(s => s.IsConnected())
             };
 
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             var terrariaPlayer = new Terraria.Player { whoAmI = 5 };
-            var player = new OrionPlayer(5, terrariaPlayer, server, log);
+            var player = new OrionPlayer(5, terrariaPlayer, events, log);
 
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.Raise(It.IsAny<PacketSendEvent<TestPacket>>(), log))
                 .Callback<PacketSendEvent<TestPacket>, ILogger>((evt, log) => evt.Cancel());
 
@@ -515,7 +515,7 @@ namespace Orion.Launcher.Players
                         It.IsAny<byte[]>(), It.IsAny<int>(), It.IsAny<int>(),
                         It.IsAny<Terraria.Net.Sockets.SocketSendCallback>(), It.IsAny<object>()),
                     Times.Never);
-            Mock.Get(server.Events).VerifyAll();
+            Mock.Get(events).VerifyAll();
         }
 
         [Fact]
@@ -533,19 +533,19 @@ namespace Orion.Launcher.Players
                     It.IsAny<Terraria.Net.Sockets.SocketSendCallback>(), It.IsAny<object>()))
                 .Throws<IOException>();
 
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             var terrariaPlayer = new Terraria.Player { whoAmI = 5 };
-            var player = new OrionPlayer(5, terrariaPlayer, server, log);
+            var player = new OrionPlayer(5, terrariaPlayer, events, log);
 
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.Raise(It.IsAny<PacketSendEvent<TestPacket>>(), log));
 
             var packet = new TestPacket { Value = 100 };
             player.SendPacket(ref packet);
 
             Mock.Get(Terraria.Netplay.Clients[5].Socket).VerifyAll();
-            Mock.Get(server.Events).VerifyAll();
+            Mock.Get(events).VerifyAll();
         }
 
         private struct TestPacket : IPacket

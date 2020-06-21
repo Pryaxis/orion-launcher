@@ -38,9 +38,9 @@ namespace Orion.Launcher.World.Signs
         [InlineData(10000)]
         public void Signs_Item_GetInvalidIndex_ThrowsIndexOutOfRangeException(int index)
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var signService = new OrionSignService(server, log);
+            using var signService = new OrionSignService(events, log);
 
             Assert.Throws<IndexOutOfRangeException>(() => signService.Signs[index]);
         }
@@ -50,9 +50,9 @@ namespace Orion.Launcher.World.Signs
         {
             Terraria.Main.sign[1] = new Terraria.Sign();
 
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var signService = new OrionSignService(server, log);
+            using var signService = new OrionSignService(events, log);
 
             var sign = signService.Signs[1];
 
@@ -65,9 +65,9 @@ namespace Orion.Launcher.World.Signs
         {
             Terraria.Main.sign[0] = new Terraria.Sign();
             
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var signService = new OrionSignService(server, log);
+            using var signService = new OrionSignService(events, log);
 
             var sign = signService.Signs[0];
             var sign2 = signService.Signs[0];
@@ -83,9 +83,9 @@ namespace Orion.Launcher.World.Signs
                 Terraria.Main.sign[i] = new Terraria.Sign();
             }
 
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var signService = new OrionSignService(server, log);
+            using var signService = new OrionSignService(events, log);
 
             var signs = signService.Signs.ToList();
 
@@ -102,27 +102,27 @@ namespace Orion.Launcher.World.Signs
 
             Action<PacketReceiveEvent<SignReadPacket>>? registeredHandler = null;
 
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<SignReadPacket>>>(), log))
                 .Callback<Action<PacketReceiveEvent<SignReadPacket>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
-            using var signService = new OrionSignService(server, log);
+            using var signService = new OrionSignService(events, log);
 
             var packet = new SignReadPacket { X = 256, Y = 100 };
             var sender = Mock.Of<IPlayer>();
             var evt = new PacketReceiveEvent<SignReadPacket>(ref packet, sender);
 
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.Raise(
                     It.Is<SignReadEvent>(evt => evt.Sign == signService.Signs[0] && evt.Player == sender), log));
 
             Assert.NotNull(registeredHandler);
             registeredHandler!(evt);
 
-            Mock.Get(server.Events).VerifyAll();
+            Mock.Get(events).VerifyAll();
         }
 
         [Fact]
@@ -132,20 +132,20 @@ namespace Orion.Launcher.World.Signs
 
             Action<PacketReceiveEvent<SignReadPacket>>? registeredHandler = null;
 
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<SignReadPacket>>>(), log))
                 .Callback<Action<PacketReceiveEvent<SignReadPacket>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
-            using var signService = new OrionSignService(server, log);
+            using var signService = new OrionSignService(events, log);
 
             var packet = new SignReadPacket { X = 256, Y = 100 };
             var sender = Mock.Of<IPlayer>();
             var evt = new PacketReceiveEvent<SignReadPacket>(ref packet, sender);
 
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.Raise(It.IsAny<SignReadEvent>(), log))
                 .Callback<SignReadEvent, ILogger>((evt, log) => evt.Cancel());
 
@@ -154,7 +154,7 @@ namespace Orion.Launcher.World.Signs
 
             Assert.True(evt.IsCanceled);
 
-            Mock.Get(server.Events).VerifyAll();
+            Mock.Get(events).VerifyAll();
         }
 
         [Fact]
@@ -167,14 +167,14 @@ namespace Orion.Launcher.World.Signs
 
             Action<PacketReceiveEvent<SignReadPacket>>? registeredHandler = null;
 
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<SignReadPacket>>>(), log))
                 .Callback<Action<PacketReceiveEvent<SignReadPacket>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
-            using var signService = new OrionSignService(server, log);
+            using var signService = new OrionSignService(events, log);
 
             var packet = new SignReadPacket { X = 256, Y = 100 };
             var sender = Mock.Of<IPlayer>();
@@ -183,7 +183,7 @@ namespace Orion.Launcher.World.Signs
             Assert.NotNull(registeredHandler);
             registeredHandler!(evt);
 
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Verify(em => em.Raise(It.IsAny<SignReadEvent>(), log), Times.Never);
         }
     }

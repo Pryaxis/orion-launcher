@@ -39,9 +39,9 @@ namespace Orion.Launcher.World.Chests
         [InlineData(10000)]
         public void Chests_Item_GetInvalidIndex_ThrowsIndexOutOfRangeException(int index)
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var chestService = new OrionChestService(server, log);
+            using var chestService = new OrionChestService(events, log);
 
             Assert.Throws<IndexOutOfRangeException>(() => chestService.Chests[index]);
         }
@@ -51,9 +51,9 @@ namespace Orion.Launcher.World.Chests
         {
             Terraria.Main.chest[1] = new Terraria.Chest();
 
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var chestService = new OrionChestService(server, log);
+            using var chestService = new OrionChestService(events, log);
 
             var chest = chestService.Chests[1];
 
@@ -66,9 +66,9 @@ namespace Orion.Launcher.World.Chests
         {
             Terraria.Main.chest[0] = new Terraria.Chest();
 
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var chestService = new OrionChestService(server, log);
+            using var chestService = new OrionChestService(events, log);
 
             var chest = chestService.Chests[0];
             var chest2 = chestService.Chests[0];
@@ -84,9 +84,9 @@ namespace Orion.Launcher.World.Chests
                 Terraria.Main.chest[i] = new Terraria.Chest();
             }
 
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var chestService = new OrionChestService(server, log);
+            using var chestService = new OrionChestService(events, log);
 
             var chests = chestService.Chests.ToList();
 
@@ -103,27 +103,27 @@ namespace Orion.Launcher.World.Chests
 
             Action<PacketReceiveEvent<ChestOpenPacket>>? registeredHandler = null;
 
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<ChestOpenPacket>>>(), log))
                 .Callback<Action<PacketReceiveEvent<ChestOpenPacket>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
-            using var chestService = new OrionChestService(server, log);
+            using var chestService = new OrionChestService(events, log);
 
             var packet = new ChestOpenPacket { X = 256, Y = 100 };
             var sender = Mock.Of<IPlayer>();
             var evt = new PacketReceiveEvent<ChestOpenPacket>(ref packet, sender);
 
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.Raise(
                     It.Is<ChestOpenEvent>(evt => evt.Player == sender && evt.Chest == chestService.Chests[0]), log));
 
             Assert.NotNull(registeredHandler);
             registeredHandler!(evt);
 
-            Mock.Get(server.Events).VerifyAll();
+            Mock.Get(events).VerifyAll();
         }
 
         [Fact]
@@ -133,20 +133,20 @@ namespace Orion.Launcher.World.Chests
 
             Action<PacketReceiveEvent<ChestOpenPacket>>? registeredHandler = null;
 
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<ChestOpenPacket>>>(), log))
                 .Callback<Action<PacketReceiveEvent<ChestOpenPacket>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
-            using var chestService = new OrionChestService(server, log);
+            using var chestService = new OrionChestService(events, log);
 
             var packet = new ChestOpenPacket { X = 256, Y = 100 };
             var sender = Mock.Of<IPlayer>();
             var evt = new PacketReceiveEvent<ChestOpenPacket>(ref packet, sender);
 
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.Raise(It.IsAny<ChestOpenEvent>(), log))
                 .Callback<ChestOpenEvent, ILogger>((evt, log) => evt.Cancel());
 
@@ -155,7 +155,7 @@ namespace Orion.Launcher.World.Chests
 
             Assert.True(evt.IsCanceled);
 
-            Mock.Get(server.Events).VerifyAll();
+            Mock.Get(events).VerifyAll();
         }
 
         [Fact]
@@ -168,14 +168,14 @@ namespace Orion.Launcher.World.Chests
 
             Action<PacketReceiveEvent<ChestOpenPacket>>? registeredHandler = null;
 
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<ChestOpenPacket>>>(), log))
                 .Callback<Action<PacketReceiveEvent<ChestOpenPacket>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
-            using var chestService = new OrionChestService(server, log);
+            using var chestService = new OrionChestService(events, log);
 
             var packet = new ChestOpenPacket { X = 256, Y = 100 };
             var sender = Mock.Of<IPlayer>();
@@ -184,7 +184,7 @@ namespace Orion.Launcher.World.Chests
             Assert.NotNull(registeredHandler);
             registeredHandler!(evt);
 
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Verify(em => em.Raise(It.IsAny<ChestOpenEvent>(), log), Times.Never);
         }
 
@@ -195,14 +195,14 @@ namespace Orion.Launcher.World.Chests
 
             Action<PacketReceiveEvent<ChestInventoryPacket>>? registeredHandler = null;
 
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<ChestInventoryPacket>>>(), log))
                 .Callback<Action<PacketReceiveEvent<ChestInventoryPacket>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
-            using var chestService = new OrionChestService(server, log);
+            using var chestService = new OrionChestService(events, log);
 
             var packet = new ChestInventoryPacket
             {
@@ -214,7 +214,7 @@ namespace Orion.Launcher.World.Chests
             var sender = Mock.Of<IPlayer>();
             var evt = new PacketReceiveEvent<ChestInventoryPacket>(ref packet, sender);
 
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.Raise(
                     It.Is<ChestInventoryEvent>(
                         evt => evt.Player == sender && evt.Chest == chestService.Chests[5] &&
@@ -224,7 +224,7 @@ namespace Orion.Launcher.World.Chests
             Assert.NotNull(registeredHandler);
             registeredHandler!(evt);
 
-            Mock.Get(server.Events).VerifyAll();
+            Mock.Get(events).VerifyAll();
         }
 
         [Fact]
@@ -232,14 +232,14 @@ namespace Orion.Launcher.World.Chests
         {
             Action<PacketReceiveEvent<ChestInventoryPacket>>? registeredHandler = null;
 
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<ChestInventoryPacket>>>(), log))
                 .Callback<Action<PacketReceiveEvent<ChestInventoryPacket>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
-            using var chestService = new OrionChestService(server, log);
+            using var chestService = new OrionChestService(events, log);
 
             var packet = new ChestInventoryPacket
             {
@@ -251,7 +251,7 @@ namespace Orion.Launcher.World.Chests
             var sender = Mock.Of<IPlayer>();
             var evt = new PacketReceiveEvent<ChestInventoryPacket>(ref packet, sender);
 
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.Raise(It.IsAny<ChestInventoryEvent>(), log))
                 .Callback<ChestInventoryEvent, ILogger>((evt, log) => evt.Cancel());
 
@@ -260,7 +260,7 @@ namespace Orion.Launcher.World.Chests
 
             Assert.True(evt.IsCanceled);
 
-            Mock.Get(server.Events).VerifyAll();
+            Mock.Get(events).VerifyAll();
         }
     }
 }

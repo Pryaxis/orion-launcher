@@ -15,7 +15,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Orion.  If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Orion.Core;
@@ -32,22 +34,31 @@ using Serilog;
 namespace Orion.Launcher.World.Chests
 {
     [Binding("orion-chests", Author = "Pryaxis", Priority = BindingPriority.Lowest)]
-    internal sealed class OrionChestService : OrionExtension, IChestService
+    internal sealed class OrionChestService : IChestService, IDisposable
     {
-        public OrionChestService(IServer server, ILogger log) : base(server, log)
+        private readonly IEventManager _events;
+        private readonly ILogger _log;
+
+        public OrionChestService(IEventManager events, ILogger log)
         {
+            Debug.Assert(events != null);
+            Debug.Assert(log != null);
+
+            _events = events;
+            _log = log;
+
             // Construct the `Chests` array.
             Chests = new WrappedReadOnlyList<OrionChest, Terraria.Chest?>(
                 Terraria.Main.chest, (chestIndex, terrariaChest) => new OrionChest(chestIndex, terrariaChest));
 
-            Server.Events.RegisterHandlers(this, Log);
+            _events.RegisterHandlers(this, _log);
         }
 
         public IReadOnlyList<IChest> Chests { get; }
 
-        public override void Dispose()
+        public void Dispose()
         {
-            Server.Events.DeregisterHandlers(this, Log);
+            _events.DeregisterHandlers(this, _log);
         }
 
         private IChest? FindChest(int x, int y) => Chests.FirstOrDefault(s => s.IsActive && s.X == x && s.Y == y);
@@ -83,7 +94,7 @@ namespace Orion.Launcher.World.Chests
         // Forwards `evt` as `newEvt`.
         private void ForwardEvent<TEvent>(Event evt, TEvent newEvt) where TEvent : Event
         {
-            Server.Events.Raise(newEvt, Log);
+            _events.Raise(newEvt, _log);
             if (newEvt.IsCanceled)
             {
                 evt.Cancel(newEvt.CancellationReason);

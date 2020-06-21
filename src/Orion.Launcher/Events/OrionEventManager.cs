@@ -18,14 +18,19 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Orion.Core;
 using Orion.Core.Events;
+using Orion.Core.Framework;
 using Serilog;
 
 namespace Orion.Launcher.Events
 {
+    [Binding("orion-events", Author = "Pryaxis", Priority = BindingPriority.Lowest)]
     internal sealed class OrionEventManager : IEventManager
     {
         private readonly IDictionary<Type, object> _eventHandlerCollections = new Dictionary<Type, object>();
+
+        public OrionEventManager() { }
 
         public void RegisterHandler<TEvent>(Action<TEvent> handler, ILogger log) where TEvent : Event
         {

@@ -16,28 +16,86 @@
 // along with Orion.  If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
+using System.Reflection;
+using Ninject;
 using Orion.Core;
 using Orion.Core.Events;
 using Orion.Core.Events.Server;
 using Orion.Core.Framework;
+using Orion.Core.Items;
+using Orion.Core.Npcs;
+using Orion.Core.Players;
+using Orion.Core.Projectiles;
+using Orion.Core.World;
+using Orion.Core.World.Chests;
+using Orion.Core.World.Signs;
 using Orion.Launcher.Events;
 using Orion.Launcher.Extensions;
+using Orion.Launcher.Items;
+using Orion.Launcher.Properties;
 using Serilog;
 
 namespace Orion.Launcher
 {
     internal sealed class OrionServer : IServer, IDisposable
     {
-        private readonly OrionExtensionManager _extensions;
         private readonly ILogger _log;
+
+        private readonly Lazy<IEventManager> _events;
+        private readonly Lazy<IItemService> _items;
+        private readonly Lazy<INpcService> _npcs;
+        private readonly Lazy<IPlayerService> _players;
+        private readonly Lazy<IProjectileService> _projectiles;
+        private readonly Lazy<IChestService> _chests;
+        private readonly Lazy<ISignService> _signs;
+        private readonly Lazy<IWorldService> _world;
+
+        private readonly IKernel _kernel = new StandardKernel();
+        private readonly ISet<Type> _serviceInterfaceTypes = new HashSet<Type>();
+        private readonly IDictionary<Type, ISet<Type>> _serviceBindingTypes = new Dictionary<Type, ISet<Type>>();
+        private readonly ISet<Type> _pluginTypes = new HashSet<Type>();
+
+        private readonly Dictionary<string, OrionExtension> _plugins = new Dictionary<string, OrionExtension>();
 
         public OrionServer(ILogger log)
         {
             Debug.Assert(log != null);
 
-            _extensions = new OrionExtensionManager(this, log);
             _log = log.ForContext("Name", "orion-server");
+
+            _kernel.Bind<IServer>().ToConstant(this).InTransientScope();
+
+            // Bind `Ilogger` so that plugins/services retrieve plugin/service-specific logs.
+            _kernel
+                .Bind<ILogger>()
+                .ToMethod(ctx =>
+                {
+                    var type = ctx.Request.Target.Member.ReflectedType;
+                    Debug.Assert(type != null);
+
+                    var name =
+                        type.GetCustomAttribute<BindingAttribute>()?.Name ??
+                        type.GetCustomAttribute<PluginAttribute>()!.Name;
+                    return log.ForContext("Name", name);
+                })
+                .InTransientScope();
+
+            // Load the Orion.Core and Orion.Launcher assemblies so that the Orion interfaces and bindings are
+            // loaded.
+            Load(typeof(IServer).Assembly);
+            Load(typeof(OrionServer).Assembly);
+
+            _events = new Lazy<IEventManager>(() => _kernel.Get<IEventManager>());
+            _items = new Lazy<IItemService>(() => _kernel.Get<IItemService>());
+            _npcs = new Lazy<INpcService>(() => _kernel.Get<INpcService>());
+            _players = new Lazy<IPlayerService>(() => _kernel.Get<IPlayerService>());
+            _projectiles = new Lazy<IProjectileService>(() => _kernel.Get<IProjectileService>());
+            _chests = new Lazy<IChestService>(() => _kernel.Get<IChestService>());
+            _signs = new Lazy<ISignService>(() => _kernel.Get<ISignService>());
+            _world = new Lazy<IWorldService>(() => _kernel.Get<IWorldService>());
 
             OTAPI.Hooks.Game.PreInitialize = PreInitializeHandler;
             OTAPI.Hooks.Game.Started = StartedHandler;
@@ -45,18 +103,147 @@ namespace Orion.Launcher
             OTAPI.Hooks.Command.Process = ProcessHandler;
         }
 
-        public IExtensionManager Extensions => _extensions;
-
-        public IEventManager Events { get; } = new OrionEventManager();
+        public IEventManager Events => _events.Value;
+        public IItemService Items => _items.Value;
+        public INpcService Npcs => _npcs.Value;
+        public IPlayerService Players => _players.Value;
+        public IProjectileService Projectiles => _projectiles.Value;
+        public IChestService Chests => _chests.Value;
+        public ISignService Signs => _signs.Value;
+        public IWorldService World => _world.Value;
 
         public void Dispose()
         {
-            _extensions.Dispose();
+            _kernel.Dispose();
 
             OTAPI.Hooks.Game.PreInitialize = null;
             OTAPI.Hooks.Game.Started = null;
             OTAPI.Hooks.Game.PreUpdate = null;
             OTAPI.Hooks.Command.Process = null;
+        }
+
+        // =============================================================================================================
+        // Framework support
+        //
+
+        public void Load(Assembly assembly)
+        {
+            Debug.Assert(assembly != null);
+
+            LoadServiceInterfaceTypes();
+            LoadServiceBindingTypes();
+            LoadPluginTypes();
+
+            void LoadServiceInterfaceTypes()
+            {
+                _serviceInterfaceTypes.UnionWith(
+                    assembly.ExportedTypes
+                        .Where(t => t.IsInterface)
+                        .Where(t => t.GetCustomAttribute<ServiceAttribute>() != null));
+            }
+
+            void LoadServiceBindingTypes()
+            {
+                foreach (var bindingType in assembly.DefinedTypes
+                    .Where(t => !t.IsAbstract)
+                    .Where(t => t.GetCustomAttribute<BindingAttribute>() != null))
+                {
+                    foreach (var interfaceType in bindingType
+                        .GetInterfaces()
+                        .Where(_serviceInterfaceTypes.Contains))
+                    {
+                        if (!_serviceBindingTypes.TryGetValue(interfaceType, out var types))
+                        {
+                            types = new HashSet<Type>();
+                            _serviceBindingTypes[interfaceType] = types;
+                        }
+
+                        types.Add(bindingType);
+                    }
+                }
+            }
+
+            void LoadPluginTypes()
+            {
+                foreach (var pluginType in assembly.ExportedTypes
+                    .Where(t => !t.IsAbstract)
+                    .Where(t => t.GetCustomAttribute<PluginAttribute>() != null))
+                {
+                    _pluginTypes.Add(pluginType);
+
+                    var pluginName = pluginType.GetCustomAttribute<PluginAttribute>()!.Name;
+                    _log.Information(Resources.LoadedPlugin, pluginName);
+                }
+            }
+        }
+
+        public void Initialize()
+        {
+            InitializeServiceBindings();
+            InitializePlugins();
+
+            // Clear out the loaded types so that a second `Initialize` call won't perform redundant initialization
+            // logic.
+            _serviceInterfaceTypes.Clear();
+            _serviceBindingTypes.Clear();
+            _pluginTypes.Clear();
+
+            void InitializeServiceBindings()
+            {
+                // Initialize the service bindings.
+                foreach (var (interfaceType, bindingTypes) in _serviceBindingTypes)
+                {
+                    var bindingType = bindingTypes
+                        .OrderByDescending(t => t.GetCustomAttribute<BindingAttribute>()!.Priority)
+                        .FirstOrDefault();
+                    if (bindingType is null)
+                    {
+                        // We didn't find a binding for `interfaceType`, so continue.
+                        continue;
+                    }
+
+                    var binding = _kernel.Bind(interfaceType).To(bindingType);
+                    _ = interfaceType.GetCustomAttribute<ServiceAttribute>()!.Scope switch
+                    {
+                        ServiceScope.Singleton => binding.InSingletonScope(),
+                        ServiceScope.Transient => binding.InTransientScope(),
+
+                        // Not localized because this string is developer-facing.
+                        _ => throw new InvalidOperationException("Invalid service scope")
+                    };
+                }
+
+                // Initialize the singleton services so that an instance always exists.
+                foreach (var interfaceType in _serviceInterfaceTypes)
+                {
+                    if (interfaceType.GetCustomAttribute<ServiceAttribute>()!.Scope == ServiceScope.Singleton)
+                    {
+                        _ = _kernel.Get(interfaceType);
+                    }
+                }
+            }
+
+            void InitializePlugins()
+            {
+                // Initialize the plugin bindings to allow plugin dependencies.
+                foreach (var pluginType in _pluginTypes)
+                {
+                    _kernel.Bind(pluginType).ToSelf().InSingletonScope();
+                }
+
+                // Initialize the plugins.
+                foreach (var pluginType in _pluginTypes)
+                {
+                    var attribute = pluginType.GetCustomAttribute<PluginAttribute>()!;
+                    var pluginName = attribute.Name;
+                    var pluginVersion = pluginType.Assembly.GetName().Version;
+                    var pluginAuthor = attribute.Author;
+                    _log.Information(Resources.InitializedPlugin, pluginName, pluginVersion, pluginAuthor);
+
+                    var plugin = (OrionExtension)_kernel.Get(pluginType);
+                    _plugins[pluginName] = plugin;
+                }
+            }
         }
 
         // =============================================================================================================

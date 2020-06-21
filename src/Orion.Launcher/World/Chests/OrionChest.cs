@@ -100,7 +100,7 @@ namespace Orion.Launcher.World.Chests
 
                     var item = _items[index];
 
-                    // This operation requires a lock since `ItemStack` construction won't be atomic otherwise.
+                    // This operation requires a lock since the `ItemStack` construction wouldn't be atomic otherwise.
                     lock (_lock)
                     {
                         return new ItemStack((ItemId)item.type, item.stack, (ItemPrefix)item.prefix);
@@ -117,7 +117,7 @@ namespace Orion.Launcher.World.Chests
 
                     var item = _items[index];
 
-                    // This operation requires a lock since `ItemStack` assignment won't be atomic otherwise.
+                    // This operation requires a lock since the `ItemStack` assignment wouldn't be atomic otherwise.
                     lock (_lock)
                     {
                         item.type = (int)value.Id;

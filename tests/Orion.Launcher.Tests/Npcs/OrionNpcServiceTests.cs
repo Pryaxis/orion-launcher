@@ -42,9 +42,9 @@ namespace Orion.Launcher.Npcs
         [InlineData(10000)]
         public void Npcs_Item_GetInvalidIndex_ThrowsIndexOutOfRangeException(int index)
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var npcService = new OrionNpcService(server, log);
+            using var npcService = new OrionNpcService(events, log);
 
             Assert.Throws<IndexOutOfRangeException>(() => npcService.Npcs[index]);
         }
@@ -52,9 +52,9 @@ namespace Orion.Launcher.Npcs
         [Fact]
         public void Npcs_Item_Get()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var npcService = new OrionNpcService(server, log);
+            using var npcService = new OrionNpcService(events, log);
 
             var npc = npcService.Npcs[1];
 
@@ -65,9 +65,9 @@ namespace Orion.Launcher.Npcs
         [Fact]
         public void Npcs_Item_GetMultipleTimes_ReturnsSameInstance()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var npcService = new OrionNpcService(server, log);
+            using var npcService = new OrionNpcService(events, log);
 
             var npc = npcService.Npcs[0];
             var npc2 = npcService.Npcs[0];
@@ -78,9 +78,9 @@ namespace Orion.Launcher.Npcs
         [Fact]
         public void Npcs_GetEnumerator()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var npcService = new OrionNpcService(server, log);
+            using var npcService = new OrionNpcService(events, log);
 
             var npcs = npcService.Npcs.ToList();
 
@@ -95,11 +95,11 @@ namespace Orion.Launcher.Npcs
         [InlineData(NpcId.GreenSlime)]
         public void NpcSetDefaults_EventTriggered(NpcId id)
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var npcService = new OrionNpcService(server, log);
+            using var npcService = new OrionNpcService(events, log);
 
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.Raise(
                     It.Is<NpcDefaultsEvent>(
                         evt => ((OrionNpc)evt.Npc).Wrapped == Terraria.Main.npc[0] && evt.Id == id),
@@ -109,7 +109,7 @@ namespace Orion.Launcher.Npcs
 
             Assert.Equal(id, (NpcId)Terraria.Main.npc[0].netID);
 
-            Mock.Get(server.Events).VerifyAll();
+            Mock.Get(events).VerifyAll();
         }
 
         [Theory]
@@ -117,11 +117,11 @@ namespace Orion.Launcher.Npcs
         [InlineData(NpcId.BlueSlime, NpcId.None)]
         public void NpcSetDefaults_EventModified(NpcId oldId, NpcId newId)
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var npcService = new OrionNpcService(server, log);
+            using var npcService = new OrionNpcService(events, log);
 
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.Raise(It.IsAny<NpcDefaultsEvent>(), log))
                 .Callback<NpcDefaultsEvent, ILogger>((evt, log) => evt.Id = newId);
 
@@ -129,7 +129,7 @@ namespace Orion.Launcher.Npcs
 
             Assert.Equal(newId, (NpcId)Terraria.Main.npc[0].netID);
 
-            Mock.Get(server.Events).VerifyAll();
+            Mock.Get(events).VerifyAll();
         }
 
         [Fact]
@@ -138,11 +138,11 @@ namespace Orion.Launcher.Npcs
             // Clear the NPC so that we know it's empty.
             Terraria.Main.npc[0] = new Terraria.NPC { whoAmI = 0 };
 
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var npcService = new OrionNpcService(server, log);
+            using var npcService = new OrionNpcService(events, log);
 
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.Raise(It.IsAny<NpcDefaultsEvent>(), log))
                 .Callback<NpcDefaultsEvent, ILogger>((evt, log) => evt.Cancel());
 
@@ -150,7 +150,7 @@ namespace Orion.Launcher.Npcs
 
             Assert.Equal(NpcId.None, (NpcId)Terraria.Main.npc[0].netID);
 
-            Mock.Get(server.Events).VerifyAll();
+            Mock.Get(events).VerifyAll();
         }
 
         [Fact]
@@ -158,11 +158,11 @@ namespace Orion.Launcher.Npcs
         {
             INpc? evtNpc = null;
 
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var npcService = new OrionNpcService(server, log);
+            using var npcService = new OrionNpcService(events, log);
 
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.Raise(It.IsAny<NpcSpawnEvent>(), log))
                 .Callback<NpcSpawnEvent, ILogger>((evt, log) => evtNpc = evt.Npc);
 
@@ -171,7 +171,7 @@ namespace Orion.Launcher.Npcs
             Assert.NotNull(evtNpc);
             Assert.Same(Terraria.Main.npc[npcIndex], ((OrionNpc)evtNpc!).Wrapped);
 
-            Mock.Get(server.Events).VerifyAll();
+            Mock.Get(events).VerifyAll();
         }
 
         [Fact]
@@ -180,11 +180,11 @@ namespace Orion.Launcher.Npcs
             // Clear the NPC so that we know it's empty.
             Terraria.Main.npc[0] = new Terraria.NPC { whoAmI = 0 };
 
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var npcService = new OrionNpcService(server, log);
+            using var npcService = new OrionNpcService(events, log);
 
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.Raise(It.IsAny<NpcSpawnEvent>(), log))
                 .Callback<NpcSpawnEvent, ILogger>((evt, log) => evt.Cancel());
 
@@ -193,7 +193,7 @@ namespace Orion.Launcher.Npcs
             Assert.Equal(npcService.Npcs.Count, npcIndex);
             Assert.False(Terraria.Main.npc[0].active);
 
-            Mock.Get(server.Events).VerifyAll();
+            Mock.Get(events).VerifyAll();
         }
 
         [Fact]
@@ -202,11 +202,11 @@ namespace Orion.Launcher.Npcs
             // Clear the NPC so that we know it's empty.
             Terraria.Main.npc[0] = new Terraria.NPC { whoAmI = 0 };
 
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var npcService = new OrionNpcService(server, log);
+            using var npcService = new OrionNpcService(events, log);
 
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.Raise(
                     It.Is<NpcTickEvent>(
                         evt => ((OrionNpc)evt.Npc).Wrapped == Terraria.Main.npc[0]),
@@ -214,33 +214,33 @@ namespace Orion.Launcher.Npcs
 
             Terraria.Main.npc[0].UpdateNPC(0);
 
-            Mock.Get(server.Events).VerifyAll();
+            Mock.Get(events).VerifyAll();
         }
 
         [Fact]
         public void NpcTick_EventCanceled()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var npcService = new OrionNpcService(server, log);
+            using var npcService = new OrionNpcService(events, log);
 
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.Raise(It.IsAny<NpcTickEvent>(), log))
                 .Callback<NpcTickEvent, ILogger>((evt, log) => evt.Cancel());
 
             Terraria.Main.npc[0].UpdateNPC(0);
 
-            Mock.Get(server.Events).VerifyAll();
+            Mock.Get(events).VerifyAll();
         }
 
         [Fact]
         public void NpcKilled_EventTriggered()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var npcService = new OrionNpcService(server, log);
+            using var npcService = new OrionNpcService(events, log);
 
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.Raise(
                     It.Is<NpcKilledEvent>(
                         evt => ((OrionNpc)evt.Npc).Wrapped == Terraria.Main.npc[0]),
@@ -251,7 +251,7 @@ namespace Orion.Launcher.Npcs
 
             Terraria.Main.npc[0].checkDead();
 
-            Mock.Get(server.Events).VerifyAll();
+            Mock.Get(events).VerifyAll();
         }
 
         [Fact]
@@ -260,11 +260,11 @@ namespace Orion.Launcher.Npcs
             // Clear the item so that we know it's empty.
             Terraria.Main.item[0] = new Terraria.Item { whoAmI = 0 };
 
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var npcService = new OrionNpcService(server, log);
+            using var npcService = new OrionNpcService(events, log);
 
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.Raise(
                     It.Is<NpcLootEvent>(
                         evt => ((OrionNpc)evt.Npc).Wrapped == Terraria.Main.npc[0] && evt.Id == ItemId.Gel &&
@@ -278,7 +278,7 @@ namespace Orion.Launcher.Npcs
 
             Assert.Equal(ItemId.Gel, (ItemId)Terraria.Main.item[0].type);
 
-            Mock.Get(server.Events).VerifyAll();
+            Mock.Get(events).VerifyAll();
         }
 
         [Fact]
@@ -287,11 +287,11 @@ namespace Orion.Launcher.Npcs
             // Clear the item so that we know it's empty.
             Terraria.Main.item[0] = new Terraria.Item { whoAmI = 0 };
 
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var npcService = new OrionNpcService(server, log);
+            using var npcService = new OrionNpcService(events, log);
 
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.Raise(It.IsAny<NpcLootEvent>(), log))
                 .Callback<NpcLootEvent, ILogger>((evt, log) =>
                 {
@@ -309,7 +309,7 @@ namespace Orion.Launcher.Npcs
             Assert.Equal(1, Terraria.Main.item[0].stack);
             Assert.Equal(ItemPrefix.Unreal, (ItemPrefix)Terraria.Main.item[0].prefix);
 
-            Mock.Get(server.Events).VerifyAll();
+            Mock.Get(events).VerifyAll();
         }
 
         [Fact]
@@ -318,11 +318,11 @@ namespace Orion.Launcher.Npcs
             // Clear the item so that we know it's empty.
             Terraria.Main.item[0] = new Terraria.Item { whoAmI = 0 };
 
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var npcService = new OrionNpcService(server, log);
+            using var npcService = new OrionNpcService(events, log);
 
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.Raise(It.IsAny<NpcLootEvent>(), log))
                 .Callback<NpcLootEvent, ILogger>((evt, log) => evt.Cancel());
 
@@ -333,7 +333,7 @@ namespace Orion.Launcher.Npcs
 
             Assert.NotEqual(ItemId.Gel, (ItemId)Terraria.Main.item[0].type);
 
-            Mock.Get(server.Events).VerifyAll();
+            Mock.Get(events).VerifyAll();
         }
 
         [Fact]
@@ -341,20 +341,20 @@ namespace Orion.Launcher.Npcs
         {
             Action<PacketReceiveEvent<NpcBuffPacket>>? registeredHandler = null;
 
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<NpcBuffPacket>>>(), log))
                 .Callback<Action<PacketReceiveEvent<NpcBuffPacket>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
-            using var npcService = new OrionNpcService(server, log);
+            using var npcService = new OrionNpcService(events, log);
 
             var packet = new NpcBuffPacket { NpcIndex = 1, Id = BuffId.Poisoned, Ticks = 60 };
             var sender = Mock.Of<IPlayer>();
             var evt = new PacketReceiveEvent<NpcBuffPacket>(ref packet, sender);
 
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.Raise(
                     It.Is<NpcBuffEvent>(
                         evt => evt.Npc == npcService.Npcs[1] && evt.Player == sender &&
@@ -364,7 +364,7 @@ namespace Orion.Launcher.Npcs
             Assert.NotNull(registeredHandler);
             registeredHandler!(evt);
 
-            Mock.Get(server.Events).VerifyAll();
+            Mock.Get(events).VerifyAll();
         }
 
         [Fact]
@@ -372,20 +372,20 @@ namespace Orion.Launcher.Npcs
         {
             Action<PacketReceiveEvent<NpcBuffPacket>>? registeredHandler = null;
 
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<NpcBuffPacket>>>(), log))
                 .Callback<Action<PacketReceiveEvent<NpcBuffPacket>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
-            using var npcService = new OrionNpcService(server, log);
+            using var npcService = new OrionNpcService(events, log);
 
             var packet = new NpcBuffPacket { NpcIndex = 1, Id = BuffId.Poisoned, Ticks = 60 };
             var sender = Mock.Of<IPlayer>();
             var evt = new PacketReceiveEvent<NpcBuffPacket>(ref packet, sender);
 
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.Raise(It.IsAny<NpcBuffEvent>(), log))
                 .Callback<NpcBuffEvent, ILogger>((evt, log) => evt.Cancel());
 
@@ -394,7 +394,7 @@ namespace Orion.Launcher.Npcs
 
             Assert.True(evt.IsCanceled);
 
-            Mock.Get(server.Events).VerifyAll();
+            Mock.Get(events).VerifyAll();
         }
 
         [Fact]
@@ -402,26 +402,26 @@ namespace Orion.Launcher.Npcs
         {
             Action<PacketReceiveEvent<NpcCatchPacket>>? registeredHandler = null;
 
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<NpcCatchPacket>>>(), log))
                 .Callback<Action<PacketReceiveEvent<NpcCatchPacket>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
-            using var npcService = new OrionNpcService(server, log);
+            using var npcService = new OrionNpcService(events, log);
 
             var packet = new NpcCatchPacket { NpcIndex = 1 };
             var sender = Mock.Of<IPlayer>();
             var evt = new PacketReceiveEvent<NpcCatchPacket>(ref packet, sender);
 
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.Raise(It.Is<NpcCatchEvent>(evt => evt.Npc == npcService.Npcs[1]), log));
 
             Assert.NotNull(registeredHandler);
             registeredHandler!(evt);
 
-            Mock.Get(server.Events).VerifyAll();
+            Mock.Get(events).VerifyAll();
         }
 
         [Fact]
@@ -429,20 +429,20 @@ namespace Orion.Launcher.Npcs
         {
             Action<PacketReceiveEvent<NpcCatchPacket>>? registeredHandler = null;
 
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<NpcCatchPacket>>>(), log))
                 .Callback<Action<PacketReceiveEvent<NpcCatchPacket>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
-            using var npcService = new OrionNpcService(server, log);
+            using var npcService = new OrionNpcService(events, log);
 
             var packet = new NpcCatchPacket { NpcIndex = 1 };
             var sender = Mock.Of<IPlayer>();
             var evt = new PacketReceiveEvent<NpcCatchPacket>(ref packet, sender);
 
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.Raise(It.IsAny<NpcCatchEvent>(), log))
                 .Callback<NpcCatchEvent, ILogger>((evt, log) => evt.Cancel());
 
@@ -451,7 +451,7 @@ namespace Orion.Launcher.Npcs
 
             Assert.True(evt.IsCanceled);
 
-            Mock.Get(server.Events).VerifyAll();
+            Mock.Get(events).VerifyAll();
         }
 
         [Fact]
@@ -459,20 +459,20 @@ namespace Orion.Launcher.Npcs
         {
             Action<PacketReceiveEvent<NpcFishPacket>>? registeredHandler = null;
 
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<NpcFishPacket>>>(), log))
                 .Callback<Action<PacketReceiveEvent<NpcFishPacket>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
-            using var npcService = new OrionNpcService(server, log);
+            using var npcService = new OrionNpcService(events, log);
 
             var packet = new NpcFishPacket { X = 100, Y = 256, Id = NpcId.HemogoblinShark };
             var sender = Mock.Of<IPlayer>();
             var evt = new PacketReceiveEvent<NpcFishPacket>(ref packet, sender);
 
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.Raise(
                     It.Is<NpcFishEvent>(
                         evt => evt.Player == sender && evt.X == 100 && evt.Y == 256 && evt.Id == NpcId.HemogoblinShark),
@@ -481,7 +481,7 @@ namespace Orion.Launcher.Npcs
             Assert.NotNull(registeredHandler);
             registeredHandler!(evt);
 
-            Mock.Get(server.Events).VerifyAll();
+            Mock.Get(events).VerifyAll();
         }
 
         [Fact]
@@ -489,20 +489,20 @@ namespace Orion.Launcher.Npcs
         {
             Action<PacketReceiveEvent<NpcFishPacket>>? registeredHandler = null;
 
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<NpcFishPacket>>>(), log))
                 .Callback<Action<PacketReceiveEvent<NpcFishPacket>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
-            using var npcService = new OrionNpcService(server, log);
+            using var npcService = new OrionNpcService(events, log);
 
             var packet = new NpcFishPacket { X = 100, Y = 256, Id = NpcId.HemogoblinShark };
             var sender = Mock.Of<IPlayer>();
             var evt = new PacketReceiveEvent<NpcFishPacket>(ref packet, sender);
 
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.Raise(It.IsAny<NpcFishEvent>(), log))
                 .Callback<NpcFishEvent, ILogger>((evt, log) => evt.Cancel());
 
@@ -511,7 +511,7 @@ namespace Orion.Launcher.Npcs
 
             Assert.True(evt.IsCanceled);
 
-            Mock.Get(server.Events).VerifyAll();
+            Mock.Get(events).VerifyAll();
         }
 
         [Fact]
@@ -520,9 +520,9 @@ namespace Orion.Launcher.Npcs
             // Clear the NPC so that we know it's empty.
             Terraria.Main.npc[0] = new Terraria.NPC { whoAmI = 0 };
 
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var npcService = new OrionNpcService(server, log);
+            using var npcService = new OrionNpcService(events, log);
 
             var npc = npcService.SpawnNpc(NpcId.BlueSlime, Vector2f.Zero);
 
@@ -539,9 +539,9 @@ namespace Orion.Launcher.Npcs
                 Terraria.Main.npc[i] = new Terraria.NPC { whoAmI = i, active = true };
             }
 
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var npcService = new OrionNpcService(server, log);
+            using var npcService = new OrionNpcService(events, log);
 
             var npc = npcService.SpawnNpc(NpcId.BlueSlime, Vector2f.Zero);
 

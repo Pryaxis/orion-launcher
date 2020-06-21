@@ -95,20 +95,19 @@ namespace Orion.Launcher
             {
                 Directory.CreateDirectory("plugins");
 
-                server.Extensions.Load(typeof(IServer).Assembly);
-                server.Extensions.Load(typeof(OrionServer).Assembly);
-
                 foreach (var path in Directory.EnumerateFiles("plugins", "*.dll"))
                 {
                     try
                     {
                         var assembly = Assembly.LoadFile(path);
-                        server.Extensions.Load(assembly);
+                        server.Load(assembly);
                     }
-                    catch (BadImageFormatException) { }
+                    catch (BadImageFormatException)
+                    {
+                    }
                 }
 
-                server.Extensions.Initialize();
+                server.Initialize();
             }
         }
     }

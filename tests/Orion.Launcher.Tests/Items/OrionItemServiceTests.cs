@@ -37,9 +37,9 @@ namespace Orion.Launcher.Items
         [InlineData(10000)]
         public void Items_Item_GetInvalidIndex_ThrowsIndexOutOfRangeException(int index)
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var itemService = new OrionItemService(server, log);
+            using var itemService = new OrionItemService(events, log);
 
             Assert.Throws<IndexOutOfRangeException>(() => itemService.Items[index]);
         }
@@ -47,9 +47,9 @@ namespace Orion.Launcher.Items
         [Fact]
         public void Items_Item_Get()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var itemService = new OrionItemService(server, log);
+            using var itemService = new OrionItemService(events, log);
 
             var item = itemService.Items[1];
 
@@ -60,9 +60,9 @@ namespace Orion.Launcher.Items
         [Fact]
         public void Items_Item_GetMultipleTimes_ReturnsSameInstance()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var itemService = new OrionItemService(server, log);
+            using var itemService = new OrionItemService(events, log);
 
             var item = itemService.Items[0];
             var item2 = itemService.Items[0];
@@ -73,9 +73,9 @@ namespace Orion.Launcher.Items
         [Fact]
         public void Items_GetEnumerator()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var itemService = new OrionItemService(server, log);
+            using var itemService = new OrionItemService(events, log);
 
             var items = itemService.Items.ToList();
 
@@ -88,11 +88,11 @@ namespace Orion.Launcher.Items
         [Fact]
         public void ItemDefaults_EventTriggered()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var itemService = new OrionItemService(server, log);
+            using var itemService = new OrionItemService(events, log);
 
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.Raise(
                     It.Is<ItemDefaultsEvent>(
                         evt => ((OrionItem)evt.Item).Wrapped == Terraria.Main.item[0] &&
@@ -103,7 +103,7 @@ namespace Orion.Launcher.Items
 
             Assert.Equal(ItemId.Sdmg, (ItemId)Terraria.Main.item[0].type);
 
-            Mock.Get(server.Events).VerifyAll();
+            Mock.Get(events).VerifyAll();
         }
 
         [Fact]
@@ -111,11 +111,11 @@ namespace Orion.Launcher.Items
         {
             var terrariaItem = new Terraria.Item();
 
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var itemService = new OrionItemService(server, log);
+            using var itemService = new OrionItemService(events, log);
 
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.Raise(
                     It.Is<ItemDefaultsEvent>(
                         evt => ((OrionItem)evt.Item).Wrapped == terrariaItem &&
@@ -126,17 +126,17 @@ namespace Orion.Launcher.Items
 
             Assert.Equal(ItemId.Sdmg, (ItemId)terrariaItem.type);
 
-            Mock.Get(server.Events).VerifyAll();
+            Mock.Get(events).VerifyAll();
         }
 
         [Fact]
         public void ItemDefaults_EventModified()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var itemService = new OrionItemService(server, log);
+            using var itemService = new OrionItemService(events, log);
 
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.Raise(It.IsAny<ItemDefaultsEvent>(), log))
                 .Callback<ItemDefaultsEvent, ILogger>((evt, log) => evt.Id = ItemId.DirtBlock);
 
@@ -144,7 +144,7 @@ namespace Orion.Launcher.Items
 
             Assert.Equal(ItemId.DirtBlock, (ItemId)Terraria.Main.item[0].type);
 
-            Mock.Get(server.Events).VerifyAll();
+            Mock.Get(events).VerifyAll();
         }
 
         [Fact]
@@ -153,11 +153,11 @@ namespace Orion.Launcher.Items
             // Clear the item so that we know it's empty.
             Terraria.Main.item[0] = new Terraria.Item { whoAmI = 0 };
 
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var itemService = new OrionItemService(server, log);
+            using var itemService = new OrionItemService(events, log);
 
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.Raise(It.IsAny<ItemDefaultsEvent>(), log))
                 .Callback<ItemDefaultsEvent, ILogger>((evt, log) => evt.Cancel());
 
@@ -165,17 +165,17 @@ namespace Orion.Launcher.Items
 
             Assert.Equal(ItemId.None, (ItemId)Terraria.Main.item[0].type);
 
-            Mock.Get(server.Events).VerifyAll();
+            Mock.Get(events).VerifyAll();
         }
 
         [Fact]
         public void ItemTick_EventTriggered()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var itemService = new OrionItemService(server, log);
+            using var itemService = new OrionItemService(events, log);
 
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.Raise(
                     It.Is<ItemTickEvent>(
                         evt => ((OrionItem)evt.Item).Wrapped == Terraria.Main.item[0]),
@@ -183,23 +183,23 @@ namespace Orion.Launcher.Items
 
             Terraria.Main.item[0].UpdateItem(0);
 
-            Mock.Get(server.Events).VerifyAll();
+            Mock.Get(events).VerifyAll();
         }
 
         [Fact]
         public void ItemTick_EventCanceled()
         {
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var itemService = new OrionItemService(server, log);
+            using var itemService = new OrionItemService(events, log);
 
-            Mock.Get(server.Events)
+            Mock.Get(events)
                 .Setup(em => em.Raise(It.IsAny<ItemTickEvent>(), log))
                 .Callback<ItemTickEvent, ILogger>((evt, log) => evt.Cancel());
 
             Terraria.Main.item[0].UpdateItem(0);
 
-            Mock.Get(server.Events).VerifyAll();
+            Mock.Get(events).VerifyAll();
         }
 
         [Theory]
@@ -211,9 +211,9 @@ namespace Orion.Launcher.Items
             // Set up an empty slot for the item to appear at.
             Terraria.Main.item[0] = new Terraria.Item { whoAmI = 0 };
 
-            var server = Mock.Of<IServer>(s => s.Events == Mock.Of<IEventManager>());
+            var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var itemService = new OrionItemService(server, log);
+            using var itemService = new OrionItemService(events, log);
 
             var item = itemService.SpawnItem(new ItemStack(id, stackSize, prefix), Vector2f.Zero);
 

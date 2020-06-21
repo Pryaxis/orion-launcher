@@ -20,6 +20,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Orion.Core;
 using Orion.Core.DataStructures;
+using Orion.Core.Events;
 using Orion.Core.Events.Projectiles;
 using Orion.Core.Framework;
 using Orion.Core.Projectiles;
@@ -29,12 +30,20 @@ using Serilog;
 namespace Orion.Launcher.Projectiles
 {
     [Binding("orion-projs", Author = "Pryaxis", Priority = BindingPriority.Lowest)]
-    internal sealed class OrionProjectileService : OrionExtension, IProjectileService
+    internal sealed class OrionProjectileService : IProjectileService, IDisposable
     {
         private readonly object _lock = new object();
+        private readonly IEventManager _events;
+        private readonly ILogger _log;
 
-        public OrionProjectileService(IServer server, ILogger log) : base(server, log)
+        public OrionProjectileService(IEventManager events, ILogger log)
         {
+            Debug.Assert(events != null);
+            Debug.Assert(log != null);
+
+            _events = events;
+            _log = log;
+
             // Construct the `Projectiles` array. Note that the last projectile should be ignored, as it is not a real
             // projectile.
             Projectiles = new WrappedReadOnlyList<OrionProjectile, Terraria.Projectile>(
@@ -47,7 +56,7 @@ namespace Orion.Launcher.Projectiles
 
         public IReadOnlyList<IProjectile> Projectiles { get; }
 
-        public override void Dispose()
+        public void Dispose()
         {
             OTAPI.Hooks.Projectile.PreSetDefaultsById = null;
             OTAPI.Hooks.Projectile.PreUpdate = null;
@@ -79,7 +88,7 @@ namespace Orion.Launcher.Projectiles
 
             var projectile = GetProjectile(terrariaProjectile);
             var evt = new ProjectileDefaultsEvent(projectile) { Id = (ProjectileId)projectileId };
-            Server.Events.Raise(evt, Log);
+            _events.Raise(evt, _log);
             if (evt.IsCanceled)
             {
                 return OTAPI.HookResult.Cancel;
@@ -94,7 +103,7 @@ namespace Orion.Launcher.Projectiles
             Debug.Assert(projectileIndex >= 0 && projectileIndex < Projectiles.Count);
 
             var evt = new ProjectileTickEvent(Projectiles[projectileIndex]);
-            Server.Events.Raise(evt, Log);
+            _events.Raise(evt, _log);
             return evt.IsCanceled ? OTAPI.HookResult.Cancel : OTAPI.HookResult.Continue;
         }
 

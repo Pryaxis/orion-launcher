@@ -20,6 +20,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Orion.Core;
 using Orion.Core.DataStructures;
+using Orion.Core.Events;
 using Orion.Core.Events.Items;
 using Orion.Core.Framework;
 using Orion.Core.Items;
@@ -29,12 +30,20 @@ using Serilog;
 namespace Orion.Launcher.Items
 {
     [Binding("orion-items", Author = "Pryaxis", Priority = BindingPriority.Lowest)]
-    internal sealed class OrionItemService : OrionExtension, IItemService
+    internal sealed class OrionItemService : IItemService, IDisposable
     {
+        private readonly IEventManager _events;
+        private readonly ILogger _log;
         private readonly object _lock = new object();
 
-        public OrionItemService(IServer server, ILogger log) : base(server, log)
+        public OrionItemService(IEventManager events, ILogger log)
         {
+            Debug.Assert(events != null);
+            Debug.Assert(log != null);
+
+            _events = events;
+            _log = log;
+
             // Construct the `Items` array. Note that the last item should be ignored, as it is not a real item.
             Items = new WrappedReadOnlyList<OrionItem, Terraria.Item>(
                 Terraria.Main.item.AsMemory(..^1),
@@ -46,7 +55,7 @@ namespace Orion.Launcher.Items
 
         public IReadOnlyList<IItem> Items { get; }
 
-        public override void Dispose()
+        public void Dispose()
         {
             OTAPI.Hooks.Item.PreSetDefaultsById = null;
             OTAPI.Hooks.Item.PreUpdate = null;
@@ -79,7 +88,7 @@ namespace Orion.Launcher.Items
 
             var item = GetItem(terrariaItem);
             var evt = new ItemDefaultsEvent(item) { Id = (ItemId)itemId };
-            Server.Events.Raise(evt, Log);
+            _events.Raise(evt, _log);
             if (evt.IsCanceled)
             {
                 return OTAPI.HookResult.Cancel;
@@ -99,7 +108,7 @@ namespace Orion.Launcher.Items
             terrariaItem.whoAmI = itemIndex;
 
             var evt = new ItemTickEvent(Items[itemIndex]);
-            Server.Events.Raise(evt, Log);
+            _events.Raise(evt, _log);
             return evt.IsCanceled ? OTAPI.HookResult.Cancel : OTAPI.HookResult.Continue;
         }
 

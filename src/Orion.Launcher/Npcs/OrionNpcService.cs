@@ -36,13 +36,22 @@ using Serilog;
 namespace Orion.Launcher.Npcs
 {
     [Binding("orion-npcs", Author = "Pryaxis", Priority = BindingPriority.Lowest)]
-    internal sealed class OrionNpcService : OrionExtension, INpcService
+    internal sealed class OrionNpcService : INpcService, IDisposable
     {
+        private readonly IEventManager _events;
+        private readonly ILogger _log;
+
         private readonly object _lock = new object();
         private readonly ThreadLocal<int> _setDefaultsToIgnore = new ThreadLocal<int>();
 
-        public OrionNpcService(IServer server, ILogger log) : base(server, log)
+        public OrionNpcService(IEventManager events, ILogger log)
         {
+            Debug.Assert(events != null);
+            Debug.Assert(log != null);
+
+            _events = events;
+            _log = log;
+
             // Construct the `Npcs` array. Note that the last NPC should be ignored, as it is not a real NPC.
             Npcs = new WrappedReadOnlyList<OrionNpc, Terraria.NPC>(
                 Terraria.Main.npc.AsMemory(..^1),
@@ -54,12 +63,12 @@ namespace Orion.Launcher.Npcs
             OTAPI.Hooks.Npc.Killed = KilledHandler;
             OTAPI.Hooks.Npc.PreDropLoot = PreDropLootHandler;
 
-            Server.Events.RegisterHandlers(this, Log);
+            _events.RegisterHandlers(this, _log);
         }
 
         public IReadOnlyList<INpc> Npcs { get; }
 
-        public override void Dispose()
+        public void Dispose()
         {
             _setDefaultsToIgnore.Dispose();
 
@@ -69,7 +78,7 @@ namespace Orion.Launcher.Npcs
             OTAPI.Hooks.Npc.Killed = null;
             OTAPI.Hooks.Npc.PreDropLoot = null;
 
-            Server.Events.DeregisterHandlers(this, Log);
+            _events.DeregisterHandlers(this, _log);
         }
 
         public INpc? SpawnNpc(NpcId id, Vector2f position)
@@ -103,7 +112,7 @@ namespace Orion.Launcher.Npcs
 
             var npc = GetNpc(terrariaNpc);
             var evt = new NpcDefaultsEvent(npc) { Id = (NpcId)npcId };
-            Server.Events.Raise(evt, Log);
+            _events.Raise(evt, _log);
             if (evt.IsCanceled)
             {
                 return OTAPI.HookResult.Cancel;
@@ -123,7 +132,7 @@ namespace Orion.Launcher.Npcs
 
             var npc = Npcs[npcIndex];
             var evt = new NpcSpawnEvent(npc);
-            Server.Events.Raise(evt, Log);
+            _events.Raise(evt, _log);
             if (evt.IsCanceled)
             {
                 // To cancel the event, remove the NPC and return the failure index.
@@ -140,7 +149,7 @@ namespace Orion.Launcher.Npcs
             Debug.Assert(npcIndex >= 0 && npcIndex < Npcs.Count);
 
             var evt = new NpcTickEvent(Npcs[npcIndex]);
-            Server.Events.Raise(evt, Log);
+            _events.Raise(evt, _log);
             return evt.IsCanceled ? OTAPI.HookResult.Cancel : OTAPI.HookResult.Continue;
         }
 
@@ -150,7 +159,7 @@ namespace Orion.Launcher.Npcs
 
             var npc = GetNpc(terrariaNpc);
             var evt = new NpcKilledEvent(npc);
-            Server.Events.Raise(evt, Log);
+            _events.Raise(evt, _log);
         }
 
         private OTAPI.HookResult PreDropLootHandler(
@@ -162,7 +171,7 @@ namespace Orion.Launcher.Npcs
 
             var npc = GetNpc(terrariaNpc);
             var evt = new NpcLootEvent(npc) { Id = (ItemId)itemId, StackSize = stackSize, Prefix = (ItemPrefix)prefix };
-            Server.Events.Raise(evt, Log);
+            _events.Raise(evt, _log);
             if (evt.IsCanceled)
             {
                 return OTAPI.HookResult.Cancel;
@@ -222,7 +231,7 @@ namespace Orion.Launcher.Npcs
         // Forwards `evt` as `newEvt`.
         private void ForwardEvent<TEvent>(Event evt, TEvent newEvt) where TEvent : Event
         {
-            Server.Events.Raise(newEvt, Log);
+            _events.Raise(newEvt, _log);
             if (newEvt.IsCanceled)
             {
                 evt.Cancel(newEvt.CancellationReason);

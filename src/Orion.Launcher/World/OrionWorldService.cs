@@ -33,14 +33,23 @@ using Serilog;
 namespace Orion.Launcher.World
 {
     [Binding("orion-world", Author = "Pryaxis", Priority = BindingPriority.Lowest)]
-    internal sealed class OrionWorldService : OrionExtension, IWorldService
+    internal sealed class OrionWorldService : IWorldService, IDisposable
     {
+        private readonly IEventManager _events;
+        private readonly ILogger _log;
+
         // Lazily initialize the world so that a world of minimum size is created.
         private readonly Lazy<OrionWorld> _world =
             new Lazy<OrionWorld>(() => new OrionWorld(Terraria.Main.maxTilesX, Terraria.Main.maxTilesY));
 
-        public OrionWorldService(IServer server, ILogger log) : base(server, log)
+        public OrionWorldService(IEventManager events, ILogger log)
         {
+            Debug.Assert(events != null);
+            Debug.Assert(log != null);
+
+            _events = events;
+            _log = log;
+
             // Replace `Terraria.Main.tile` with our own implementation which involves using the `OrionWorld` class
             // along with an adapter for the `OTAPI.Tile.ITile` interface. This cuts down on the memory usage
             // significantly while not impacting speed very much.
@@ -49,12 +58,12 @@ namespace Orion.Launcher.World
             OTAPI.Hooks.World.IO.PostLoadWorld = PostLoadWorldHandler;
             OTAPI.Hooks.World.IO.PreSaveWorld = PreSaveWorldHandler;
 
-            Server.Events.RegisterHandlers(this, Log);
+            _events.RegisterHandlers(this, _log);
         }
 
         public IWorld World => _world.Value;
 
-        public override void Dispose()
+        public void Dispose()
         {
             if (_world.IsValueCreated)
             {
@@ -71,7 +80,7 @@ namespace Orion.Launcher.World
             OTAPI.Hooks.World.IO.PostLoadWorld = null;
             OTAPI.Hooks.World.IO.PreSaveWorld = null;
 
-            Server.Events.DeregisterHandlers(this, Log);
+            _events.DeregisterHandlers(this, _log);
         }
 
         // =============================================================================================================
@@ -81,13 +90,13 @@ namespace Orion.Launcher.World
         private void PostLoadWorldHandler(bool loadFromCloud)
         {
             var evt = new WorldLoadedEvent(World);
-            Server.Events.Raise(evt, Log);
+            _events.Raise(evt, _log);
         }
 
         private OTAPI.HookResult PreSaveWorldHandler(ref bool useCloudSaving, ref bool resetTime)
         {
             var evt = new WorldSaveEvent(World);
-            Server.Events.Raise(evt, Log);
+            _events.Raise(evt, _log);
             return evt.IsCanceled ? OTAPI.HookResult.Cancel : OTAPI.HookResult.Continue;
         }
 
@@ -120,7 +129,7 @@ namespace Orion.Launcher.World
 
             Event Raise<TEvent>(TEvent newEvt) where TEvent : Event
             {
-                Server.Events.Raise(newEvt, Log);
+                _events.Raise(newEvt, _log);
                 return newEvt;
             }
 
@@ -187,7 +196,7 @@ namespace Orion.Launcher.World
         // Forwards `evt` as `newEvt`.
         private void ForwardEvent<TEvent>(Event evt, TEvent newEvt) where TEvent : Event
         {
-            Server.Events.Raise(newEvt, Log);
+            _events.Raise(newEvt, _log);
             if (newEvt.IsCanceled)
             {
                 evt.Cancel(newEvt.CancellationReason);
