@@ -60,15 +60,15 @@ namespace Orion.Launcher.World.Chests
 
         public IEnumerator<IChest> GetEnumerator() => _chests.GetEnumerator();
 
-        [ExcludeFromCodeCoverage]
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
         public void Dispose()
         {
             _events.DeregisterHandlers(this, _log);
         }
 
         private IChest? FindChest(int x, int y) => this.FirstOrDefault(s => s.IsActive && s.X == x && s.Y == y);
+
+        [ExcludeFromCodeCoverage]
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
         // =============================================================================================================
         // Chest event publishers

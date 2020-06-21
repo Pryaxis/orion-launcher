@@ -73,9 +73,6 @@ namespace Orion.Launcher.Npcs
 
         public IEnumerator<INpc> GetEnumerator() => _npcs.GetEnumerator();
 
-        [ExcludeFromCodeCoverage]
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
         public INpc? Spawn(NpcId id, Vector2f position)
         {
             // Not localized because this string is developer-facing.
@@ -101,6 +98,9 @@ namespace Orion.Launcher.Npcs
             _events.DeregisterHandlers(this, _log);
         }
 
+        [ExcludeFromCodeCoverage]
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
         // =============================================================================================================
         // OTAPI hooks
         //
@@ -111,7 +111,6 @@ namespace Orion.Launcher.Npcs
             Debug.Assert(terrariaNpc != null);
 
             // Check `_setDefaultsToIgnore` to ignore spurious calls if `SetDefaultsById` is called with a negative ID.
-            // A thread-local value is used in case there is some concurrency.
             if (_setDefaultsToIgnore.Value > 0)
             {
                 --_setDefaultsToIgnore.Value;
@@ -195,8 +194,6 @@ namespace Orion.Launcher.Npcs
         // possible.
         private INpc GetNpc(Terraria.NPC terrariaNpc)
         {
-            Debug.Assert(terrariaNpc != null);
-
             var npcIndex = terrariaNpc.whoAmI;
             Debug.Assert(npcIndex >= 0 && npcIndex < Count);
 

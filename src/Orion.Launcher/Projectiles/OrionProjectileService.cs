@@ -62,9 +62,6 @@ namespace Orion.Launcher.Projectiles
 
         public IEnumerator<IProjectile> GetEnumerator() => _projectiles.GetEnumerator();
 
-        [ExcludeFromCodeCoverage]
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
         public IProjectile Spawn(ProjectileId id, Vector2f position, Vector2f velocity, int damage, float knockback)
         {
             // Not localized because this string is developer-facing.
@@ -85,6 +82,9 @@ namespace Orion.Launcher.Projectiles
             OTAPI.Hooks.Projectile.PreSetDefaultsById = null;
             OTAPI.Hooks.Projectile.PreUpdate = null;
         }
+
+        [ExcludeFromCodeCoverage]
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
         // =============================================================================================================
         // OTAPI hooks
@@ -119,8 +119,6 @@ namespace Orion.Launcher.Projectiles
         // the `Projectiles` array, if possible.
         private IProjectile GetProjectile(Terraria.Projectile terrariaProjectile)
         {
-            Debug.Assert(terrariaProjectile != null);
-
             var projectileIndex = terrariaProjectile.whoAmI;
             Debug.Assert(projectileIndex >= 0 && projectileIndex < Count);
 

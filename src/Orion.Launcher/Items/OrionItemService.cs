@@ -62,9 +62,6 @@ namespace Orion.Launcher.Items
 
         public IEnumerator<IItem> GetEnumerator() => _items.GetEnumerator();
 
-        [ExcludeFromCodeCoverage]
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
         public IItem Spawn(ItemStack itemStack, Vector2f position)
         {
             // Not localized because this string is developer-facing.
@@ -86,6 +83,9 @@ namespace Orion.Launcher.Items
             OTAPI.Hooks.Item.PreSetDefaultsById = null;
             OTAPI.Hooks.Item.PreUpdate = null;
         }
+
+        [ExcludeFromCodeCoverage]
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
         // =============================================================================================================
         // OTAPI hooks
@@ -126,8 +126,6 @@ namespace Orion.Launcher.Items
         // if possible.
         private IItem GetItem(Terraria.Item terrariaItem)
         {
-            Debug.Assert(terrariaItem != null);
-
             var itemIndex = terrariaItem.whoAmI;
             Debug.Assert(itemIndex >= 0 && itemIndex < Count);
 

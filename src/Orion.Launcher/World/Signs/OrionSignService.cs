@@ -59,15 +59,15 @@ namespace Orion.Launcher.World.Signs
 
         public IEnumerator<ISign> GetEnumerator() => _signs.GetEnumerator();
 
-        [ExcludeFromCodeCoverage]
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
         public void Dispose()
         {
             _events.DeregisterHandlers(this, _log);
         }
 
         private ISign? FindSign(int x, int y) => this.FirstOrDefault(s => s.IsActive && s.X == x && s.Y == y);
+
+        [ExcludeFromCodeCoverage]
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
         // =============================================================================================================
         // Sign event publishers

@@ -115,9 +115,6 @@ namespace Orion.Launcher.Players
 
         public IEnumerator<IPlayer> GetEnumerator() => _players.GetEnumerator();
 
-        [ExcludeFromCodeCoverage]
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
         public void Dispose()
         {
             OTAPI.Hooks.Net.ReceiveData = null;
@@ -128,6 +125,9 @@ namespace Orion.Launcher.Players
 
             _events.DeregisterHandlers(this, _log);
         }
+
+        [ExcludeFromCodeCoverage]
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
         // =============================================================================================================
         // OTAPI hooks
@@ -243,9 +243,6 @@ namespace Orion.Launcher.Players
 
         private void OnReceivePacket<TPacket>(int playerIndex, Span<byte> span) where TPacket : struct, IPacket
         {
-            Debug.Assert(playerIndex >= 0 && playerIndex < Count);
-            Debug.Assert(span.Length > 0);
-
             var packet = new TPacket();
             if (typeof(TPacket) == typeof(UnknownPacket))
             {
@@ -261,9 +258,6 @@ namespace Orion.Launcher.Players
 
         private void OnSendPacket<TPacket>(int playerIndex, Span<byte> span) where TPacket : struct, IPacket
         {
-            Debug.Assert(playerIndex >= 0 && playerIndex < Count);
-            Debug.Assert(span.Length > 0);
-
             var packet = new TPacket();
             if (typeof(TPacket) == typeof(UnknownPacket))
             {
