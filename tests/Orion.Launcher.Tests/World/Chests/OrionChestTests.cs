@@ -17,6 +17,7 @@
 
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Orion.Core.Items;
 using Xunit;
 
@@ -135,6 +136,26 @@ namespace Orion.Launcher.World.Chests
             Assert.Equal(ItemId.Sdmg, (ItemId)terrariaChest.item[0].type);
             Assert.Equal(1, terrariaChest.item[0].stack);
             Assert.Equal(ItemPrefix.Unreal, (ItemPrefix)terrariaChest.item[0].prefix);
+        }
+
+        [Fact]
+        public void Items_GetEnumerator()
+        {
+            var terrariaChest = new Terraria.Chest();
+            var chest = new OrionChest(terrariaChest);
+
+            for (var i = 0; i < Terraria.Chest.maxItems; ++i)
+            {
+                terrariaChest.item[i] = new Terraria.Item();
+                terrariaChest.item[i].type = i;
+                terrariaChest.item[i].stack = 1;
+            }
+
+            var items = chest.Items.ToList();
+            for (var i = 0; i < items.Count; ++i)
+            {
+                Assert.Equal(new ItemStack((ItemId)i), items[i]);
+            }
         }
 
         [Fact]

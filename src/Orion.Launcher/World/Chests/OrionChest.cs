@@ -16,6 +16,8 @@
 // along with Orion.  If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Contracts;
@@ -128,6 +130,17 @@ namespace Orion.Launcher.World.Chests
             }
 
             public int Count => _items.Length;
+
+            public IEnumerator<ItemStack> GetEnumerator()
+            {
+                for (var i = 0; i < Count; ++i)
+                {
+                    yield return this[i];
+                }
+            }
+
+            [ExcludeFromCodeCoverage]
+            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         }
     }
 }

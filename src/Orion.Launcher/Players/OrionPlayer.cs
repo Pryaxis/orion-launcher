@@ -17,7 +17,10 @@
 
 using System;
 using System.Buffers;
+using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text;
 using Destructurama.Attributed;
@@ -232,6 +235,17 @@ namespace Orion.Launcher.Players
             }
 
             public int Count => Terraria.Player.maxBuffs;
+
+            public IEnumerator<Buff> GetEnumerator()
+            {
+                for (var i = 0; i < Count; ++i)
+                {
+                    yield return this[i];
+                }
+            }
+
+            [ExcludeFromCodeCoverage]
+            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         }
     }
 }

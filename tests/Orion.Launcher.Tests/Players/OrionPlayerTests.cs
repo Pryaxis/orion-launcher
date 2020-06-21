@@ -18,6 +18,7 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Linq;
 using Moq;
 using Orion.Core.Buffs;
 using Orion.Core.Events;
@@ -169,7 +170,7 @@ namespace Orion.Launcher.Players
         [Theory]
         [InlineData(-1)]
         [InlineData(100)]
-        public void Buffs_Get_Index_GetInvalidIndex_ThrowsIndexOutOfRangeException(int index)
+        public void Buffs_Get_Item_GetInvalidIndex_ThrowsIndexOutOfRangeException(int index)
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -180,7 +181,7 @@ namespace Orion.Launcher.Players
         }
 
         [Fact]
-        public void Buffs_Get_Index_Get()
+        public void Buffs_Get_Item_Get()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -196,7 +197,7 @@ namespace Orion.Launcher.Players
         [Theory]
         [InlineData(-1)]
         [InlineData(0)]
-        public void Buffs_Get_Index_InvalidTime_Get(int buffTime)
+        public void Buffs_Get_Item_InvalidTime_Get(int buffTime)
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -212,7 +213,7 @@ namespace Orion.Launcher.Players
         [Theory]
         [InlineData(-1)]
         [InlineData(100)]
-        public void Buffs_Get_Index_SetInvalidIndex_ThrowsIndexOutOfRangeException(int index)
+        public void Buffs_Get_Item_SetInvalidIndex_ThrowsIndexOutOfRangeException(int index)
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -223,7 +224,7 @@ namespace Orion.Launcher.Players
         }
 
         [Fact]
-        public void Buffs_Get_Index_Set()
+        public void Buffs_Get_Item_Set()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -234,6 +235,27 @@ namespace Orion.Launcher.Players
 
             Assert.Equal(BuffId.ObsidianSkin, (BuffId)terrariaPlayer.buffType[0]);
             Assert.Equal(28800, terrariaPlayer.buffTime[0]);
+        }
+
+        [Fact]
+        public void Buffs_Get_GetEnumerator()
+        {
+            var events = Mock.Of<IEventManager>();
+            var log = Mock.Of<ILogger>();
+            var terrariaPlayer = new Terraria.Player();
+            var player = new OrionPlayer(terrariaPlayer, events, log);
+
+            for (var i = 0; i < Terraria.Player.maxBuffs; ++i)
+            {
+                terrariaPlayer.buffType[i] = i;
+                terrariaPlayer.buffTime[i] = 60;
+            }
+
+            var buffs = player.Buffs.ToList();
+            for (var i = 0; i < buffs.Count; ++i)
+            {
+                Assert.Equal(new Buff((BuffId)i, 60), buffs[i]);
+            }
         }
 
         [Fact]

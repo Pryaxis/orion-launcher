@@ -28,11 +28,13 @@ using Orion.Launcher.World;
 using Orion.Core.Events.World;
 using Orion.Core.World.Tiles;
 using Orion.Core.World;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Orion.Launcher
 {
     // These tests depend on Terraria state.
     [Collection("TerrariaTestsCollection")]
+    [SuppressMessage("Style", "IDE0017:Simplify object initialization", Justification = "Testing")]
     public class OrionWorldTests
     {
         [Fact]
