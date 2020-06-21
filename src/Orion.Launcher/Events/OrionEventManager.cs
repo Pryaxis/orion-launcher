@@ -25,7 +25,7 @@ using Serilog;
 namespace Orion.Launcher.Events
 {
     [Binding("orion-events", Author = "Pryaxis", Priority = BindingPriority.Lowest)]
-    internal sealed class OrionEventManager : IEventManager
+    internal sealed partial class OrionEventManager : IEventManager
     {
         private readonly IDictionary<Type, object> _eventHandlerCollections = new Dictionary<Type, object>();
 
@@ -43,7 +43,7 @@ namespace Orion.Launcher.Events
                 throw new ArgumentNullException(nameof(log));
             }
 
-            var collection = GetEventHandlerCollection<TEvent>();
+            var collection = GetCollection<TEvent>();
             collection.RegisterHandler(handler, log);
         }
 
@@ -59,7 +59,7 @@ namespace Orion.Launcher.Events
                 throw new ArgumentNullException(nameof(log));
             }
 
-            var collection = GetEventHandlerCollection<TEvent>();
+            var collection = GetCollection<TEvent>();
             collection.RegisterAsyncHandler(handler, log);
         }
 
@@ -75,7 +75,7 @@ namespace Orion.Launcher.Events
                 throw new ArgumentNullException(nameof(log));
             }
 
-            var collection = GetEventHandlerCollection<TEvent>();
+            var collection = GetCollection<TEvent>();
             collection.DeregisterHandler(handler, log);
         }
 
@@ -91,7 +91,7 @@ namespace Orion.Launcher.Events
                 throw new ArgumentNullException(nameof(log));
             }
 
-            var collection = GetEventHandlerCollection<TEvent>();
+            var collection = GetCollection<TEvent>();
             collection.DeregisterAsyncHandler(handler, log);
         }
 
@@ -107,20 +107,20 @@ namespace Orion.Launcher.Events
                 throw new ArgumentNullException(nameof(log));
             }
 
-            var collection = GetEventHandlerCollection<TEvent>();
+            var collection = GetCollection<TEvent>();
             collection.Raise(evt, log);
         }
 
-        private EventHandlerCollection<TEvent> GetEventHandlerCollection<TEvent>() where TEvent : Event
+        private Collection<TEvent> GetCollection<TEvent>() where TEvent : Event
         {
             var type = typeof(TEvent);
             if (!_eventHandlerCollections.TryGetValue(type, out var collection))
             {
-                collection = new EventHandlerCollection<TEvent>();
+                collection = new Collection<TEvent>();
                 _eventHandlerCollections[type] = collection;
             }
 
-            return (EventHandlerCollection<TEvent>)collection;
+            return (Collection<TEvent>)collection;
         }
     }
 }
