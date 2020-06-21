@@ -189,7 +189,7 @@ namespace Orion.Launcher.World
         {
             ref var packet = ref evt.Packet;
 
-            ForwardEvent(evt, new TileSquareEvent(this, evt.Sender, packet.X, packet.Y, packet.Tiles));
+            _events.Forward(evt, new TileSquareEvent(this, evt.Sender, packet.X, packet.Y, packet.Tiles), _log);
         }
 
         [EventHandler("orion-world", Priority = EventPriority.Lowest)]
@@ -198,8 +198,9 @@ namespace Orion.Launcher.World
         {
             ref var packet = ref evt.Packet;
 
-            ForwardEvent(
-                evt, new TileLiquidEvent(this, evt.Sender, packet.X, packet.Y, packet.LiquidAmount, packet.Liquid));
+            _events.Forward(
+                evt, new TileLiquidEvent(this, evt.Sender, packet.X, packet.Y, packet.LiquidAmount, packet.Liquid),
+                _log);
         }
 
         [EventHandler("orion-world", Priority = EventPriority.Lowest)]
@@ -208,7 +209,7 @@ namespace Orion.Launcher.World
         {
             ref var packet = ref evt.Packet;
 
-            ForwardEvent(evt, new WiringActivateEvent(this, evt.Sender, packet.X, packet.Y));
+            _events.Forward(evt, new WiringActivateEvent(this, evt.Sender, packet.X, packet.Y), _log);
         }
 
         [EventHandler("orion-world", Priority = EventPriority.Lowest)]
@@ -217,7 +218,7 @@ namespace Orion.Launcher.World
         {
             ref var packet = ref evt.Packet;
 
-            ForwardEvent(evt, new BlockPaintEvent(this, evt.Sender, packet.X, packet.Y, packet.Color));
+            _events.Forward(evt, new BlockPaintEvent(this, evt.Sender, packet.X, packet.Y, packet.Color), _log);
         }
 
         [EventHandler("orion-world", Priority = EventPriority.Lowest)]
@@ -226,7 +227,7 @@ namespace Orion.Launcher.World
         {
             ref var packet = ref evt.Packet;
 
-            ForwardEvent(evt, new WallPaintEvent(this, evt.Sender, packet.X, packet.Y, packet.Color));
+            _events.Forward(evt, new WallPaintEvent(this, evt.Sender, packet.X, packet.Y, packet.Color), _log);
         }
 
         // Forwards `evt` as `newEvt`.

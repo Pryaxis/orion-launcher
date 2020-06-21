@@ -279,7 +279,7 @@ namespace Orion.Launcher.Players
         [SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Implicitly used")]
         private void OnPlayerJoinPacket(PacketReceiveEvent<PlayerJoinPacket> evt)
         {
-            ForwardEvent(evt, new PlayerJoinEvent(evt.Sender));
+            _events.Forward(evt, new PlayerJoinEvent(evt.Sender), _log);
         }
 
         [EventHandler("orion-players", Priority = EventPriority.Lowest)]
@@ -288,7 +288,7 @@ namespace Orion.Launcher.Players
         {
             ref var packet = ref evt.Packet;
 
-            ForwardEvent(evt, new PlayerHealthEvent(evt.Sender, packet.Health, packet.MaxHealth));
+            _events.Forward(evt, new PlayerHealthEvent(evt.Sender, packet.Health, packet.MaxHealth), _log);
         }
 
         [EventHandler("orion-players", Priority = EventPriority.Lowest)]
@@ -297,7 +297,7 @@ namespace Orion.Launcher.Players
         {
             ref var packet = ref evt.Packet;
 
-            ForwardEvent(evt, new PlayerPvpEvent(evt.Sender, packet.IsInPvp));
+            _events.Forward(evt, new PlayerPvpEvent(evt.Sender, packet.IsInPvp), _log);
         }
 
         [EventHandler("orion-players", Priority = EventPriority.Lowest)]
@@ -306,7 +306,7 @@ namespace Orion.Launcher.Players
         {
             ref var packet = ref evt.Packet;
 
-            ForwardEvent(evt, new PlayerPasswordEvent(evt.Sender, packet.Password));
+            _events.Forward(evt, new PlayerPasswordEvent(evt.Sender, packet.Password), _log);
         }
 
         [EventHandler("orion-players", Priority = EventPriority.Lowest)]
@@ -315,7 +315,7 @@ namespace Orion.Launcher.Players
         {
             ref var packet = ref evt.Packet;
 
-            ForwardEvent(evt, new PlayerManaEvent(evt.Sender, packet.Mana, packet.MaxMana));
+            _events.Forward(evt, new PlayerManaEvent(evt.Sender, packet.Mana, packet.MaxMana), _log);
         }
 
         [EventHandler("orion-players", Priority = EventPriority.Lowest)]
@@ -324,7 +324,7 @@ namespace Orion.Launcher.Players
         {
             ref var packet = ref evt.Packet;
 
-            ForwardEvent(evt, new PlayerTeamEvent(evt.Sender, packet.Team));
+            _events.Forward(evt, new PlayerTeamEvent(evt.Sender, packet.Team), _log);
         }
 
         [EventHandler("orion-players", Priority = EventPriority.Lowest)]
@@ -333,7 +333,7 @@ namespace Orion.Launcher.Players
         {
             ref var packet = ref evt.Packet;
 
-            ForwardEvent(evt, new PlayerUuidEvent(evt.Sender, packet.Uuid));
+            _events.Forward(evt, new PlayerUuidEvent(evt.Sender, packet.Uuid), _log);
         }
 
         [EventHandler("orion-players", Priority = EventPriority.Lowest)]
@@ -342,17 +342,7 @@ namespace Orion.Launcher.Players
         {
             ref var module = ref evt.Packet.Module;
 
-            ForwardEvent(evt, new PlayerChatEvent(evt.Sender, module.ClientCommand, module.ClientMessage));
-        }
-
-        // Forwards `evt` as `newEvt`.
-        private void ForwardEvent<TEvent>(Event evt, TEvent newEvt) where TEvent : Event
-        {
-            _events.Raise(newEvt, _log);
-            if (newEvt.IsCanceled)
-            {
-                evt.Cancel(newEvt.CancellationReason);
-            }
+            _events.Forward(evt, new PlayerChatEvent(evt.Sender, module.ClientCommand, module.ClientMessage), _log);
         }
     }
 }

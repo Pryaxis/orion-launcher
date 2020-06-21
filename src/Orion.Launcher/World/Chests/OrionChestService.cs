@@ -85,7 +85,7 @@ namespace Orion.Launcher.World.Chests
                 return;
             }
 
-            ForwardEvent(evt, new ChestOpenEvent(chest, evt.Sender));
+            _events.Forward(evt, new ChestOpenEvent(chest, evt.Sender), _log);
         }
 
         [EventHandler("orion-chests", Priority = EventPriority.Lowest)]
@@ -95,17 +95,8 @@ namespace Orion.Launcher.World.Chests
             ref var packet = ref evt.Packet;
             var itemStack = new ItemStack(packet.Id, packet.StackSize, packet.Prefix);
 
-            ForwardEvent(evt, new ChestInventoryEvent(this[packet.ChestIndex], evt.Sender, packet.Slot, itemStack));
-        }
-
-        // Forwards `evt` as `newEvt`.
-        private void ForwardEvent<TEvent>(Event evt, TEvent newEvt) where TEvent : Event
-        {
-            _events.Raise(newEvt, _log);
-            if (newEvt.IsCanceled)
-            {
-                evt.Cancel(newEvt.CancellationReason);
-            }
+            _events.Forward(
+                evt, new ChestInventoryEvent(this[packet.ChestIndex], evt.Sender, packet.Slot, itemStack), _log);
         }
     }
 }

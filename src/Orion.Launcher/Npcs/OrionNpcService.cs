@@ -212,7 +212,7 @@ namespace Orion.Launcher.Npcs
             ref var packet = ref evt.Packet;
             var buff = new Buff(packet.Id, packet.Ticks);
 
-            ForwardEvent(evt, new NpcBuffEvent(this[packet.NpcIndex], evt.Sender, buff));
+            _events.Forward(evt, new NpcBuffEvent(this[packet.NpcIndex], evt.Sender, buff), _log);
         }
 
         [EventHandler("orion-npcs", Priority = EventPriority.Lowest)]
@@ -221,7 +221,7 @@ namespace Orion.Launcher.Npcs
         {
             ref var packet = ref evt.Packet;
 
-            ForwardEvent(evt, new NpcCatchEvent(this[packet.NpcIndex], evt.Sender));
+            _events.Forward(evt, new NpcCatchEvent(this[packet.NpcIndex], evt.Sender), _log);
         }
 
         [EventHandler("orion-npcs", Priority = EventPriority.Lowest)]
@@ -230,17 +230,7 @@ namespace Orion.Launcher.Npcs
         {
             ref var packet = ref evt.Packet;
 
-            ForwardEvent(evt, new NpcFishEvent(evt.Sender, packet.X, packet.Y, packet.Id));
-        }
-
-        // Forwards `evt` as `newEvt`.
-        private void ForwardEvent<TEvent>(Event evt, TEvent newEvt) where TEvent : Event
-        {
-            _events.Raise(newEvt, _log);
-            if (newEvt.IsCanceled)
-            {
-                evt.Cancel(newEvt.CancellationReason);
-            }
+            _events.Forward(evt, new NpcFishEvent(evt.Sender, packet.X, packet.Y, packet.Id), _log);
         }
     }
 }

@@ -84,17 +84,7 @@ namespace Orion.Launcher.World.Signs
                 return;
             }
 
-            ForwardEvent(evt, new SignReadEvent(sign, evt.Sender));
-        }
-
-        // Forwards `evt` as `newEvt`.
-        private void ForwardEvent<TEvent>(Event evt, TEvent newEvt) where TEvent : Event
-        {
-            _events.Raise(newEvt, _log);
-            if (newEvt.IsCanceled)
-            {
-                evt.Cancel(newEvt.CancellationReason);
-            }
+            _events.Forward(evt, new SignReadEvent(sign, evt.Sender), _log);
         }
     }
 }
