@@ -65,8 +65,7 @@ namespace Orion.Launcher.Projectiles
         [ExcludeFromCodeCoverage]
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-        public IProjectile SpawnProjectile(
-            ProjectileId id, Vector2f position, Vector2f velocity, int damage, float knockback)
+        public IProjectile Spawn(ProjectileId id, Vector2f position, Vector2f velocity, int damage, float knockback)
         {
             // Not localized because this string is developer-facing.
             Log.Debug("Spawning {ProjectileId} at {Position}", id, position);

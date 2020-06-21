@@ -76,7 +76,7 @@ namespace Orion.Launcher.Npcs
         [ExcludeFromCodeCoverage]
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-        public INpc? SpawnNpc(NpcId id, Vector2f position)
+        public INpc? Spawn(NpcId id, Vector2f position)
         {
             // Not localized because this string is developer-facing.
             Log.Debug("Spawning {NpcId} at {Position}", id, position);

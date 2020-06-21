@@ -65,7 +65,7 @@ namespace Orion.Launcher.Items
         [ExcludeFromCodeCoverage]
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-        public IItem SpawnItem(ItemStack itemStack, Vector2f position)
+        public IItem Spawn(ItemStack itemStack, Vector2f position)
         {
             // Not localized because this string is developer-facing.
             Log.Debug("Spawning {ItemStack} at {Position}", itemStack);

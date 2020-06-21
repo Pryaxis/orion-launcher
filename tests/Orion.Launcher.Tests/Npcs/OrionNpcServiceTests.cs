@@ -514,7 +514,7 @@ namespace Orion.Launcher.Npcs
         }
 
         [Fact]
-        public void SpawnNpc()
+        public void Spawn()
         {
             // Clear the NPC so that we know it's empty.
             Terraria.Main.npc[0] = new Terraria.NPC { whoAmI = 0 };
@@ -523,14 +523,14 @@ namespace Orion.Launcher.Npcs
             var log = Mock.Of<ILogger>();
             using var npcService = new OrionNpcService(events, log);
 
-            var npc = npcService.SpawnNpc(NpcId.BlueSlime, Vector2f.Zero);
+            var npc = npcService.Spawn(NpcId.BlueSlime, Vector2f.Zero);
 
             Assert.NotNull(npc);
             Assert.Equal(NpcId.BlueSlime, npc!.Id);
         }
 
         [Fact]
-        public void SpawnNpc_ReturnsNull()
+        public void Spawn_ReturnsNull()
         {
             // Fill up all of the NPC slots so that the spawn fails.
             for (var i = 0; i < Terraria.Main.maxNPCs; ++i)
@@ -542,7 +542,7 @@ namespace Orion.Launcher.Npcs
             var log = Mock.Of<ILogger>();
             using var npcService = new OrionNpcService(events, log);
 
-            var npc = npcService.SpawnNpc(NpcId.BlueSlime, Vector2f.Zero);
+            var npc = npcService.Spawn(NpcId.BlueSlime, Vector2f.Zero);
 
             Assert.Null(npc);
         }

@@ -202,7 +202,7 @@ namespace Orion.Launcher.Projectiles
         }
 
         [Fact]
-        public void SpawnProjectile()
+        public void Spawn()
         {
             // Clear the projectile so that we know it's empty.
             Terraria.Main.projectile[0] = new Terraria.Projectile { whoAmI = 0 };
@@ -211,7 +211,7 @@ namespace Orion.Launcher.Projectiles
             var log = Mock.Of<ILogger>();
             using var projectileService = new OrionProjectileService(events, log);
 
-            var projectile = projectileService.SpawnProjectile(
+            var projectile = projectileService.Spawn(
                 ProjectileId.CrystalBullet, Vector2f.Zero, Vector2f.Zero, 100, 0);
 
             Assert.Equal(Terraria.Main.projectile[0], ((OrionProjectile)projectile).Wrapped);
