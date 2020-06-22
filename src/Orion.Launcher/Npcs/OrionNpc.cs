@@ -36,6 +36,18 @@ namespace Orion.Launcher.Npcs
 
         public NpcId Id => (NpcId)Wrapped.netID;
 
+        public int Health
+        {
+            get => Wrapped.life;
+            set => Wrapped.life = value;
+        }
+
+        public int MaxHealth
+        {
+            get => Wrapped.lifeMax;
+            set => Wrapped.lifeMax = value;
+        }
+
         public void SetId(NpcId id)
         {
             Wrapped.SetDefaults((int)id, Wrapped.GetMatchingSpawnParams());

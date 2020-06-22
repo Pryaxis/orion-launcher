@@ -64,6 +64,46 @@ namespace Orion.Launcher.Npcs
         }
 
         [Fact]
+        public void Health_Get()
+        {
+            var terrariaNpc = new Terraria.NPC { life = 100 };
+            var npc = new OrionNpc(terrariaNpc);
+
+            Assert.Equal(100, npc.Health);
+        }
+
+        [Fact]
+        public void Health_Set()
+        {
+            var terrariaNpc = new Terraria.NPC();
+            var npc = new OrionNpc(terrariaNpc);
+
+            npc.Health = 100;
+
+            Assert.Equal(100, terrariaNpc.life);
+        }
+
+        [Fact]
+        public void MaxHealth_Get()
+        {
+            var terrariaNpc = new Terraria.NPC { lifeMax = 200 };
+            var npc = new OrionNpc(terrariaNpc);
+
+            Assert.Equal(200, npc.MaxHealth);
+        }
+
+        [Fact]
+        public void MaxHealth_Set()
+        {
+            var terrariaNpc = new Terraria.NPC();
+            var npc = new OrionNpc(terrariaNpc);
+
+            npc.MaxHealth = 200;
+
+            Assert.Equal(200, terrariaNpc.lifeMax);
+        }
+
+        [Fact]
         public void SetId()
         {
             var terrariaNpc = new Terraria.NPC();
