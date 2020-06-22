@@ -24,7 +24,6 @@ using Ninject;
 using Orion.Core;
 using Orion.Core.Events;
 using Orion.Core.Events.Server;
-using Orion.Core.Framework;
 using Orion.Core.Items;
 using Orion.Core.Npcs;
 using Orion.Core.Players;

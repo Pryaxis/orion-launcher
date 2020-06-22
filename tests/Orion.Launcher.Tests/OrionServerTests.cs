@@ -15,6 +15,10 @@
 // You should have received a copy of the GNU General Public License
 // along with Orion.  If not, see <https://www.gnu.org/licenses/>.
 
+using System;
+using System.Reflection;
+using Orion.Core;
+using Serilog;
 using Serilog.Core;
 using Xunit;
 
@@ -92,6 +96,53 @@ namespace Orion.Launcher
             server.Initialize();
 
             Assert.NotNull(server.World);
+        }
+
+        [Fact]
+        public void Load_Initialize()
+        {
+            using var server = new OrionServer(Logger.None);
+
+            server.Load(Assembly.GetExecutingAssembly());
+
+            server.Initialize();
+
+            Assert.IsType<TestService>(TestOrionPlugin.SingletonService);
+            Assert.IsType<TestService2>(TestOrionPlugin.TransientService);
+
+            Assert.Equal(100, TestOrionPlugin.Value);
+        }
+
+        [Service(ServiceScope.Singleton)]
+        public interface ITestSingletonService { }
+
+        [Service(ServiceScope.Transient)]
+        public interface ITestTransientService { }
+
+        [Binding("test-service")]
+        internal class TestService : ITestSingletonService, ITestTransientService { }
+
+        [Binding("test-service-2", Priority = BindingPriority.Highest)]
+        internal class TestService2 : ITestTransientService { }
+
+        [Plugin("test-plugin")]
+        public class TestOrionPlugin : OrionPlugin
+        {
+            public TestOrionPlugin(
+                IServer server, ILogger log,
+                ITestSingletonService singletonService,
+                ITestTransientService transientService) : base(server, log)
+            {
+                SingletonService = singletonService;
+                TransientService = transientService;
+                Value = 100;
+            }
+
+            public static ITestSingletonService SingletonService { get; private set; } = null!;
+            public static ITestTransientService TransientService { get; private set; } = null!;
+            public static int Value { get; set; }
+
+            public override void Dispose() => Value = -100;
         }
     }
 }
