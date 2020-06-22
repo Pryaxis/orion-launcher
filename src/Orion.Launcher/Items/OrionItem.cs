@@ -44,6 +44,12 @@ namespace Orion.Launcher.Items
 
         public ItemPrefix Prefix => (ItemPrefix)Wrapped.prefix;
 
+        public int Damage
+        {
+            get => Wrapped.damage;
+            set => Wrapped.damage = value;
+        }
+
         public void SetId(ItemId id)
         {
             Wrapped.SetDefaults((int)id);

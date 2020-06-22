@@ -93,6 +93,26 @@ namespace Orion.Launcher.Items
         }
 
         [Fact]
+        public void Damage_Get()
+        {
+            var terrariaItem = new Terraria.Item { damage = 100 };
+            var item = new OrionItem(terrariaItem);
+
+            Assert.Equal(100, item.Damage);
+        }
+
+        [Fact]
+        public void Damage_Set()
+        {
+            var terrariaItem = new Terraria.Item { type = (int)ItemId.DirtBlock };
+            var item = new OrionItem(terrariaItem);
+
+            item.Damage = 100;
+
+            Assert.Equal(100, terrariaItem.damage);
+        }
+
+        [Fact]
         public void SetId()
         {
             var terrariaItem = new Terraria.Item();
