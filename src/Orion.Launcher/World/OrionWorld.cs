@@ -73,13 +73,14 @@ namespace Orion.Launcher.World
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
-                Debug.Assert(x >= 0 && x < Width);
-                Debug.Assert(y >= 0 && y < Height);
+                Debug.Assert(x >= 0 && x <= Width);
+                Debug.Assert(y >= 0 && y <= Height);
 
                 if (_tiles is null)
                 {
-                    // Allocate the `Tile` array in unmanaged memory so that it doesn't need to be pinned.
-                    _tiles = (Tile*)Marshal.AllocHGlobal(sizeof(Tile) * Width * Height);
+                    // Allocate the `Tile` array in unmanaged memory so that it doesn't need to be pinned. The bounds
+                    // are increased by 1 to fix some OOB issues in world generation code.
+                    _tiles = (Tile*)Marshal.AllocHGlobal(sizeof(Tile) * (Width + 1) * (Height + 1));
                 }
 
                 return ref _tiles[y * Width + x];
