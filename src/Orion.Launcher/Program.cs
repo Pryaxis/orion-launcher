@@ -46,16 +46,6 @@ namespace Orion.Launcher
             using var server = SetUpServer(log);
             using var context = SetUpSynchronizationContext();
 
-            server.Events.RegisterAsyncHandler<ServerStartEvent>(async evt =>
-            {
-                for (var i = 0; i < 10; ++i)
-                {
-                    Console.WriteLine("I am thread: " + Thread.CurrentThread.ManagedThreadId);
-
-                    await Task.Delay(1000);
-                }
-            }, log);
-
             server.Events.Raise(new ServerArgsEvent(args), log);
 
             using var game = new Terraria.Main();
