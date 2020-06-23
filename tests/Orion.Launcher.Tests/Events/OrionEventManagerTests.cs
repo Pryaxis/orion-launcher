@@ -16,6 +16,7 @@
 // along with Orion.  If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Orion.Core.Events;
 using Serilog.Core;
@@ -55,8 +56,7 @@ namespace Orion.Launcher.Events
             var manager = new OrionEventManager();
 
             Assert.Throws<ArgumentNullException>(
-                () => manager.RegisterAsyncHandler<TestEvent>(
-                    async evt => await Task.Delay(100).ConfigureAwait(false), null!));
+                () => manager.RegisterAsyncHandler<TestEvent>(async evt => await Task.Delay(100), null!));
         }
 
         [Fact]
@@ -89,8 +89,7 @@ namespace Orion.Launcher.Events
             var manager = new OrionEventManager();
 
             Assert.Throws<ArgumentNullException>(
-                () => manager.DeregisterAsyncHandler<TestEvent>(
-                    async evt => await Task.Delay(100).ConfigureAwait(false), null!));
+                () => manager.DeregisterAsyncHandler<TestEvent>(async evt => await Task.Delay(100), null!));
         }
 
         [Fact]
@@ -127,13 +126,16 @@ namespace Orion.Launcher.Events
             var manager = new OrionEventManager();
             manager.RegisterAsyncHandler<TestEvent>(async evt =>
             {
-                await Task.Delay(100).ConfigureAwait(false);
+                await Task.Delay(100);
 
                 evt.Value = 100;
             }, Logger.None);
             var evt = new TestEvent();
 
             manager.Raise(evt, Logger.None);
+
+            // HACK: sleep here to check that the value is updated.
+            Thread.Sleep(1000);
 
             Assert.Equal(100, evt.Value);
         }
@@ -167,7 +169,7 @@ namespace Orion.Launcher.Events
         {
             static async Task Handler(TestEvent evt)
             {
-                await Task.Delay(100).ConfigureAwait(false);
+                await Task.Delay(100);
 
                 evt.Value = 100;
             }
@@ -188,8 +190,7 @@ namespace Orion.Launcher.Events
         {
             var manager = new OrionEventManager();
 
-            manager.DeregisterAsyncHandler<TestEvent>(
-                async evt => await Task.Delay(100).ConfigureAwait(false), Logger.None);
+            manager.DeregisterAsyncHandler<TestEvent>(async evt => await Task.Delay(100), Logger.None);
         }
 
         [Event("test")]

@@ -20,6 +20,7 @@ using System.IO;
 using System.Reflection;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using Destructurama;
 using Orion.Core.Events.Server;
 using Orion.Launcher.Properties;
@@ -31,22 +32,38 @@ namespace Orion.Launcher
 {
     internal static class Program
     {
+#if DEBUG
+        private const LogEventLevel MinimumLogLevel = LogEventLevel.Debug;
+#else
+        private const LogEventLevel MinimumLogLevel = LogEventLevel.Information;
+#endif
+
         internal static void Main(string[] args)
         {
-            var log = SetupLog();
-            using var server = new OrionServer(log);
-            SetupPlugins();
-            SetupLanguage();
+            SetUpTerrariaLanguage();
+
+            var log = SetUpLog();
+            using var server = SetUpServer(log);
+            using var context = SetUpSynchronizationContext();
+
+            server.Events.RegisterAsyncHandler<ServerStartEvent>(async evt =>
+            {
+                for (var i = 0; i < 10; ++i)
+                {
+                    Console.WriteLine("I am thread: " + Thread.CurrentThread.ManagedThreadId);
+
+                    await Task.Delay(1000);
+                }
+            }, log);
 
             server.Events.Raise(new ServerArgsEvent(args), log);
 
             using var game = new Terraria.Main();
             game.DedServ();
 
-            static void SetupLanguage()
+            // Sets up the Terraria language.
+            static void SetUpTerrariaLanguage()
             {
-                // Save cultures since `LanguageManager.SetLanguage` overrides them if the language is not supported by
-                // Terraria.
                 var previousCulture = Thread.CurrentThread.CurrentCulture;
                 var previousUICulture = Thread.CurrentThread.CurrentUICulture;
                 Terraria.Localization.LanguageManager.Instance.SetLanguage(previousUICulture.Name);
@@ -55,7 +72,8 @@ namespace Orion.Launcher
                 Thread.CurrentThread.CurrentUICulture = previousUICulture;
             }
 
-            static ILogger SetupLog()
+            // Sets up a log which outputs to the console and to the logs/ directory.
+            static ILogger SetUpLog()
             {
                 Directory.CreateDirectory("logs");
 
@@ -64,11 +82,7 @@ namespace Orion.Launcher
 
                 var log = new LoggerConfiguration()
                     .Destructure.UsingAttributes()
-#if DEBUG
-                    .MinimumLevel.Is(LogEventLevel.Debug)
-#else
-                    .MinimumLevel.Is(LogEventLevel.Information)
-#endif
+                    .MinimumLevel.Is(MinimumLogLevel)
                     .WriteTo.Console(
                         outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Name}: {Message:l}{NewLine}{Exception}",
                         theme: AnsiConsoleTheme.Code)
@@ -79,7 +93,7 @@ namespace Orion.Launcher
                         rollOnFileSizeLimit: true,
                         fileSizeLimitBytes: 2 << 20)
                     .CreateLogger()
-                    .ForContext("Name", "launcher");
+                    .ForContext("Name", "orion-launcher");
 
                 AppDomain.CurrentDomain.UnhandledException += (sender, eventArgs) =>
                 {
@@ -89,9 +103,12 @@ namespace Orion.Launcher
                 return log;
             }
 
-            void SetupPlugins()
+            // Sets up a server which loads plugins from the plugins/ directory.
+            static OrionServer SetUpServer(ILogger log)
             {
                 Directory.CreateDirectory("plugins");
+
+                var server = new OrionServer(log);
 
                 foreach (var path in Directory.EnumerateFiles("plugins", "*.dll"))
                 {
@@ -106,6 +123,19 @@ namespace Orion.Launcher
                 }
 
                 server.Initialize();
+
+                return server;
+            }
+
+            // Sets up a synchronization context which ensures that continuations run on the main Terraria thread.
+            static TerrariaSynchronizationContext SetUpSynchronizationContext()
+            {
+                var context = new TerrariaSynchronizationContext();
+                SynchronizationContext.SetSynchronizationContext(context);
+
+                Terraria.Main.OnTickForThirdPartySoftwareOnly += () => context.TryExecute();
+
+                return context;
             }
         }
     }

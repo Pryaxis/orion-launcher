@@ -62,10 +62,7 @@ namespace Orion.Launcher.World
         [ExcludeFromCodeCoverage]
         unsafe ~OrionWorld()
         {
-            if (_tiles != null)
-            {
-                Marshal.FreeHGlobal((IntPtr)_tiles);
-            }
+            DisposeUnmanaged();
         }
 
         public unsafe ref Tile this[int x, int y]
@@ -100,10 +97,8 @@ namespace Orion.Launcher.World
 
         public unsafe void Dispose()
         {
-            if (_tiles != null)
-            {
-                Marshal.FreeHGlobal((IntPtr)_tiles);
-            }
+            DisposeUnmanaged();
+            GC.SuppressFinalize(this);
 
             // Replace the original `Terraria.Main.tile` implementation using a reflection hack.
             Terraria.Main.tile =
@@ -116,8 +111,14 @@ namespace Orion.Launcher.World
             OTAPI.Hooks.World.IO.PreSaveWorld = null;
 
             _events.DeregisterHandlers(this, _log);
+        }
 
-            GC.SuppressFinalize(this);
+        private unsafe void DisposeUnmanaged()
+        {
+            if (_tiles != null)
+            {
+                Marshal.FreeHGlobal((IntPtr)_tiles);
+            }
         }
 
         // =============================================================================================================

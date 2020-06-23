@@ -29,7 +29,7 @@ namespace Orion.Launcher.Events
 {
     internal sealed partial class OrionEventManager
     {
-        internal sealed class Collection<TEvent> where TEvent : Event
+        public sealed class Collection<TEvent> where TEvent : Event
         {
             private readonly string _eventName;
             private readonly LogEventLevel _eventLoggingLevel;
@@ -158,7 +158,6 @@ namespace Orion.Launcher.Events
                         return;
                     }
 
-                    var tasks = new List<Task>();
                     foreach (var registration in _asyncRegistrations)
                     {
                         if (evt.IsCanceled && registration.IgnoreCanceled)
@@ -166,6 +165,7 @@ namespace Orion.Launcher.Events
                             continue;
                         }
 
+                        // Launch the task, but don't bother tracking it.
                         var task = registration.Handler(evt).ContinueWith(t =>
                         {
                             var ex = t.Exception;
@@ -178,14 +178,7 @@ namespace Orion.Launcher.Events
                             log.Error(
                                 ex, "Unhandled exception in {EventName} from {@Registration}", _eventName, registration);
                         });
-
-                        if (registration.IsBlocking)
-                        {
-                            tasks.Add(task);
-                        }
                     }
-
-                    Task.WhenAll(tasks).Wait();
                 }
             }
 
@@ -212,7 +205,6 @@ namespace Orion.Launcher.Events
                 [NotLogged] public Func<TEvent, Task> Handler { get; }
                 public string Name { get; }
                 public bool IgnoreCanceled { get; }
-                public bool IsBlocking { get; }
 
                 public AsyncRegistration(Func<TEvent, Task> handler)
                 {
@@ -221,7 +213,6 @@ namespace Orion.Launcher.Events
                     var attribute = handler.Method.GetCustomAttribute<EventHandlerAttribute>();
                     Name = attribute?.Name ?? handler.Method.Name;
                     IgnoreCanceled = attribute?.IgnoreCanceled ?? true;
-                    IsBlocking = attribute?.IsBlocking ?? true;
                 }
             }
         }
