@@ -98,6 +98,54 @@ namespace Orion.Launcher
         }
 
         [Fact]
+        public void Evil_Get_ReturnsCorruption()
+        {
+            Terraria.WorldGen.crimson = false;
+
+            var events = Mock.Of<IEventManager>();
+            var log = Mock.Of<ILogger>();
+            using var world = new OrionWorld(events, log);
+
+            Assert.Equal(WorldEvil.Corruption, world.Evil);
+        }
+
+        [Fact]
+        public void Evil_Get_ReturnsCrimson()
+        {
+            Terraria.WorldGen.crimson = true;
+
+            var events = Mock.Of<IEventManager>();
+            var log = Mock.Of<ILogger>();
+            using var world = new OrionWorld(events, log);
+
+            Assert.Equal(WorldEvil.Crimson, world.Evil);
+        }
+
+        [Fact]
+        public void Evil_Set_Corruption()
+        {
+            var events = Mock.Of<IEventManager>();
+            var log = Mock.Of<ILogger>();
+            using var world = new OrionWorld(events, log);
+
+            world.Evil = WorldEvil.Corruption;
+
+            Assert.False(Terraria.WorldGen.crimson);
+        }
+
+        [Fact]
+        public void Evil_Set_Crimson()
+        {
+            var events = Mock.Of<IEventManager>();
+            var log = Mock.Of<ILogger>();
+            using var world = new OrionWorld(events, log);
+
+            world.Evil = WorldEvil.Crimson;
+
+            Assert.True(Terraria.WorldGen.crimson);
+        }
+
+        [Fact]
         public void Difficulty_Get()
         {
             Terraria.Main.GameMode = (int)WorldDifficulty.Master;

@@ -89,6 +89,12 @@ namespace Orion.Launcher.World
 
         public string Name => Terraria.Main.worldName ?? string.Empty;
 
+        public WorldEvil Evil
+        {
+            get => Terraria.WorldGen.crimson ? WorldEvil.Crimson : WorldEvil.Corruption;
+            set => Terraria.WorldGen.crimson = value == WorldEvil.Crimson;
+        }
+
         public WorldDifficulty Difficulty
         {
             get => (WorldDifficulty)Terraria.Main.GameMode;
