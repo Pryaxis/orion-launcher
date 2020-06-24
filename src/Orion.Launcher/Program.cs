@@ -20,7 +20,6 @@ using System.IO;
 using System.Reflection;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using Destructurama;
 using Orion.Core.Events.Server;
 using Orion.Launcher.Properties;
@@ -123,6 +122,9 @@ namespace Orion.Launcher
                 var context = new TerrariaSynchronizationContext();
                 SynchronizationContext.SetSynchronizationContext(context);
 
+                // We use `Terraria.Main.OnTickForThirdPartySoftwareOnly` to try executing continuations each game tick.
+                // We could instead register a `ServerTickEvent` handler, but that would mean that continuations can
+                // only run if there are players present on the server.
                 Terraria.Main.OnTickForThirdPartySoftwareOnly += () => context.TryExecute();
 
                 return context;
