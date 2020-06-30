@@ -28,7 +28,7 @@ using Orion.Core.Events.World.Chests;
 using Orion.Core.Items;
 using Orion.Core.Packets.World.Chests;
 using Orion.Core.World.Chests;
-using Orion.Launcher.Collections;
+using Orion.Launcher.Utils;
 using Serilog;
 
 namespace Orion.Launcher.World.Chests
@@ -76,9 +76,9 @@ namespace Orion.Launcher.World.Chests
 
         [EventHandler("orion-chests", Priority = EventPriority.Lowest)]
         [SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Implicitly used")]
-        private void OnChestOpenPacket(PacketReceiveEvent<ChestOpenPacket> evt)
+        private void OnChestOpen(PacketReceiveEvent<ChestOpen> evt)
         {
-            ref var packet = ref evt.Packet;
+            var packet = evt.Packet;
             var chest = FindChest(packet.X, packet.Y);
             if (chest is null)
             {
@@ -90,10 +90,10 @@ namespace Orion.Launcher.World.Chests
 
         [EventHandler("orion-chests", Priority = EventPriority.Lowest)]
         [SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Implicitly used")]
-        private void OnChestInventoryPacket(PacketReceiveEvent<ChestInventoryPacket> evt)
+        private void OnChestInventory(PacketReceiveEvent<ChestInventory> evt)
         {
-            ref var packet = ref evt.Packet;
-            var itemStack = new ItemStack(packet.Id, packet.StackSize, packet.Prefix);
+            var packet = evt.Packet;
+            var itemStack = new ItemStack(packet.Id, packet.Prefix, packet.StackSize);
 
             _events.Forward(
                 evt, new ChestInventoryEvent(this[packet.ChestIndex], evt.Sender, packet.Slot, itemStack), _log);

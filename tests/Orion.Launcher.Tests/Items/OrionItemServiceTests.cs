@@ -18,10 +18,10 @@
 using System;
 using System.Linq;
 using Moq;
-using Orion.Core.DataStructures;
 using Orion.Core.Events;
 using Orion.Core.Events.Items;
 using Orion.Core.Items;
+using Orion.Core.Utils;
 using Serilog;
 using Xunit;
 
@@ -205,7 +205,7 @@ namespace Orion.Launcher.Items
         [InlineData(ItemId.StoneBlock, 100, ItemPrefix.None)]
         [InlineData(ItemId.Sdmg, 1, ItemPrefix.Unreal)]
         [InlineData(ItemId.Meowmere, 1, ItemPrefix.Legendary)]
-        public void Spawn(ItemId id, int stackSize, ItemPrefix prefix)
+        public void Spawn(ItemId id, short stackSize, ItemPrefix prefix)
         {
             // Set up an empty slot for the item to appear at.
             Terraria.Main.item[0] = new Terraria.Item { whoAmI = 0 };
@@ -214,7 +214,7 @@ namespace Orion.Launcher.Items
             var log = Mock.Of<ILogger>();
             using var itemService = new OrionItemService(events, log);
 
-            var item = itemService.Spawn(new ItemStack(id, stackSize, prefix), Vector2f.Zero);
+            var item = itemService.Spawn(new ItemStack(id, prefix, stackSize), Vector2f.Zero);
 
             Assert.Equal(Terraria.Main.item[0], ((OrionItem)item).Wrapped);
             Assert.Equal(id, item.Id);

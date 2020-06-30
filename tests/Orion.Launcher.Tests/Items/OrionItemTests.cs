@@ -64,6 +64,15 @@ namespace Orion.Launcher.Items
         }
 
         [Fact]
+        public void Prefix_Get()
+        {
+            var terrariaItem = new Terraria.Item { type = (int)ItemId.Sdmg, prefix = (int)ItemPrefix.Unreal };
+            var item = new OrionItem(terrariaItem);
+
+            Assert.Equal(ItemPrefix.Unreal, item.Prefix);
+        }
+
+        [Fact]
         public void StackSize_Get()
         {
             var terrariaItem = new Terraria.Item { type = (int)ItemId.DirtBlock, stack = 123 };
@@ -81,15 +90,6 @@ namespace Orion.Launcher.Items
             item.StackSize = 123;
 
             Assert.Equal(123, terrariaItem.stack);
-        }
-
-        [Fact]
-        public void Prefix_Get()
-        {
-            var terrariaItem = new Terraria.Item { type = (int)ItemId.Sdmg, prefix = (int)ItemPrefix.Unreal };
-            var item = new OrionItem(terrariaItem);
-
-            Assert.Equal(ItemPrefix.Unreal, item.Prefix);
         }
 
         [Fact]

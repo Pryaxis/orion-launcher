@@ -22,15 +22,15 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Orion.Core;
-using Orion.Core.Buffs;
-using Orion.Core.DataStructures;
+using Orion.Core.Entities;
 using Orion.Core.Events;
 using Orion.Core.Events.Npcs;
 using Orion.Core.Events.Packets;
 using Orion.Core.Items;
 using Orion.Core.Npcs;
 using Orion.Core.Packets.Npcs;
-using Orion.Launcher.Collections;
+using Orion.Core.Utils;
+using Orion.Launcher.Utils;
 using Serilog;
 
 namespace Orion.Launcher.Npcs
@@ -177,16 +177,19 @@ namespace Orion.Launcher.Npcs
             Debug.Assert(terrariaNpc != null);
 
             var npc = GetNpc(terrariaNpc);
-            var evt = new NpcLootEvent(npc) { ItemStack = new ItemStack((ItemId)itemId, stackSize, (ItemPrefix)prefix) };
+            var evt = new NpcLootEvent(npc)
+            {
+                Item = new ItemStack((ItemId)itemId, (ItemPrefix)prefix, (short)stackSize)
+            };
             _events.Raise(evt, _log);
             if (evt.IsCanceled)
             {
                 return OTAPI.HookResult.Cancel;
             }
 
-            itemId = (int)evt.ItemStack.Id;
-            stackSize = evt.ItemStack.StackSize;
-            prefix = (int)evt.ItemStack.Prefix;
+            itemId = (int)evt.Item.Id;
+            stackSize = evt.Item.StackSize;
+            prefix = (int)evt.Item.Prefix;
             return OTAPI.HookResult.Continue;
         }
 
@@ -207,9 +210,9 @@ namespace Orion.Launcher.Npcs
 
         [EventHandler("orion-npcs", Priority = EventPriority.Lowest)]
         [SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Implicitly used")]
-        private void OnNpcBuffPacket(PacketReceiveEvent<NpcBuffPacket> evt)
+        private void OnNpcAddBuff(PacketReceiveEvent<NpcAddBuff> evt)
         {
-            ref var packet = ref evt.Packet;
+            var packet = evt.Packet;
             var buff = new Buff(packet.Id, packet.Ticks);
 
             _events.Forward(evt, new NpcBuffEvent(this[packet.NpcIndex], evt.Sender, buff), _log);
@@ -217,20 +220,21 @@ namespace Orion.Launcher.Npcs
 
         [EventHandler("orion-npcs", Priority = EventPriority.Lowest)]
         [SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Implicitly used")]
-        private void OnNpcCatchPacket(PacketReceiveEvent<NpcCatchPacket> evt)
+        private void OnNpcCatch(PacketReceiveEvent<NpcCatch> evt)
         {
-            ref var packet = ref evt.Packet;
+            var packet = evt.Packet;
 
             _events.Forward(evt, new NpcCatchEvent(this[packet.NpcIndex], evt.Sender), _log);
         }
 
         [EventHandler("orion-npcs", Priority = EventPriority.Lowest)]
         [SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Implicitly used")]
-        private void OnNpcFishPacket(PacketReceiveEvent<NpcFishPacket> evt)
+        private void OnNpcFish(PacketReceiveEvent<NpcFish> evt)
         {
-            ref var packet = ref evt.Packet;
+            var packet = evt.Packet;
+            var position = new Vector2f(16 * packet.X, 16 * packet.Y);
 
-            _events.Forward(evt, new NpcFishEvent(evt.Sender, packet.X, packet.Y, packet.Id), _log);
+            _events.Forward(evt, new NpcFishEvent(evt.Sender, position, packet.Id), _log);
         }
     }
 }

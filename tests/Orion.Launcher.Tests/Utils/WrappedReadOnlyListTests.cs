@@ -19,7 +19,7 @@ using System;
 using System.Linq;
 using Xunit;
 
-namespace Orion.Launcher.Collections
+namespace Orion.Launcher.Utils
 {
     public class WrappedReadOnlyListTests
     {

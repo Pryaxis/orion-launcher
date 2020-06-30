@@ -18,8 +18,7 @@
 using System;
 using System.Linq;
 using Moq;
-using Orion.Core.Buffs;
-using Orion.Core.DataStructures;
+using Orion.Core.Entities;
 using Orion.Core.Events;
 using Orion.Core.Events.Npcs;
 using Orion.Core.Events.Packets;
@@ -27,6 +26,7 @@ using Orion.Core.Items;
 using Orion.Core.Npcs;
 using Orion.Core.Packets.Npcs;
 using Orion.Core.Players;
+using Orion.Core.Utils;
 using Serilog;
 using Xunit;
 
@@ -267,9 +267,9 @@ namespace Orion.Launcher.Npcs
                 .Setup(em => em.Raise(
                     It.Is<NpcLootEvent>(
                         evt => ((OrionNpc)evt.Npc).Wrapped == Terraria.Main.npc[0] &&
-                            evt.ItemStack.Id == ItemId.Gel &&
-                            (evt.ItemStack.StackSize >= 1 || evt.ItemStack.StackSize <= 2) &&
-                            evt.ItemStack.Prefix == ItemPrefix.Random),
+                            evt.Item.Id == ItemId.Gel &&
+                            (evt.Item.StackSize >= 1 || evt.Item.StackSize <= 2) &&
+                            evt.Item.Prefix == ItemPrefix.Random),
                     log));
 
             Terraria.Main.npc[0].SetDefaults((int)NpcId.BlueSlime);
@@ -296,7 +296,7 @@ namespace Orion.Launcher.Npcs
                 .Setup(em => em.Raise(It.IsAny<NpcLootEvent>(), log))
                 .Callback<NpcLootEvent, ILogger>((evt, log) =>
                 {
-                    evt.ItemStack = new ItemStack(ItemId.Sdmg, 1, ItemPrefix.Unreal);
+                    evt.Item = new ItemStack(ItemId.Sdmg, ItemPrefix.Unreal, 1);
                 });
 
             Terraria.Main.npc[0].SetDefaults((int)NpcId.BlueSlime);
@@ -336,22 +336,22 @@ namespace Orion.Launcher.Npcs
         }
 
         [Fact]
-        public void PacketReceive_NpcBuffPacket_EventTriggered()
+        public void PacketReceive_NpcAddBuff_EventTriggered()
         {
-            Action<PacketReceiveEvent<NpcBuffPacket>>? registeredHandler = null;
+            Action<PacketReceiveEvent<NpcAddBuff>>? registeredHandler = null;
 
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             Mock.Get(events)
-                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<NpcBuffPacket>>>(), log))
-                .Callback<Action<PacketReceiveEvent<NpcBuffPacket>>, ILogger>(
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<NpcAddBuff>>>(), log))
+                .Callback<Action<PacketReceiveEvent<NpcAddBuff>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
             using var npcService = new OrionNpcService(events, log);
 
-            var packet = new NpcBuffPacket { NpcIndex = 1, Id = BuffId.Poisoned, Ticks = 60 };
+            var packet = new NpcAddBuff { NpcIndex = 1, Id = BuffId.Poisoned, Ticks = 60 };
             var sender = Mock.Of<IPlayer>();
-            var evt = new PacketReceiveEvent<NpcBuffPacket>(ref packet, sender);
+            var evt = new PacketReceiveEvent<NpcAddBuff>(packet, sender);
 
             Mock.Get(events)
                 .Setup(em => em.Raise(
@@ -369,20 +369,20 @@ namespace Orion.Launcher.Npcs
         [Fact]
         public void PacketReceive_NpcBuffPacket_EventCanceled()
         {
-            Action<PacketReceiveEvent<NpcBuffPacket>>? registeredHandler = null;
+            Action<PacketReceiveEvent<NpcAddBuff>>? registeredHandler = null;
 
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             Mock.Get(events)
-                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<NpcBuffPacket>>>(), log))
-                .Callback<Action<PacketReceiveEvent<NpcBuffPacket>>, ILogger>(
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<NpcAddBuff>>>(), log))
+                .Callback<Action<PacketReceiveEvent<NpcAddBuff>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
             using var npcService = new OrionNpcService(events, log);
 
-            var packet = new NpcBuffPacket { NpcIndex = 1, Id = BuffId.Poisoned, Ticks = 60 };
+            var packet = new NpcAddBuff { NpcIndex = 1, Id = BuffId.Poisoned, Ticks = 60 };
             var sender = Mock.Of<IPlayer>();
-            var evt = new PacketReceiveEvent<NpcBuffPacket>(ref packet, sender);
+            var evt = new PacketReceiveEvent<NpcAddBuff>(packet, sender);
 
             Mock.Get(events)
                 .Setup(em => em.Raise(It.IsAny<NpcBuffEvent>(), log))
@@ -399,20 +399,20 @@ namespace Orion.Launcher.Npcs
         [Fact]
         public void PacketReceive_NpcCatchPacket_EventTriggered()
         {
-            Action<PacketReceiveEvent<NpcCatchPacket>>? registeredHandler = null;
+            Action<PacketReceiveEvent<NpcCatch>>? registeredHandler = null;
 
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             Mock.Get(events)
-                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<NpcCatchPacket>>>(), log))
-                .Callback<Action<PacketReceiveEvent<NpcCatchPacket>>, ILogger>(
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<NpcCatch>>>(), log))
+                .Callback<Action<PacketReceiveEvent<NpcCatch>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
             using var npcService = new OrionNpcService(events, log);
 
-            var packet = new NpcCatchPacket { NpcIndex = 1 };
+            var packet = new NpcCatch { NpcIndex = 1 };
             var sender = Mock.Of<IPlayer>();
-            var evt = new PacketReceiveEvent<NpcCatchPacket>(ref packet, sender);
+            var evt = new PacketReceiveEvent<NpcCatch>(packet, sender);
 
             Mock.Get(events)
                 .Setup(em => em.Raise(It.Is<NpcCatchEvent>(evt => evt.Npc == npcService[1]), log));
@@ -426,20 +426,20 @@ namespace Orion.Launcher.Npcs
         [Fact]
         public void PacketReceive_NpcCatchPacket_EventCanceled()
         {
-            Action<PacketReceiveEvent<NpcCatchPacket>>? registeredHandler = null;
+            Action<PacketReceiveEvent<NpcCatch>>? registeredHandler = null;
 
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             Mock.Get(events)
-                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<NpcCatchPacket>>>(), log))
-                .Callback<Action<PacketReceiveEvent<NpcCatchPacket>>, ILogger>(
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<NpcCatch>>>(), log))
+                .Callback<Action<PacketReceiveEvent<NpcCatch>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
             using var npcService = new OrionNpcService(events, log);
 
-            var packet = new NpcCatchPacket { NpcIndex = 1 };
+            var packet = new NpcCatch { NpcIndex = 1 };
             var sender = Mock.Of<IPlayer>();
-            var evt = new PacketReceiveEvent<NpcCatchPacket>(ref packet, sender);
+            var evt = new PacketReceiveEvent<NpcCatch>(packet, sender);
 
             Mock.Get(events)
                 .Setup(em => em.Raise(It.IsAny<NpcCatchEvent>(), log))
@@ -456,25 +456,26 @@ namespace Orion.Launcher.Npcs
         [Fact]
         public void PacketReceive_NpcFishPacket_EventTriggered()
         {
-            Action<PacketReceiveEvent<NpcFishPacket>>? registeredHandler = null;
+            Action<PacketReceiveEvent<NpcFish>>? registeredHandler = null;
 
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             Mock.Get(events)
-                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<NpcFishPacket>>>(), log))
-                .Callback<Action<PacketReceiveEvent<NpcFishPacket>>, ILogger>(
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<NpcFish>>>(), log))
+                .Callback<Action<PacketReceiveEvent<NpcFish>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
             using var npcService = new OrionNpcService(events, log);
 
-            var packet = new NpcFishPacket { X = 100, Y = 256, Id = NpcId.HemogoblinShark };
+            var packet = new NpcFish { X = 100, Y = 256, Id = NpcId.HemogoblinShark };
             var sender = Mock.Of<IPlayer>();
-            var evt = new PacketReceiveEvent<NpcFishPacket>(ref packet, sender);
+            var evt = new PacketReceiveEvent<NpcFish>(packet, sender);
 
             Mock.Get(events)
                 .Setup(em => em.Raise(
                     It.Is<NpcFishEvent>(
-                        evt => evt.Player == sender && evt.X == 100 && evt.Y == 256 && evt.Id == NpcId.HemogoblinShark),
+                        evt => evt.Player == sender && evt.Position == new Vector2f(1600, 4096) &&
+                            evt.Id == NpcId.HemogoblinShark),
                     log));
 
             Assert.NotNull(registeredHandler);
@@ -486,20 +487,20 @@ namespace Orion.Launcher.Npcs
         [Fact]
         public void PacketReceive_NpcFishPacket_EventCanceled()
         {
-            Action<PacketReceiveEvent<NpcFishPacket>>? registeredHandler = null;
+            Action<PacketReceiveEvent<NpcFish>>? registeredHandler = null;
 
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             Mock.Get(events)
-                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<NpcFishPacket>>>(), log))
-                .Callback<Action<PacketReceiveEvent<NpcFishPacket>>, ILogger>(
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<NpcFish>>>(), log))
+                .Callback<Action<PacketReceiveEvent<NpcFish>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
             using var npcService = new OrionNpcService(events, log);
 
-            var packet = new NpcFishPacket { X = 100, Y = 256, Id = NpcId.HemogoblinShark };
+            var packet = new NpcFish { X = 100, Y = 256, Id = NpcId.HemogoblinShark };
             var sender = Mock.Of<IPlayer>();
-            var evt = new PacketReceiveEvent<NpcFishPacket>(ref packet, sender);
+            var evt = new PacketReceiveEvent<NpcFish>(packet, sender);
 
             Mock.Get(events)
                 .Setup(em => em.Raise(It.IsAny<NpcFishEvent>(), log))

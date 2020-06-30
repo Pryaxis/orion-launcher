@@ -27,11 +27,11 @@ using Orion.Core.Events;
 using Orion.Core.Events.Packets;
 using Orion.Core.Events.Players;
 using Orion.Core.Packets;
-using Orion.Core.Packets.Client;
-using Orion.Core.Packets.Modules;
+using Orion.Core.Packets.DataStructures.Modules;
 using Orion.Core.Packets.Players;
+using Orion.Core.Packets.Server;
 using Orion.Core.Players;
-using Orion.Launcher.Collections;
+using Orion.Launcher.Utils;
 using Serilog;
 
 namespace Orion.Launcher.Players
@@ -241,34 +241,44 @@ namespace Orion.Launcher.Players
         // Packet event publishers
         //
 
-        private void OnReceivePacket<TPacket>(int playerIndex, Span<byte> span) where TPacket : struct, IPacket
+        private void OnReceivePacket<TPacket>(int playerIndex, Span<byte> span) where TPacket : IPacket
         {
-            var packet = new TPacket();
+            TPacket packet = default;
+
             if (typeof(TPacket) == typeof(UnknownPacket))
             {
-                Unsafe.As<TPacket, UnknownPacket>(ref packet).Id = (PacketId)span[0];
+                packet = (TPacket)(object)new UnknownPacket(span.Length - 1, (PacketId)span[0]);
+            }
+            else if (packet is null)
+            {
+                packet = (TPacket)Activator.CreateInstance(typeof(TPacket))!;
             }
 
             // Read the packet using the `Server` context since we're receiving this packet.
-            var packetLength = packet.Read(span[1..], PacketContext.Server);
+            var packetLength = packet.ReadBody(span[1..], PacketContext.Server);
             Debug.Assert(packetLength == span.Length - 1);
 
-            this[playerIndex].ReceivePacket(ref packet);
+            this[playerIndex].ReceivePacket(packet);
         }
 
-        private void OnSendPacket<TPacket>(int playerIndex, Span<byte> span) where TPacket : struct, IPacket
+        private void OnSendPacket<TPacket>(int playerIndex, Span<byte> span) where TPacket : IPacket
         {
-            var packet = new TPacket();
+            TPacket packet = default;
+
             if (typeof(TPacket) == typeof(UnknownPacket))
             {
-                Unsafe.As<TPacket, UnknownPacket>(ref packet).Id = (PacketId)span[0];
+                packet = (TPacket)(object)new UnknownPacket(span.Length - 1, (PacketId)span[0]);
+            }
+            else if (packet is null)
+            {
+                packet = (TPacket)Activator.CreateInstance(typeof(TPacket))!;
             }
 
             // Read the packet using the `Client` context since we're sending this packet.
-            var packetLength = packet.Read(span[1..], PacketContext.Client);
+            var packetLength = packet.ReadBody(span[1..], PacketContext.Client);
             Debug.Assert(packetLength == span.Length - 1);
 
-            this[playerIndex].SendPacket(ref packet);
+            this[playerIndex].SendPacket(packet);
         }
 
         // =============================================================================================================
@@ -277,70 +287,70 @@ namespace Orion.Launcher.Players
 
         [EventHandler("orion-players", Priority = EventPriority.Lowest)]
         [SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Implicitly used")]
-        private void OnPlayerJoinPacket(PacketReceiveEvent<PlayerJoinPacket> evt)
+        private void OnPlayerJoin(PacketReceiveEvent<PlayerJoin> evt)
         {
             _events.Forward(evt, new PlayerJoinEvent(evt.Sender), _log);
         }
 
         [EventHandler("orion-players", Priority = EventPriority.Lowest)]
         [SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Implicitly used")]
-        private void OnPlayerHealthPacket(PacketReceiveEvent<PlayerHealthPacket> evt)
+        private void OnPlayerHealth(PacketReceiveEvent<PlayerHealth> evt)
         {
-            ref var packet = ref evt.Packet;
+            var packet = evt.Packet;
 
             _events.Forward(evt, new PlayerHealthEvent(evt.Sender, packet.Health, packet.MaxHealth), _log);
         }
 
         [EventHandler("orion-players", Priority = EventPriority.Lowest)]
         [SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Implicitly used")]
-        private void OnPlayerPvpPacket(PacketReceiveEvent<PlayerPvpPacket> evt)
+        private void OnPlayerPvp(PacketReceiveEvent<PlayerPvp> evt)
         {
-            ref var packet = ref evt.Packet;
+            var packet = evt.Packet;
 
             _events.Forward(evt, new PlayerPvpEvent(evt.Sender, packet.IsInPvp), _log);
         }
 
         [EventHandler("orion-players", Priority = EventPriority.Lowest)]
         [SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Implicitly used")]
-        private void OnClientPasswordPacket(PacketReceiveEvent<ClientPasswordPacket> evt)
+        private void OnPasswordResponse(PacketReceiveEvent<PasswordResponse> evt)
         {
-            ref var packet = ref evt.Packet;
+            var packet = evt.Packet;
 
             _events.Forward(evt, new PlayerPasswordEvent(evt.Sender, packet.Password), _log);
         }
 
         [EventHandler("orion-players", Priority = EventPriority.Lowest)]
         [SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Implicitly used")]
-        private void OnPlayerManaPacket(PacketReceiveEvent<PlayerManaPacket> evt)
+        private void OnPlayerMana(PacketReceiveEvent<PlayerMana> evt)
         {
-            ref var packet = ref evt.Packet;
+            var packet = evt.Packet;
 
             _events.Forward(evt, new PlayerManaEvent(evt.Sender, packet.Mana, packet.MaxMana), _log);
         }
 
         [EventHandler("orion-players", Priority = EventPriority.Lowest)]
         [SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Implicitly used")]
-        private void OnPlayerTeamPacket(PacketReceiveEvent<PlayerTeamPacket> evt)
+        private void OnPlayerTeam(PacketReceiveEvent<PlayerTeam> evt)
         {
-            ref var packet = ref evt.Packet;
+            var packet = evt.Packet;
 
             _events.Forward(evt, new PlayerTeamEvent(evt.Sender, packet.Team), _log);
         }
 
         [EventHandler("orion-players", Priority = EventPriority.Lowest)]
         [SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Implicitly used")]
-        private void OnClientUuidPacket(PacketReceiveEvent<ClientUuidPacket> evt)
+        private void OnClientUuid(PacketReceiveEvent<ClientUuid> evt)
         {
-            ref var packet = ref evt.Packet;
+            var packet = evt.Packet;
 
             _events.Forward(evt, new PlayerUuidEvent(evt.Sender, packet.Uuid), _log);
         }
 
         [EventHandler("orion-players", Priority = EventPriority.Lowest)]
         [SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Implicitly used")]
-        private void OnChatModule(PacketReceiveEvent<ModulePacket<ChatModule>> evt)
+        private void OnChat(PacketReceiveEvent<ModulePacket<Chat>> evt)
         {
-            ref var module = ref evt.Packet.Module;
+            var module = evt.Packet.Module;
 
             _events.Forward(evt, new PlayerChatEvent(evt.Sender, module.ClientCommand, module.ClientMessage), _log);
         }

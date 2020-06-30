@@ -18,10 +18,10 @@
 using System;
 using System.Linq;
 using Moq;
-using Orion.Core.DataStructures;
 using Orion.Core.Events;
 using Orion.Core.Events.Projectiles;
 using Orion.Core.Projectiles;
+using Orion.Core.Utils;
 using Serilog;
 using Xunit;
 

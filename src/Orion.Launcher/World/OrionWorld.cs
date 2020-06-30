@@ -150,19 +150,19 @@ namespace Orion.Launcher.World
 
         [EventHandler("orion-world", Priority = EventPriority.Lowest)]
         [SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Implicitly used")]
-        private void OnTileModifyPacket(PacketReceiveEvent<TileModifyPacket> evt)
+        private void OnTileModify(PacketReceiveEvent<TileModify> evt)
         {
-            ref var packet = ref evt.Packet;
+            var packet = evt.Packet;
 
             var newEvt = packet.Modification switch
             {
-                TileModification.BreakBlock => RaiseBlockBreak(ref packet, false),
-                TileModification.PlaceBlock => RaiseBlockPlace(ref packet, false),
-                TileModification.BreakWall => RaiseWallBreak(ref packet),
-                TileModification.PlaceWall => RaiseWallPlace(ref packet, false),
-                TileModification.BreakBlockItemless => RaiseBlockBreak(ref packet, true),
-                TileModification.ReplaceBlock => RaiseBlockPlace(ref packet, true),
-                TileModification.ReplaceWall => RaiseWallPlace(ref packet, true),
+                TileModify.TileModification.BreakBlock => RaiseBlockBreak(packet, false),
+                TileModify.TileModification.PlaceBlock => RaiseBlockPlace(packet, false),
+                TileModify.TileModification.BreakWall => RaiseWallBreak(packet),
+                TileModify.TileModification.PlaceWall => RaiseWallPlace(packet, false),
+                TileModify.TileModification.BreakBlockItemless => RaiseBlockBreak(packet, true),
+                TileModify.TileModification.ReplaceBlock => RaiseBlockPlace(packet, true),
+                TileModify.TileModification.ReplaceWall => RaiseWallPlace(packet, true),
 
                 _ => null
             };
@@ -177,34 +177,34 @@ namespace Orion.Launcher.World
                 return newEvt;
             }
 
-            Event? RaiseBlockBreak(ref TileModifyPacket packet, bool isItemless) =>
+            Event? RaiseBlockBreak(TileModify packet, bool isItemless) =>
                 packet.IsFailure ? null : Raise(new BlockBreakEvent(this, evt.Sender, packet.X, packet.Y, isItemless));
 
-            Event RaiseBlockPlace(ref TileModifyPacket packet, bool isReplacement) =>
+            Event RaiseBlockPlace(TileModify packet, bool isReplacement) =>
                 Raise(new BlockPlaceEvent(
                     this, evt.Sender, packet.X, packet.Y, packet.BlockId, packet.BlockStyle, isReplacement));
 
-            Event? RaiseWallBreak(ref TileModifyPacket packet) =>
+            Event? RaiseWallBreak(TileModify packet) =>
                 packet.IsFailure ? null : Raise(new WallBreakEvent(this, evt.Sender, packet.X, packet.Y));
 
-            Event RaiseWallPlace(ref TileModifyPacket packet, bool isReplacement) =>
+            Event RaiseWallPlace(TileModify packet, bool isReplacement) =>
                 Raise(new WallPlaceEvent(this, evt.Sender, packet.X, packet.Y, packet.WallId, isReplacement));
         }
 
         [EventHandler("orion-world", Priority = EventPriority.Lowest)]
         [SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Implicitly used")]
-        private void OnTileSquarePacket(PacketReceiveEvent<TileSquarePacket> evt)
+        private void OnTileSquare(PacketReceiveEvent<TileSquare> evt)
         {
-            ref var packet = ref evt.Packet;
+            var packet = evt.Packet;
 
             _events.Forward(evt, new TileSquareEvent(this, evt.Sender, packet.X, packet.Y, packet.Tiles), _log);
         }
 
         [EventHandler("orion-world", Priority = EventPriority.Lowest)]
         [SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Implicitly used")]
-        private void OnTileLiquidPacket(PacketReceiveEvent<TileLiquidPacket> evt)
+        private void OnTileLiquid(PacketReceiveEvent<TileLiquid> evt)
         {
-            ref var packet = ref evt.Packet;
+            var packet = evt.Packet;
 
             _events.Forward(
                 evt, new TileLiquidEvent(this, evt.Sender, packet.X, packet.Y, packet.LiquidAmount, packet.Liquid),
@@ -213,39 +213,29 @@ namespace Orion.Launcher.World
 
         [EventHandler("orion-world", Priority = EventPriority.Lowest)]
         [SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Implicitly used")]
-        private void OnWireActivatePacket(PacketReceiveEvent<WireActivatePacket> evt)
+        private void OnWireActivate(PacketReceiveEvent<WireActivate> evt)
         {
-            ref var packet = ref evt.Packet;
+            var packet = evt.Packet;
 
             _events.Forward(evt, new WiringActivateEvent(this, evt.Sender, packet.X, packet.Y), _log);
         }
 
         [EventHandler("orion-world", Priority = EventPriority.Lowest)]
         [SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Implicitly used")]
-        private void OnBlockPaintPacket(PacketReceiveEvent<BlockPaintPacket> evt)
+        private void OnBlockPaint(PacketReceiveEvent<BlockPaint> evt)
         {
-            ref var packet = ref evt.Packet;
+            var packet = evt.Packet;
 
             _events.Forward(evt, new BlockPaintEvent(this, evt.Sender, packet.X, packet.Y, packet.Color), _log);
         }
 
         [EventHandler("orion-world", Priority = EventPriority.Lowest)]
         [SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Implicitly used")]
-        private void OnWallPaintPacket(PacketReceiveEvent<WallPaintPacket> evt)
+        private void OnWallPaint(PacketReceiveEvent<WallPaint> evt)
         {
-            ref var packet = ref evt.Packet;
+            var packet = evt.Packet;
 
             _events.Forward(evt, new WallPaintEvent(this, evt.Sender, packet.X, packet.Y, packet.Color), _log);
-        }
-
-        // Forwards `evt` as `newEvt`.
-        private void ForwardEvent<TEvent>(Event evt, TEvent newEvt) where TEvent : Event
-        {
-            _events.Raise(newEvt, _log);
-            if (newEvt.IsCanceled)
-            {
-                evt.Cancel(newEvt.CancellationReason);
-            }
         }
     }
 }

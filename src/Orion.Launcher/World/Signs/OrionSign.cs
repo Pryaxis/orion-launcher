@@ -22,7 +22,7 @@ using Destructurama.Attributed;
 using Orion.Core.Entities;
 using Orion.Core.World.Signs;
 using Orion.Core.World.TileEntities;
-using Orion.Launcher.Collections;
+using Orion.Launcher.Utils;
 
 namespace Orion.Launcher.World.Signs
 {

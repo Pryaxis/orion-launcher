@@ -22,12 +22,12 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Contracts;
 using Destructurama.Attributed;
-using Orion.Core.Collections;
 using Orion.Core.Entities;
 using Orion.Core.Items;
+using Orion.Core.Utils;
 using Orion.Core.World.Chests;
 using Orion.Core.World.TileEntities;
-using Orion.Launcher.Collections;
+using Orion.Launcher.Utils;
 
 namespace Orion.Launcher.World.Chests
 {
@@ -105,7 +105,7 @@ namespace Orion.Launcher.World.Chests
                     // This operation requires a lock since the `ItemStack` construction wouldn't be atomic otherwise.
                     lock (_lock)
                     {
-                        return new ItemStack((ItemId)item.type, item.stack, (ItemPrefix)item.prefix);
+                        return new ItemStack((ItemId)item.type, (ItemPrefix)item.prefix, (short)item.stack);
                     }
                 }
 

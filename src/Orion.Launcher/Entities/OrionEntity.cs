@@ -18,9 +18,9 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Contracts;
-using Orion.Core.DataStructures;
 using Orion.Core.Entities;
-using Orion.Launcher.Collections;
+using Orion.Core.Utils;
+using Orion.Launcher.Utils;
 
 namespace Orion.Launcher.Entities
 {

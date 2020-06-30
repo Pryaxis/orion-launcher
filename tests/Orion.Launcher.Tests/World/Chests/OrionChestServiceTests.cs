@@ -100,20 +100,20 @@ namespace Orion.Launcher.World.Chests
         {
             Terraria.Main.chest[0] = new Terraria.Chest { x = 256, y = 100, name = "test" };
 
-            Action<PacketReceiveEvent<ChestOpenPacket>>? registeredHandler = null;
+            Action<PacketReceiveEvent<ChestOpen>>? registeredHandler = null;
 
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             Mock.Get(events)
-                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<ChestOpenPacket>>>(), log))
-                .Callback<Action<PacketReceiveEvent<ChestOpenPacket>>, ILogger>(
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<ChestOpen>>>(), log))
+                .Callback<Action<PacketReceiveEvent<ChestOpen>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
             using var chestService = new OrionChestService(events, log);
 
-            var packet = new ChestOpenPacket { X = 256, Y = 100 };
+            var packet = new ChestOpen { X = 256, Y = 100 };
             var sender = Mock.Of<IPlayer>();
-            var evt = new PacketReceiveEvent<ChestOpenPacket>(ref packet, sender);
+            var evt = new PacketReceiveEvent<ChestOpen>(packet, sender);
 
             Mock.Get(events)
                 .Setup(em => em.Raise(
@@ -130,20 +130,20 @@ namespace Orion.Launcher.World.Chests
         {
             Terraria.Main.chest[0] = new Terraria.Chest { x = 256, y = 100, name = "test" };
 
-            Action<PacketReceiveEvent<ChestOpenPacket>>? registeredHandler = null;
+            Action<PacketReceiveEvent<ChestOpen>>? registeredHandler = null;
 
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             Mock.Get(events)
-                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<ChestOpenPacket>>>(), log))
-                .Callback<Action<PacketReceiveEvent<ChestOpenPacket>>, ILogger>(
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<ChestOpen>>>(), log))
+                .Callback<Action<PacketReceiveEvent<ChestOpen>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
             using var chestService = new OrionChestService(events, log);
 
-            var packet = new ChestOpenPacket { X = 256, Y = 100 };
+            var packet = new ChestOpen { X = 256, Y = 100 };
             var sender = Mock.Of<IPlayer>();
-            var evt = new PacketReceiveEvent<ChestOpenPacket>(ref packet, sender);
+            var evt = new PacketReceiveEvent<ChestOpen>(packet, sender);
 
             Mock.Get(events)
                 .Setup(em => em.Raise(It.IsAny<ChestOpenEvent>(), log))
@@ -160,25 +160,25 @@ namespace Orion.Launcher.World.Chests
         [Fact]
         public void PacketReceive_ChestOpen_EventNotTriggered()
         {
-            for (var i = 0; i < Terraria.Sign.maxSigns; ++i)
+            for (var i = 0; i < Terraria.Main.maxChests; ++i)
             {
-                Terraria.Main.sign[i] = new Terraria.Sign();
+                Terraria.Main.chest[i] = new Terraria.Chest();
             }
 
-            Action<PacketReceiveEvent<ChestOpenPacket>>? registeredHandler = null;
+            Action<PacketReceiveEvent<ChestOpen>>? registeredHandler = null;
 
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             Mock.Get(events)
-                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<ChestOpenPacket>>>(), log))
-                .Callback<Action<PacketReceiveEvent<ChestOpenPacket>>, ILogger>(
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<ChestOpen>>>(), log))
+                .Callback<Action<PacketReceiveEvent<ChestOpen>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
             using var chestService = new OrionChestService(events, log);
 
-            var packet = new ChestOpenPacket { X = 256, Y = 100 };
+            var packet = new ChestOpen { X = 256, Y = 100 };
             var sender = Mock.Of<IPlayer>();
-            var evt = new PacketReceiveEvent<ChestOpenPacket>(ref packet, sender);
+            var evt = new PacketReceiveEvent<ChestOpen>(packet, sender);
 
             Assert.NotNull(registeredHandler);
             registeredHandler!(evt);
@@ -192,18 +192,18 @@ namespace Orion.Launcher.World.Chests
         {
             Terraria.Main.chest[5] = new Terraria.Chest();
 
-            Action<PacketReceiveEvent<ChestInventoryPacket>>? registeredHandler = null;
+            Action<PacketReceiveEvent<ChestInventory>>? registeredHandler = null;
 
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             Mock.Get(events)
-                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<ChestInventoryPacket>>>(), log))
-                .Callback<Action<PacketReceiveEvent<ChestInventoryPacket>>, ILogger>(
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<ChestInventory>>>(), log))
+                .Callback<Action<PacketReceiveEvent<ChestInventory>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
             using var chestService = new OrionChestService(events, log);
 
-            var packet = new ChestInventoryPacket
+            var packet = new ChestInventory
             {
                 ChestIndex = 5,
                 Id = ItemId.Sdmg,
@@ -211,13 +211,13 @@ namespace Orion.Launcher.World.Chests
                 Prefix = ItemPrefix.Unreal
             };
             var sender = Mock.Of<IPlayer>();
-            var evt = new PacketReceiveEvent<ChestInventoryPacket>(ref packet, sender);
+            var evt = new PacketReceiveEvent<ChestInventory>(packet, sender);
 
             Mock.Get(events)
                 .Setup(em => em.Raise(
                     It.Is<ChestInventoryEvent>(
                         evt => evt.Player == sender && evt.Chest == chestService[5] &&
-                            evt.ItemStack == new ItemStack(ItemId.Sdmg, 1, ItemPrefix.Unreal)),
+                            evt.Item == new ItemStack(ItemId.Sdmg, ItemPrefix.Unreal, 1)),
                     log));
 
             Assert.NotNull(registeredHandler);
@@ -229,18 +229,18 @@ namespace Orion.Launcher.World.Chests
         [Fact]
         public void PacketReceive_ChestInventory_EventCanceled()
         {
-            Action<PacketReceiveEvent<ChestInventoryPacket>>? registeredHandler = null;
+            Action<PacketReceiveEvent<ChestInventory>>? registeredHandler = null;
 
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             Mock.Get(events)
-                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<ChestInventoryPacket>>>(), log))
-                .Callback<Action<PacketReceiveEvent<ChestInventoryPacket>>, ILogger>(
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<ChestInventory>>>(), log))
+                .Callback<Action<PacketReceiveEvent<ChestInventory>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
             using var chestService = new OrionChestService(events, log);
 
-            var packet = new ChestInventoryPacket
+            var packet = new ChestInventory
             {
                 ChestIndex = 5,
                 Id = ItemId.Sdmg,
@@ -248,7 +248,7 @@ namespace Orion.Launcher.World.Chests
                 Prefix = ItemPrefix.Unreal
             };
             var sender = Mock.Of<IPlayer>();
-            var evt = new PacketReceiveEvent<ChestInventoryPacket>(ref packet, sender);
+            var evt = new PacketReceiveEvent<ChestInventory>(packet, sender);
 
             Mock.Get(events)
                 .Setup(em => em.Raise(It.IsAny<ChestInventoryEvent>(), log))

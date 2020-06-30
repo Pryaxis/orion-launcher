@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Orion.  If not, see <https://www.gnu.org/licenses/>.
 
-namespace Orion.Launcher.Collections
+namespace Orion.Launcher.Utils
 {
     // Marks a class as wrapping `TWrapped`. Used to support `WrappedReadOnlyList`.
     internal interface IWrapping<out TWrapped>

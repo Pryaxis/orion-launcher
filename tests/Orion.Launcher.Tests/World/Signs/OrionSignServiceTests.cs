@@ -99,20 +99,20 @@ namespace Orion.Launcher.World.Signs
         {
             Terraria.Main.sign[0] = new Terraria.Sign { x = 256, y = 100, text = "test" };
 
-            Action<PacketReceiveEvent<SignReadPacket>>? registeredHandler = null;
+            Action<PacketReceiveEvent<SignRead>>? registeredHandler = null;
 
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             Mock.Get(events)
-                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<SignReadPacket>>>(), log))
-                .Callback<Action<PacketReceiveEvent<SignReadPacket>>, ILogger>(
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<SignRead>>>(), log))
+                .Callback<Action<PacketReceiveEvent<SignRead>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
             using var signService = new OrionSignService(events, log);
 
-            var packet = new SignReadPacket { X = 256, Y = 100 };
+            var packet = new SignRead { X = 256, Y = 100 };
             var sender = Mock.Of<IPlayer>();
-            var evt = new PacketReceiveEvent<SignReadPacket>(ref packet, sender);
+            var evt = new PacketReceiveEvent<SignRead>(packet, sender);
 
             Mock.Get(events)
                 .Setup(em => em.Raise(
@@ -129,20 +129,20 @@ namespace Orion.Launcher.World.Signs
         {
             Terraria.Main.sign[0] = new Terraria.Sign { x = 256, y = 100, text = "test" };
 
-            Action<PacketReceiveEvent<SignReadPacket>>? registeredHandler = null;
+            Action<PacketReceiveEvent<SignRead>>? registeredHandler = null;
 
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             Mock.Get(events)
-                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<SignReadPacket>>>(), log))
-                .Callback<Action<PacketReceiveEvent<SignReadPacket>>, ILogger>(
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<SignRead>>>(), log))
+                .Callback<Action<PacketReceiveEvent<SignRead>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
             using var signService = new OrionSignService(events, log);
 
-            var packet = new SignReadPacket { X = 256, Y = 100 };
+            var packet = new SignRead { X = 256, Y = 100 };
             var sender = Mock.Of<IPlayer>();
-            var evt = new PacketReceiveEvent<SignReadPacket>(ref packet, sender);
+            var evt = new PacketReceiveEvent<SignRead>(packet, sender);
 
             Mock.Get(events)
                 .Setup(em => em.Raise(It.IsAny<SignReadEvent>(), log))
@@ -164,20 +164,20 @@ namespace Orion.Launcher.World.Signs
                 Terraria.Main.sign[i] = new Terraria.Sign();
             }
 
-            Action<PacketReceiveEvent<SignReadPacket>>? registeredHandler = null;
+            Action<PacketReceiveEvent<SignRead>>? registeredHandler = null;
 
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             Mock.Get(events)
-                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<SignReadPacket>>>(), log))
-                .Callback<Action<PacketReceiveEvent<SignReadPacket>>, ILogger>(
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<SignRead>>>(), log))
+                .Callback<Action<PacketReceiveEvent<SignRead>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
             using var signService = new OrionSignService(events, log);
 
-            var packet = new SignReadPacket { X = 256, Y = 100 };
+            var packet = new SignRead { X = 256, Y = 100 };
             var sender = Mock.Of<IPlayer>();
-            var evt = new PacketReceiveEvent<SignReadPacket>(ref packet, sender);
+            var evt = new PacketReceiveEvent<SignRead>(packet, sender);
 
             Assert.NotNull(registeredHandler);
             registeredHandler!(evt);

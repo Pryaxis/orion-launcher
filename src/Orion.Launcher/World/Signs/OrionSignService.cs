@@ -27,7 +27,7 @@ using Orion.Core.Events.Packets;
 using Orion.Core.Events.World.Signs;
 using Orion.Core.Packets.World.Signs;
 using Orion.Core.World.Signs;
-using Orion.Launcher.Collections;
+using Orion.Launcher.Utils;
 using Serilog;
 
 namespace Orion.Launcher.World.Signs
@@ -75,9 +75,9 @@ namespace Orion.Launcher.World.Signs
 
         [EventHandler("orion-signs", Priority = EventPriority.Lowest)]
         [SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Implicitly used")]
-        private void OnSignReadPacket(PacketReceiveEvent<SignReadPacket> evt)
+        private void OnSignRead(PacketReceiveEvent<SignRead> evt)
         {
-            ref var packet = ref evt.Packet;
+            var packet = evt.Packet;
             var sign = FindSign(packet.X, packet.Y);
             if (sign is null)
             {

@@ -24,12 +24,12 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text;
 using Destructurama.Attributed;
-using Orion.Core.Buffs;
-using Orion.Core.Collections;
+using Orion.Core.Entities;
 using Orion.Core.Events;
 using Orion.Core.Events.Packets;
 using Orion.Core.Packets;
 using Orion.Core.Players;
+using Orion.Core.Utils;
 using Orion.Launcher.Entities;
 using Serilog;
 
@@ -50,6 +50,7 @@ namespace Orion.Launcher.Players
             _events = events;
             _log = log;
 
+            Character = new OrionCharacter(terrariaPlayer);
             Buffs = new BuffArray(terrariaPlayer);
         }
 
@@ -61,6 +62,8 @@ namespace Orion.Launcher.Players
             get => Wrapped.name;
             set => Wrapped.name = value ?? throw new ArgumentNullException(nameof(value));
         }
+
+        public ICharacter Character { get; }
 
         public int Health
         {
@@ -88,32 +91,33 @@ namespace Orion.Launcher.Players
 
         public IArray<Buff> Buffs { get; }
 
-        public CharacterDifficulty Difficulty
-        {
-            get => (CharacterDifficulty)Wrapped.difficulty;
-            set => Wrapped.difficulty = (byte)value;
-        }
-
         public bool IsInPvp
         {
             get => Wrapped.hostile;
             set => Wrapped.hostile = value;
         }
 
-        public PlayerTeam Team
+        public Team Team
         {
-            get => (PlayerTeam)Wrapped.team;
+            get => (Team)Wrapped.team;
             set => Wrapped.team = (int)value;
         }
 
-        public void ReceivePacket<TPacket>(ref TPacket packet) where TPacket : struct, IPacket
+        public void ReceivePacket<TPacket>(TPacket packet) where TPacket : IPacket
         {
-            var evt = new PacketReceiveEvent<TPacket>(ref packet, this);
+            if (packet is null)
+            {
+                throw new ArgumentNullException(nameof(packet));
+            }
+
+            var evt = new PacketReceiveEvent<TPacket>(packet, this);
             _events.Raise(evt, _log);
             if (evt.IsCanceled)
             {
                 return;
             }
+
+            packet = evt.Packet;
 
             var buffer = Terraria.NetMessage.buffer[Index];
 
@@ -128,7 +132,7 @@ namespace Orion.Launcher.Players
             try
             {
                 // Write the packet using the `Client` context since we're receiving this packet.
-                var packetLength = packet.WriteWithHeader(receiveBuffer, PacketContext.Client);
+                var packetLength = packet.Write(receiveBuffer, PacketContext.Client);
 
                 // Ignore the next `GetData` call so that there isn't an infinite loop.
                 OrionPlayerService._ignoreGetData = true;
@@ -146,20 +150,27 @@ namespace Orion.Launcher.Players
             }
         }
 
-        public void SendPacket<TPacket>(ref TPacket packet) where TPacket : struct, IPacket
+        public void SendPacket<TPacket>(TPacket packet) where TPacket : IPacket
         {
+            if (packet is null)
+            {
+                throw new ArgumentNullException(nameof(packet));
+            }
+
             var terrariaClient = Terraria.Netplay.Clients[Index];
             if (!terrariaClient.IsConnected())
             {
                 return;
             }
 
-            var evt = new PacketSendEvent<TPacket>(ref packet, this);
+            var evt = new PacketSendEvent<TPacket>(packet, this);
             _events.Raise(evt, _log);
             if (evt.IsCanceled)
             {
                 return;
             }
+
+            packet = evt.Packet;
 
             var pool = ArrayPool<byte>.Shared;
             var sendBuffer = pool.Rent(65536);
@@ -168,7 +179,7 @@ namespace Orion.Launcher.Players
             try
             {
                 // Write the packet using the `Server` context since we're sending this packet.
-                var packetLength = packet.WriteWithHeader(sendBuffer, PacketContext.Server);
+                var packetLength = packet.Write(sendBuffer, PacketContext.Server);
                 terrariaClient.Socket.AsyncSend(sendBuffer, 0, packetLength, state =>
                 {
                     ArrayPool<byte>.Shared.Return((byte[])state);
@@ -190,6 +201,24 @@ namespace Orion.Launcher.Players
             }
         }
 
+        private sealed class OrionCharacter : ICharacter
+        {
+            private readonly Terraria.Player _wrapped;
+
+            public OrionCharacter(Terraria.Player terrariaPlayer)
+            {
+                Debug.Assert(terrariaPlayer != null);
+
+                _wrapped = terrariaPlayer;
+            }
+
+            public CharacterDifficulty Difficulty
+            {
+                get => (CharacterDifficulty)_wrapped.difficulty;
+                set => _wrapped.difficulty = (byte)value;
+            }
+        }
+
         private class BuffArray : IArray<Buff>
         {
             private readonly Terraria.Player _wrapped;
@@ -207,7 +236,6 @@ namespace Orion.Launcher.Players
                 {
                     if (index < 0 || index >= Count)
                     {
-                        // Not localized because this string is developer-facing.
                         throw new IndexOutOfRangeException($"Index out of range (expected: 0 to {Count - 1})");
                     }
 
@@ -225,7 +253,6 @@ namespace Orion.Launcher.Players
                 {
                     if (index < 0 || index >= Count)
                     {
-                        // Not localized because this string is developer-facing.
                         throw new IndexOutOfRangeException($"Index out of range (expected: 0 to {Count - 1})");
                     }
 

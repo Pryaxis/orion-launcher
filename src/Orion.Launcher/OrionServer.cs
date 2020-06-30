@@ -260,7 +260,7 @@ namespace Orion.Launcher
 
         private void PreUpdateHandler(ref Microsoft.Xna.Framework.GameTime gameTime)
         {
-            var evt = new ServerTickEvent();
+            var evt = ServerTickEvent.Instance;
             Events.Raise(evt, _log);
         }
 

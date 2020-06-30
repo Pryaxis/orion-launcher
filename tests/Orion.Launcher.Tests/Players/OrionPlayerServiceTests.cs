@@ -19,15 +19,15 @@ using System;
 using System.IO;
 using System.Linq;
 using Moq;
-using Orion.Core.DataStructures;
 using Orion.Core.Events;
 using Orion.Core.Events.Packets;
 using Orion.Core.Events.Players;
 using Orion.Core.Packets;
-using Orion.Core.Packets.Client;
-using Orion.Core.Packets.Modules;
+using Orion.Core.Packets.DataStructures.Modules;
 using Orion.Core.Packets.Players;
+using Orion.Core.Packets.Server;
 using Orion.Core.Players;
+using Orion.Core.Utils;
 using Serilog;
 using Xunit;
 
@@ -42,8 +42,8 @@ namespace Orion.Launcher.Players
         static OrionPlayerServiceTests()
         {
             var bytes = new byte[100];
-            var packet = new ClientConnectPacket { Version = "Terraria" + Terraria.Main.curRelease };
-            var packetLength = packet.WriteWithHeader(bytes, PacketContext.Client);
+            var packet = new ClientConnect { Version = "Terraria" + Terraria.Main.curRelease };
+            var packetLength = packet.Write(bytes, PacketContext.Client);
 
             _serverConnectPacketBytes = bytes[..packetLength];
         }
@@ -181,10 +181,10 @@ namespace Orion.Launcher.Players
             var log = Mock.Of<ILogger>();
             Mock.Get(events)
                 .Setup(em => em.Raise(
-                    It.Is<PacketReceiveEvent<ClientConnectPacket>>(
+                    It.Is<PacketReceiveEvent<ClientConnect>>(
                         evt => ((OrionPlayer)evt.Sender).Wrapped == Terraria.Main.player[5]),
                     log))
-                .Callback<PacketReceiveEvent<ClientConnectPacket>, ILogger>((evt, log) =>
+                .Callback<PacketReceiveEvent<ClientConnect>, ILogger>((evt, log) =>
                 {
                     Assert.Equal("Terraria" + Terraria.Main.curRelease, evt.Packet.Version);
                 });
@@ -208,9 +208,9 @@ namespace Orion.Launcher.Players
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             Mock.Get(events)
-                .Setup(em => em.Raise(It.IsAny<PacketReceiveEvent<ClientConnectPacket>>(), log))
-                .Callback<PacketReceiveEvent<ClientConnectPacket>, ILogger>(
-                    (evt, log) => evt.Packet.Version = "Terraria1");
+                .Setup(em => em.Raise(It.IsAny<PacketReceiveEvent<ClientConnect>>(), log))
+                .Callback<PacketReceiveEvent<ClientConnect>, ILogger>(
+                    (evt, log) => evt.Packet = new ClientConnect { Version = "Terraria1" });
 
             using var playerService = new OrionPlayerService(events, log);
 
@@ -231,8 +231,8 @@ namespace Orion.Launcher.Players
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             Mock.Get(events)
-                .Setup(em => em.Raise(It.IsAny<PacketReceiveEvent<ClientConnectPacket>>(), log))
-                .Callback<PacketReceiveEvent<ClientConnectPacket>, ILogger>((evt, log) => evt.Cancel());
+                .Setup(em => em.Raise(It.IsAny<PacketReceiveEvent<ClientConnect>>(), log))
+                .Callback<PacketReceiveEvent<ClientConnect>, ILogger>((evt, log) => evt.Cancel());
 
             using var playerService = new OrionPlayerService(events, log);
 
@@ -256,7 +256,7 @@ namespace Orion.Launcher.Players
                 .Callback<PacketReceiveEvent<UnknownPacket>, ILogger>((evt, log) =>
                 {
                     Assert.Equal((PacketId)255, evt.Packet.Id);
-                    Assert.Equal(0, evt.Packet.Length);
+                    Assert.Equal(0, evt.Packet.Data.Length);
                 });
 
             using var playerService = new OrionPlayerService(events, log);
@@ -279,7 +279,7 @@ namespace Orion.Launcher.Players
                 .Callback<PacketReceiveEvent<ModulePacket<UnknownModule>>, ILogger>((evt, log) =>
                 {
                     Assert.Equal((ModuleId)65535, evt.Packet.Module.Id);
-                    Assert.Equal(0, evt.Packet.Module.Length);
+                    Assert.Equal(0, evt.Packet.Module.Data.Length);
                 });
 
             using var playerService = new OrionPlayerService(events, log);
@@ -292,20 +292,20 @@ namespace Orion.Launcher.Players
         [Fact]
         public void PacketReceive_PlayerJoinPacket_EventTriggered()
         {
-            Action<PacketReceiveEvent<PlayerJoinPacket>>? registeredHandler = null;
+            Action<PacketReceiveEvent<PlayerJoin>>? registeredHandler = null;
 
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             Mock.Get(events)
-                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<PlayerJoinPacket>>>(), log))
-                .Callback<Action<PacketReceiveEvent<PlayerJoinPacket>>, ILogger>(
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<PlayerJoin>>>(), log))
+                .Callback<Action<PacketReceiveEvent<PlayerJoin>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
             using var playerService = new OrionPlayerService(events, log);
 
-            var packet = new PlayerJoinPacket();
+            var packet = new PlayerJoin();
             var sender = Mock.Of<IPlayer>();
-            var evt = new PacketReceiveEvent<PlayerJoinPacket>(ref packet, sender);
+            var evt = new PacketReceiveEvent<PlayerJoin>(packet, sender);
 
             Mock.Get(events)
                 .Setup(em => em.Raise(It.Is<PlayerJoinEvent>(evt => evt.Player == sender), log));
@@ -319,20 +319,20 @@ namespace Orion.Launcher.Players
         [Fact]
         public void PacketReceive_PlayerJoinPacket_EventCanceled()
         {
-            Action<PacketReceiveEvent<PlayerJoinPacket>>? registeredHandler = null;
+            Action<PacketReceiveEvent<PlayerJoin>>? registeredHandler = null;
 
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             Mock.Get(events)
-                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<PlayerJoinPacket>>>(), log))
-                .Callback<Action<PacketReceiveEvent<PlayerJoinPacket>>, ILogger>(
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<PlayerJoin>>>(), log))
+                .Callback<Action<PacketReceiveEvent<PlayerJoin>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
             using var playerService = new OrionPlayerService(events, log);
 
-            var packet = new PlayerJoinPacket();
+            var packet = new PlayerJoin();
             var sender = Mock.Of<IPlayer>();
-            var evt = new PacketReceiveEvent<PlayerJoinPacket>(ref packet, sender);
+            var evt = new PacketReceiveEvent<PlayerJoin>(packet, sender);
 
             Mock.Get(events)
                 .Setup(em => em.Raise(It.IsAny<PlayerJoinEvent>(), log))
@@ -349,20 +349,20 @@ namespace Orion.Launcher.Players
         [Fact]
         public void PacketReceive_PlayerHealthPacket_EventTriggered()
         {
-            Action<PacketReceiveEvent<PlayerHealthPacket>>? registeredHandler = null;
+            Action<PacketReceiveEvent<PlayerHealth>>? registeredHandler = null;
 
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             Mock.Get(events)
-                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<PlayerHealthPacket>>>(), log))
-                .Callback<Action<PacketReceiveEvent<PlayerHealthPacket>>, ILogger>(
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<PlayerHealth>>>(), log))
+                .Callback<Action<PacketReceiveEvent<PlayerHealth>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
             using var playerService = new OrionPlayerService(events, log);
 
-            var packet = new PlayerHealthPacket { Health = 100, MaxHealth = 500 };
+            var packet = new PlayerHealth { Health = 100, MaxHealth = 500 };
             var sender = Mock.Of<IPlayer>();
-            var evt = new PacketReceiveEvent<PlayerHealthPacket>(ref packet, sender);
+            var evt = new PacketReceiveEvent<PlayerHealth>(packet, sender);
 
             Mock.Get(events)
                 .Setup(em => em.Raise(
@@ -379,20 +379,20 @@ namespace Orion.Launcher.Players
         [Fact]
         public void PacketReceive_PlayerHealthPacket_EventCanceled()
         {
-            Action<PacketReceiveEvent<PlayerHealthPacket>>? registeredHandler = null;
+            Action<PacketReceiveEvent<PlayerHealth>>? registeredHandler = null;
 
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             Mock.Get(events)
-                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<PlayerHealthPacket>>>(), log))
-                .Callback<Action<PacketReceiveEvent<PlayerHealthPacket>>, ILogger>(
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<PlayerHealth>>>(), log))
+                .Callback<Action<PacketReceiveEvent<PlayerHealth>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
             using var playerService = new OrionPlayerService(events, log);
 
-            var packet = new PlayerHealthPacket { Health = 100, MaxHealth = 500 };
+            var packet = new PlayerHealth { Health = 100, MaxHealth = 500 };
             var sender = Mock.Of<IPlayer>();
-            var evt = new PacketReceiveEvent<PlayerHealthPacket>(ref packet, sender);
+            var evt = new PacketReceiveEvent<PlayerHealth>(packet, sender);
 
             Mock.Get(events)
                 .Setup(em => em.Raise(It.IsAny<PlayerHealthEvent>(), log))
@@ -409,20 +409,20 @@ namespace Orion.Launcher.Players
         [Fact]
         public void PacketReceive_PlayerPvpPacket_EventTriggered()
         {
-            Action<PacketReceiveEvent<PlayerPvpPacket>>? registeredHandler = null;
+            Action<PacketReceiveEvent<PlayerPvp>>? registeredHandler = null;
 
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             Mock.Get(events)
-                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<PlayerPvpPacket>>>(), log))
-                .Callback<Action<PacketReceiveEvent<PlayerPvpPacket>>, ILogger>(
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<PlayerPvp>>>(), log))
+                .Callback<Action<PacketReceiveEvent<PlayerPvp>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
             using var playerService = new OrionPlayerService(events, log);
 
-            var packet = new PlayerPvpPacket { IsInPvp = true };
+            var packet = new PlayerPvp { IsInPvp = true };
             var sender = Mock.Of<IPlayer>();
-            var evt = new PacketReceiveEvent<PlayerPvpPacket>(ref packet, sender);
+            var evt = new PacketReceiveEvent<PlayerPvp>(packet, sender);
 
             Mock.Get(events)
                 .Setup(em => em.Raise(It.Is<PlayerPvpEvent>(evt => evt.Player == sender && evt.IsInPvp), log));
@@ -436,20 +436,20 @@ namespace Orion.Launcher.Players
         [Fact]
         public void PacketReceive_PlayerPvpPacket_EventCanceled()
         {
-            Action<PacketReceiveEvent<PlayerPvpPacket>>? registeredHandler = null;
+            Action<PacketReceiveEvent<PlayerPvp>>? registeredHandler = null;
 
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             Mock.Get(events)
-                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<PlayerPvpPacket>>>(), log))
-                .Callback<Action<PacketReceiveEvent<PlayerPvpPacket>>, ILogger>(
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<PlayerPvp>>>(), log))
+                .Callback<Action<PacketReceiveEvent<PlayerPvp>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
             using var playerService = new OrionPlayerService(events, log);
 
-            var packet = new PlayerPvpPacket { IsInPvp = true };
+            var packet = new PlayerPvp { IsInPvp = true };
             var sender = Mock.Of<IPlayer>();
-            var evt = new PacketReceiveEvent<PlayerPvpPacket>(ref packet, sender);
+            var evt = new PacketReceiveEvent<PlayerPvp>(packet, sender);
 
             Mock.Get(events)
                 .Setup(em => em.Raise(It.IsAny<PlayerPvpEvent>(), log))
@@ -462,22 +462,22 @@ namespace Orion.Launcher.Players
         }
 
         [Fact]
-        public void PacketReceive_ClientPasswordPacket_EventTriggered()
+        public void PacketReceive_PasswordResponsePacket_EventTriggered()
         {
-            Action<PacketReceiveEvent<ClientPasswordPacket>>? registeredHandler = null;
+            Action<PacketReceiveEvent<PasswordResponse>>? registeredHandler = null;
 
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             Mock.Get(events)
-                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<ClientPasswordPacket>>>(), log))
-                .Callback<Action<PacketReceiveEvent<ClientPasswordPacket>>, ILogger>(
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<PasswordResponse>>>(), log))
+                .Callback<Action<PacketReceiveEvent<PasswordResponse>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
             using var playerService = new OrionPlayerService(events, log);
 
-            var packet = new ClientPasswordPacket { Password = "Terraria" };
+            var packet = new PasswordResponse { Password = "Terraria" };
             var sender = Mock.Of<IPlayer>();
-            var evt = new PacketReceiveEvent<ClientPasswordPacket>(ref packet, sender);
+            var evt = new PacketReceiveEvent<PasswordResponse>(packet, sender);
 
             Mock.Get(events)
                 .Setup(em => em.Raise(
@@ -492,20 +492,20 @@ namespace Orion.Launcher.Players
         [Fact]
         public void PacketReceive_ClientPasswordPacket_EventCanceled()
         {
-            Action<PacketReceiveEvent<ClientPasswordPacket>>? registeredHandler = null;
+            Action<PacketReceiveEvent<PasswordResponse>>? registeredHandler = null;
 
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             Mock.Get(events)
-                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<ClientPasswordPacket>>>(), log))
-                .Callback<Action<PacketReceiveEvent<ClientPasswordPacket>>, ILogger>(
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<PasswordResponse>>>(), log))
+                .Callback<Action<PacketReceiveEvent<PasswordResponse>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
             using var playerService = new OrionPlayerService(events, log);
 
-            var packet = new ClientPasswordPacket { Password = "Terraria" };
+            var packet = new PasswordResponse { Password = "Terraria" };
             var sender = Mock.Of<IPlayer>();
-            var evt = new PacketReceiveEvent<ClientPasswordPacket>(ref packet, sender);
+            var evt = new PacketReceiveEvent<PasswordResponse>(packet, sender);
 
             Mock.Get(events)
                 .Setup(em => em.Raise(It.IsAny<PlayerPasswordEvent>(), log))
@@ -520,20 +520,20 @@ namespace Orion.Launcher.Players
         [Fact]
         public void PacketReceive_PlayerManaPacket_EventTriggered()
         {
-            Action<PacketReceiveEvent<PlayerManaPacket>>? registeredHandler = null;
+            Action<PacketReceiveEvent<PlayerMana>>? registeredHandler = null;
 
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             Mock.Get(events)
-                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<PlayerManaPacket>>>(), log))
-                .Callback<Action<PacketReceiveEvent<PlayerManaPacket>>, ILogger>(
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<PlayerMana>>>(), log))
+                .Callback<Action<PacketReceiveEvent<PlayerMana>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
             using var playerService = new OrionPlayerService(events, log);
 
-            var packet = new PlayerManaPacket { Mana = 100, MaxMana = 200 };
+            var packet = new PlayerMana { Mana = 100, MaxMana = 200 };
             var sender = Mock.Of<IPlayer>();
-            var evt = new PacketReceiveEvent<PlayerManaPacket>(ref packet, sender);
+            var evt = new PacketReceiveEvent<PlayerMana>(packet, sender);
 
             Mock.Get(events)
                 .Setup(em => em.Raise(
@@ -548,20 +548,20 @@ namespace Orion.Launcher.Players
         [Fact]
         public void PacketReceive_PlayerManaPacket_EventCanceled()
         {
-            Action<PacketReceiveEvent<PlayerManaPacket>>? registeredHandler = null;
+            Action<PacketReceiveEvent<PlayerMana>>? registeredHandler = null;
 
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             Mock.Get(events)
-                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<PlayerManaPacket>>>(), log))
-                .Callback<Action<PacketReceiveEvent<PlayerManaPacket>>, ILogger>(
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<PlayerMana>>>(), log))
+                .Callback<Action<PacketReceiveEvent<PlayerMana>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
             using var playerService = new OrionPlayerService(events, log);
 
-            var packet = new PlayerManaPacket { Mana = 100, MaxMana = 200 };
+            var packet = new PlayerMana { Mana = 100, MaxMana = 200 };
             var sender = Mock.Of<IPlayer>();
-            var evt = new PacketReceiveEvent<PlayerManaPacket>(ref packet, sender);
+            var evt = new PacketReceiveEvent<PlayerMana>(packet, sender);
 
             Mock.Get(events)
                 .Setup(em => em.Raise(It.IsAny<PlayerManaEvent>(), log))
@@ -578,24 +578,24 @@ namespace Orion.Launcher.Players
         [Fact]
         public void PacketReceive_PlayerTeamPacket_EventTriggered()
         {
-            Action<PacketReceiveEvent<PlayerTeamPacket>>? registeredHandler = null;
+            Action<PacketReceiveEvent<PlayerTeam>>? registeredHandler = null;
 
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             Mock.Get(events)
-                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<PlayerTeamPacket>>>(), log))
-                .Callback<Action<PacketReceiveEvent<PlayerTeamPacket>>, ILogger>(
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<PlayerTeam>>>(), log))
+                .Callback<Action<PacketReceiveEvent<PlayerTeam>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
             using var playerService = new OrionPlayerService(events, log);
 
-            var packet = new PlayerTeamPacket { Team = PlayerTeam.Red };
+            var packet = new PlayerTeam { Team = Team.Red };
             var sender = Mock.Of<IPlayer>();
-            var evt = new PacketReceiveEvent<PlayerTeamPacket>(ref packet, sender);
+            var evt = new PacketReceiveEvent<PlayerTeam>(packet, sender);
 
             Mock.Get(events)
                 .Setup(em => em.Raise(
-                    It.Is<PlayerTeamEvent>(evt => evt.Player == sender && evt.Team == PlayerTeam.Red), log));
+                    It.Is<PlayerTeamEvent>(evt => evt.Player == sender && evt.Team == Team.Red), log));
 
             Assert.NotNull(registeredHandler);
             registeredHandler!(evt);
@@ -606,20 +606,20 @@ namespace Orion.Launcher.Players
         [Fact]
         public void PacketReceive_PlayerTeamPacket_EventCanceled()
         {
-            Action<PacketReceiveEvent<PlayerTeamPacket>>? registeredHandler = null;
+            Action<PacketReceiveEvent<PlayerTeam>>? registeredHandler = null;
 
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             Mock.Get(events)
-                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<PlayerTeamPacket>>>(), log))
-                .Callback<Action<PacketReceiveEvent<PlayerTeamPacket>>, ILogger>(
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<PlayerTeam>>>(), log))
+                .Callback<Action<PacketReceiveEvent<PlayerTeam>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
             using var playerService = new OrionPlayerService(events, log);
 
-            var packet = new PlayerTeamPacket { Team = PlayerTeam.Red };
+            var packet = new PlayerTeam { Team = Team.Red };
             var sender = Mock.Of<IPlayer>();
-            var evt = new PacketReceiveEvent<PlayerTeamPacket>(ref packet, sender);
+            var evt = new PacketReceiveEvent<PlayerTeam>(packet, sender);
 
             Mock.Get(events)
                 .Setup(em => em.Raise(It.IsAny<PlayerTeamEvent>(), log))
@@ -636,20 +636,20 @@ namespace Orion.Launcher.Players
         [Fact]
         public void PacketReceive_ClientUuidPacket_EventTriggered()
         {
-            Action<PacketReceiveEvent<ClientUuidPacket>>? registeredHandler = null;
+            Action<PacketReceiveEvent<ClientUuid>>? registeredHandler = null;
 
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             Mock.Get(events)
-                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<ClientUuidPacket>>>(), log))
-                .Callback<Action<PacketReceiveEvent<ClientUuidPacket>>, ILogger>(
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<ClientUuid>>>(), log))
+                .Callback<Action<PacketReceiveEvent<ClientUuid>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
             using var playerService = new OrionPlayerService(events, log);
 
-            var packet = new ClientUuidPacket { Uuid = "Terraria" };
+            var packet = new ClientUuid { Uuid = "Terraria" };
             var sender = Mock.Of<IPlayer>();
-            var evt = new PacketReceiveEvent<ClientUuidPacket>(ref packet, sender);
+            var evt = new PacketReceiveEvent<ClientUuid>(packet, sender);
 
             Mock.Get(events)
                 .Setup(em => em.Raise(
@@ -664,20 +664,20 @@ namespace Orion.Launcher.Players
         [Fact]
         public void PacketReceive_ClientUuidPacket_EventCanceled()
         {
-            Action<PacketReceiveEvent<ClientUuidPacket>>? registeredHandler = null;
+            Action<PacketReceiveEvent<ClientUuid>>? registeredHandler = null;
 
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             Mock.Get(events)
-                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<ClientUuidPacket>>>(), log))
-                .Callback<Action<PacketReceiveEvent<ClientUuidPacket>>, ILogger>(
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<ClientUuid>>>(), log))
+                .Callback<Action<PacketReceiveEvent<ClientUuid>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
             using var playerService = new OrionPlayerService(events, log);
 
-            var packet = new ClientUuidPacket { Uuid = "Terraria" };
+            var packet = new ClientUuid { Uuid = "Terraria" };
             var sender = Mock.Of<IPlayer>();
-            var evt = new PacketReceiveEvent<ClientUuidPacket>(ref packet, sender);
+            var evt = new PacketReceiveEvent<ClientUuid>(packet, sender);
 
             Mock.Get(events)
                 .Setup(em => em.Raise(It.IsAny<PlayerUuidEvent>(), log))
@@ -694,23 +694,23 @@ namespace Orion.Launcher.Players
         [Fact]
         public void PacketReceive_ChatModulePacket_EventTriggered()
         {
-            Action<PacketReceiveEvent<ModulePacket<ChatModule>>>? registeredHandler = null;
+            Action<PacketReceiveEvent<ModulePacket<Chat>>>? registeredHandler = null;
 
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             Mock.Get(events)
-                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<ModulePacket<ChatModule>>>>(), log))
-                .Callback<Action<PacketReceiveEvent<ModulePacket<ChatModule>>>, ILogger>(
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<ModulePacket<Chat>>>>(), log))
+                .Callback<Action<PacketReceiveEvent<ModulePacket<Chat>>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
             using var playerService = new OrionPlayerService(events, log);
 
-            var packet = new ModulePacket<ChatModule>
+            var packet = new ModulePacket<Chat>
             {
-                Module = new ChatModule { ClientCommand = "Say", ClientMessage = "/command test" }
+                Module = new Chat { ClientCommand = "Say", ClientMessage = "/command test" }
             };
             var sender = Mock.Of<IPlayer>();
-            var evt = new PacketReceiveEvent<ModulePacket<ChatModule>>(ref packet, sender);
+            var evt = new PacketReceiveEvent<ModulePacket<Chat>>(packet, sender);
 
             Mock.Get(events)
                 .Setup(em => em.Raise(
@@ -727,23 +727,23 @@ namespace Orion.Launcher.Players
         [Fact]
         public void PacketReceive_ChatModulePacket_EventCanceled()
         {
-            Action<PacketReceiveEvent<ModulePacket<ChatModule>>>? registeredHandler = null;
+            Action<PacketReceiveEvent<ModulePacket<Chat>>>? registeredHandler = null;
 
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             Mock.Get(events)
-                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<ModulePacket<ChatModule>>>>(), log))
-                .Callback<Action<PacketReceiveEvent<ModulePacket<ChatModule>>>, ILogger>(
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<ModulePacket<Chat>>>>(), log))
+                .Callback<Action<PacketReceiveEvent<ModulePacket<Chat>>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
             using var playerService = new OrionPlayerService(events, log);
 
-            var packet = new ModulePacket<ChatModule>
+            var packet = new ModulePacket<Chat>
             {
-                Module = new ChatModule { ClientCommand = "Say", ClientMessage = "/command test" }
+                Module = new Chat { ClientCommand = "Say", ClientMessage = "/command test" }
             };
             var sender = Mock.Of<IPlayer>();
-            var evt = new PacketReceiveEvent<ModulePacket<ChatModule>>(ref packet, sender);
+            var evt = new PacketReceiveEvent<ModulePacket<Chat>>(packet, sender);
 
             Mock.Get(events)
                 .Setup(em => em.Raise(It.IsAny<PlayerChatEvent>(), log))
@@ -780,10 +780,10 @@ namespace Orion.Launcher.Players
 
             Mock.Get(events)
                 .Setup(em => em.Raise(
-                    It.Is<PacketSendEvent<ClientConnectPacket>>(
+                    It.Is<PacketSendEvent<ClientConnect>>(
                         evt => ((OrionPlayer)evt.Receiver).Wrapped == Terraria.Main.player[5]),
                     log))
-                .Callback<PacketSendEvent<ClientConnectPacket>, ILogger>((evt, log) =>
+                .Callback<PacketSendEvent<ClientConnect>, ILogger>((evt, log) =>
                 {
                     Assert.Equal("Terraria" + Terraria.Main.curRelease, evt.Packet.Version);
                 });
@@ -826,7 +826,7 @@ namespace Orion.Launcher.Players
                 .Callback<PacketSendEvent<UnknownPacket>, ILogger>((evt, log) =>
                 {
                     Assert.Equal((PacketId)25, evt.Packet.Id);
-                    Assert.Equal(0, evt.Packet.Length);
+                    Assert.Equal(0, evt.Packet.Data.Length);
                 });
 
             Terraria.NetMessage.SendData(25, 5);
@@ -860,8 +860,8 @@ namespace Orion.Launcher.Players
             using var playerService = new OrionPlayerService(events, log);
 
             Mock.Get(events)
-                .Setup(em => em.Raise(It.IsAny<PacketSendEvent<ClientConnectPacket>>(), log))
-                .Callback<PacketSendEvent<ClientConnectPacket>, ILogger>((evt, log) => evt.Packet.Version = "");
+                .Setup(em => em.Raise(It.IsAny<PacketSendEvent<ClientConnect>>(), log))
+                .Callback<PacketSendEvent<ClientConnect>, ILogger>((evt, log) => evt.Packet = new ClientConnect());
 
             Terraria.NetMessage.SendData((byte)PacketId.ClientConnect, 5);
 
@@ -886,8 +886,8 @@ namespace Orion.Launcher.Players
             using var playerService = new OrionPlayerService(events, log);
 
             Mock.Get(events)
-                .Setup(em => em.Raise(It.IsAny<PacketSendEvent<ClientConnectPacket>>(), log))
-                .Callback<PacketSendEvent<ClientConnectPacket>, ILogger>((evt, log) => evt.Cancel());
+                .Setup(em => em.Raise(It.IsAny<PacketSendEvent<ClientConnect>>(), log))
+                .Callback<PacketSendEvent<ClientConnect>, ILogger>((evt, log) => evt.Cancel());
 
             Terraria.NetMessage.SendData((byte)PacketId.ClientConnect, 5);
 
@@ -920,7 +920,7 @@ namespace Orion.Launcher.Players
             using var playerService = new OrionPlayerService(events, log);
 
             Mock.Get(events)
-                .Setup(em => em.Raise(It.IsAny<PacketSendEvent<ClientConnectPacket>>(), log));
+                .Setup(em => em.Raise(It.IsAny<PacketSendEvent<ClientConnect>>(), log));
 
             Terraria.NetMessage.SendData((byte)PacketId.ClientConnect, 5);
 
@@ -951,10 +951,10 @@ namespace Orion.Launcher.Players
 
             Mock.Get(events)
                 .Setup(em => em.Raise(
-                    It.Is<PacketSendEvent<ModulePacket<ChatModule>>>(
+                    It.Is<PacketSendEvent<ModulePacket<Chat>>>(
                         evt => ((OrionPlayer)evt.Receiver).Wrapped == Terraria.Main.player[5]),
                     log))
-                .Callback<PacketSendEvent<ModulePacket<ChatModule>>, ILogger>((evt, log) =>
+                .Callback<PacketSendEvent<ModulePacket<Chat>>, ILogger>((evt, log) =>
                 {
                     Assert.Equal(1, evt.Packet.Module.ServerAuthorIndex);
                     Assert.Equal("test", evt.Packet.Module.ServerMessage);
@@ -1003,7 +1003,7 @@ namespace Orion.Launcher.Players
                 .Callback<PacketSendEvent<ModulePacket<UnknownModule>>, ILogger>((evt, log) =>
                 {
                     Assert.Equal((ModuleId)65535, evt.Packet.Module.Id);
-                    Assert.Equal(4, evt.Packet.Module.Length);
+                    Assert.Equal(4, evt.Packet.Module.Data.Length);
                 });
 
             var packet = new Terraria.Net.NetPacket(65535, 10);
@@ -1039,8 +1039,8 @@ namespace Orion.Launcher.Players
             using var playerService = new OrionPlayerService(events, log);
 
             Mock.Get(events)
-                .Setup(em => em.Raise(It.IsAny<PacketSendEvent<ModulePacket<ChatModule>>>(), log))
-                .Callback<PacketSendEvent<ModulePacket<ChatModule>>, ILogger>(
+                .Setup(em => em.Raise(It.IsAny<PacketSendEvent<ModulePacket<Chat>>>(), log))
+                .Callback<PacketSendEvent<ModulePacket<Chat>>, ILogger>(
                     (evt, log) => evt.Packet.Module.ServerColor = Color3.Black);
 
             var packet = new Terraria.Net.NetPacket(1, 16);
@@ -1070,8 +1070,8 @@ namespace Orion.Launcher.Players
             using var playerService = new OrionPlayerService(events, log);
 
             Mock.Get(events)
-                .Setup(em => em.Raise(It.IsAny<PacketSendEvent<ModulePacket<ChatModule>>>(), log))
-                .Callback<PacketSendEvent<ModulePacket<ChatModule>>, ILogger>((evt, log) => evt.Cancel());
+                .Setup(em => em.Raise(It.IsAny<PacketSendEvent<ModulePacket<Chat>>>(), log))
+                .Callback<PacketSendEvent<ModulePacket<Chat>>, ILogger>((evt, log) => evt.Cancel());
 
             var packet = new Terraria.Net.NetPacket(1, 16);
             packet.Writer.Write((byte)1);
@@ -1108,7 +1108,7 @@ namespace Orion.Launcher.Players
             using var playerService = new OrionPlayerService(events, log);
 
             Mock.Get(events)
-                .Setup(em => em.Raise(It.IsAny<PacketSendEvent<ModulePacket<ChatModule>>>(), log));
+                .Setup(em => em.Raise(It.IsAny<PacketSendEvent<ModulePacket<Chat>>>(), log));
 
             var packet = new Terraria.Net.NetPacket(1, 16);
             packet.Writer.Write((byte)1);

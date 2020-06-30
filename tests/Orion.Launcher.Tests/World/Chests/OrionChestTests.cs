@@ -88,7 +88,7 @@ namespace Orion.Launcher.World.Chests
 
             var chest = new OrionChest(terrariaChest);
 
-            Assert.Equal(new ItemStack(ItemId.Sdmg, 1, ItemPrefix.Unreal), chest.Items[0]);
+            Assert.Equal(new ItemStack(ItemId.Sdmg, ItemPrefix.Unreal, 1), chest.Items[0]);
         }
 
         [Fact]
@@ -118,7 +118,7 @@ namespace Orion.Launcher.World.Chests
             terrariaChest.item[0] = new Terraria.Item();
             var chest = new OrionChest(terrariaChest);
 
-            chest.Items[0] = new ItemStack(ItemId.Sdmg, 1, ItemPrefix.Unreal);
+            chest.Items[0] = new ItemStack(ItemId.Sdmg, ItemPrefix.Unreal, 1);
 
             Assert.Equal(ItemId.Sdmg, (ItemId)terrariaChest.item[0].type);
             Assert.Equal(1, terrariaChest.item[0].stack);
@@ -131,7 +131,7 @@ namespace Orion.Launcher.World.Chests
             var terrariaChest = new Terraria.Chest();
             var chest = new OrionChest(terrariaChest);
 
-            chest.Items[0] = new ItemStack(ItemId.Sdmg, 1, ItemPrefix.Unreal);
+            chest.Items[0] = new ItemStack(ItemId.Sdmg, ItemPrefix.Unreal, 1);
 
             Assert.Equal(ItemId.Sdmg, (ItemId)terrariaChest.item[0].type);
             Assert.Equal(1, terrariaChest.item[0].stack);

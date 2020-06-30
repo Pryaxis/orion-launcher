@@ -21,11 +21,11 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Orion.Core;
-using Orion.Core.DataStructures;
 using Orion.Core.Events;
 using Orion.Core.Events.Items;
 using Orion.Core.Items;
-using Orion.Launcher.Collections;
+using Orion.Core.Utils;
+using Orion.Launcher.Utils;
 using Serilog;
 
 namespace Orion.Launcher.Items
