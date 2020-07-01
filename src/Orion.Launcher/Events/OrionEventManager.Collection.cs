@@ -45,10 +45,8 @@ namespace Orion.Launcher.Events
 
             public Collection()
             {
-                var type = typeof(TEvent);
-
-                var attribute = type.GetCustomAttribute<EventAttribute>();
-                _eventName = attribute?.Name ?? type.Name;
+                var attribute = typeof(TEvent).GetCustomAttribute<EventAttribute>();
+                _eventName = attribute?.Name ?? typeof(TEvent).Name;
                 _eventLoggingLevel = attribute?.LoggingLevel ?? LogEventLevel.Debug;
             }
 
@@ -61,8 +59,7 @@ namespace Orion.Launcher.Events
                 _registrations.Add(registration);
                 _handlerToRegistration[handler] = registration;
 
-                // Not localized because this string is developer-facing.
-                log.Debug("Registering {EventName} with {@Registration}", _eventName, registration);
+                log.Debug("Registering {@Registration} to {EventName}", _eventName, registration);
             }
 
             public void RegisterAsyncHandler(Func<TEvent, Task> handler, ILogger log)
@@ -74,8 +71,7 @@ namespace Orion.Launcher.Events
                 _asyncRegistrations.Add(registration);
                 _handlerToAsyncRegistration[handler] = registration;
 
-                // Not localized because this string is developer-facing.
-                log.Debug("Registering {EventName} with {@AsyncRegistration}", _eventName, registration);
+                log.Debug("Registering {@AsyncRegistration} to {EventName}", _eventName, registration);
             }
 
             public void DeregisterHandler(Action<TEvent> handler, ILogger log)
@@ -88,8 +84,7 @@ namespace Orion.Launcher.Events
                     _registrations.Remove(registration);
                     _handlerToRegistration.Remove(handler);
 
-                    // Not localized because this string is developer-facing.
-                    log.Debug("Deregistering {EventName} with {@Registration}", _eventName, registration);
+                    log.Debug("Deregistering {@Registration} from {EventName}", _eventName, registration);
                 }
             }
 
@@ -103,8 +98,7 @@ namespace Orion.Launcher.Events
                     _asyncRegistrations.Remove(registration);
                     _handlerToAsyncRegistration.Remove(handler);
 
-                    // Not localized because this string is developer-facing.
-                    log.Debug("Deregistering {EventName} with {@Registration}", _eventName, registration);
+                    log.Debug("Deregistering {@AsyncRegistration} from {EventName}", _eventName, registration);
                 }
             }
 
@@ -113,17 +107,15 @@ namespace Orion.Launcher.Events
                 Debug.Assert(evt != null);
                 Debug.Assert(log != null);
 
-                // Not localized because this string is developer-facing.
-                log.Write(_eventLoggingLevel, "Raising {EventName} with {@Event}", _eventName, evt);
+                log.Write(_eventLoggingLevel, "Raising {@Event} on {EventName}", _eventName, evt);
 
                 RaiseHandlers();
                 RaiseAsyncHandlers();
 
                 if (evt.IsCanceled)
                 {
-                    // Not localized because this string is developer-facing.
                     log.Write(
-                        _eventLoggingLevel, "Canceled {EventName} for {CancellationReason}", _eventName,
+                        _eventLoggingLevel, "Canceled {@Event} for {CancellationReason}", _eventName,
                         evt.CancellationReason);
                 }
 
@@ -142,22 +134,13 @@ namespace Orion.Launcher.Events
                         }
                         catch (Exception ex)
                         {
-                            // Not localized because this string is developer-facing.
-                            log.Error(
-                                ex, "Unhandled exception in {EventName} from {@Registration}", _eventName, registration);
+                            log.Error(ex, "Unhandled exception in {@Registration}", _eventName, registration);
                         }
                     }
                 }
 
                 void RaiseAsyncHandlers()
                 {
-                    // Short circuit if there are no asynchronous event handlers to skip `Task.WhenAll` and `Task.Wait`
-                    // calls.
-                    if (_asyncRegistrations.Count == 0)
-                    {
-                        return;
-                    }
-
                     foreach (var registration in _asyncRegistrations)
                     {
                         if (evt.IsCanceled && registration.IgnoreCanceled)
@@ -169,14 +152,10 @@ namespace Orion.Launcher.Events
                         var task = registration.Handler(evt).ContinueWith(t =>
                         {
                             var ex = t.Exception;
-                            if (ex is null)
+                            if (ex != null)
                             {
-                                return;
+                                log.Error(ex, "Unhandled exception in {@AsyncRegistration}", _eventName, registration);
                             }
-
-                            // Not localized because this string is developer-facing.
-                            log.Error(
-                                ex, "Unhandled exception in {EventName} from {@Registration}", _eventName, registration);
                         });
                     }
                 }

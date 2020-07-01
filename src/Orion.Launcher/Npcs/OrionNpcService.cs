@@ -215,7 +215,7 @@ namespace Orion.Launcher.Npcs
             var packet = evt.Packet;
             var buff = new Buff(packet.Id, packet.Ticks);
 
-            _events.Forward(evt, new NpcBuffEvent(this[packet.NpcIndex], evt.Sender, buff), _log);
+            _events.Forward(evt, new NpcAddBuffEvent(this[packet.NpcIndex], evt.Sender, buff), _log);
         }
 
         [EventHandler("orion-npcs", Priority = EventPriority.Lowest)]

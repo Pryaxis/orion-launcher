@@ -194,7 +194,7 @@ namespace Orion.Launcher.Events
         }
 
         [Event("test")]
-        private class TestEvent : Event
+        private sealed class TestEvent : Event
         {
             public int Value { get; set; }
         }

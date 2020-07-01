@@ -355,7 +355,7 @@ namespace Orion.Launcher.Npcs
 
             Mock.Get(events)
                 .Setup(em => em.Raise(
-                    It.Is<NpcBuffEvent>(
+                    It.Is<NpcAddBuffEvent>(
                         evt => evt.Npc == npcService[1] && evt.Player == sender &&
                             evt.Buff == new Buff(BuffId.Poisoned, 60)),
                     log));
@@ -385,8 +385,8 @@ namespace Orion.Launcher.Npcs
             var evt = new PacketReceiveEvent<NpcAddBuff>(packet, sender);
 
             Mock.Get(events)
-                .Setup(em => em.Raise(It.IsAny<NpcBuffEvent>(), log))
-                .Callback<NpcBuffEvent, ILogger>((evt, log) => evt.Cancel());
+                .Setup(em => em.Raise(It.IsAny<NpcAddBuffEvent>(), log))
+                .Callback<NpcAddBuffEvent, ILogger>((evt, log) => evt.Cancel());
 
             Assert.NotNull(registeredHandler);
             registeredHandler!(evt);

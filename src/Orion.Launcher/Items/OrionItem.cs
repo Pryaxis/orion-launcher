@@ -44,10 +44,16 @@ namespace Orion.Launcher.Items
             set => Wrapped.stack = value;
         }
 
-        public int Damage
+        public short Damage
         {
-            get => Wrapped.damage;
+            get => (short)Wrapped.damage;
             set => Wrapped.damage = value;
+        }
+
+        public short UseTime
+        {
+            get => (short)Wrapped.useTime;
+            set => Wrapped.useTime = value;
         }
 
         public void SetId(ItemId id)

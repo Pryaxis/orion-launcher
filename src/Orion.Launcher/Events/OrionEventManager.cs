@@ -27,9 +27,7 @@ namespace Orion.Launcher.Events
     [Binding("orion-events", Author = "Pryaxis", Priority = BindingPriority.Lowest)]
     internal sealed partial class OrionEventManager : IEventManager
     {
-        private readonly IDictionary<Type, object> _eventHandlerCollections = new Dictionary<Type, object>();
-
-        public OrionEventManager() { }
+        private readonly Dictionary<Type, object> _collections = new Dictionary<Type, object>();
 
         public void RegisterHandler<TEvent>(Action<TEvent> handler, ILogger log) where TEvent : Event
         {
@@ -114,10 +112,10 @@ namespace Orion.Launcher.Events
         private Collection<TEvent> GetCollection<TEvent>() where TEvent : Event
         {
             var type = typeof(TEvent);
-            if (!_eventHandlerCollections.TryGetValue(type, out var collection))
+            if (!_collections.TryGetValue(type, out var collection))
             {
                 collection = new Collection<TEvent>();
-                _eventHandlerCollections[type] = collection;
+                _collections[type] = collection;
             }
 
             return (Collection<TEvent>)collection;
