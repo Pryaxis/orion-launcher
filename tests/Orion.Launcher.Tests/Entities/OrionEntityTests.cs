@@ -36,25 +36,25 @@ namespace Orion.Launcher.Entities
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
-        public void IsActive_Get(bool isActive)
+        public void IsActive_Get(bool value)
         {
-            var terrariaEntity = new TestTerrariaEntity { active = isActive };
+            var terrariaEntity = new TestTerrariaEntity { active = value };
             var entity = new TestOrionEntity(terrariaEntity);
 
-            Assert.Equal(isActive, entity.IsActive);
+            Assert.Equal(value, entity.IsActive);
         }
 
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
-        public void IsActive_Set(bool isActive)
+        public void IsActive_Set(bool value)
         {
             var terrariaEntity = new TestTerrariaEntity();
             var entity = new TestOrionEntity(terrariaEntity);
 
-            entity.IsActive = isActive;
+            entity.IsActive = value;
 
-            Assert.Equal(isActive, terrariaEntity.active);
+            Assert.Equal(value, terrariaEntity.active);
         }
 
         [Fact]
@@ -121,12 +121,18 @@ namespace Orion.Launcher.Entities
         {
             public override string Name { get; set; } = "test";
 
-            public TestOrionEntity(TestTerrariaEntity terrariaEntity) : this(-1, terrariaEntity) { }
+            public TestOrionEntity(TestTerrariaEntity terrariaEntity) : this(-1, terrariaEntity)
+            {
+            }
 
             public TestOrionEntity(int entityIndex, TestTerrariaEntity terrariaEntity)
-                : base(entityIndex, terrariaEntity) { }
+                : base(entityIndex, terrariaEntity)
+            {
+            }
         }
 
-        private class TestTerrariaEntity : Terraria.Entity { }
+        private class TestTerrariaEntity : Terraria.Entity
+        {
+        }
     }
 }

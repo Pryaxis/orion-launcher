@@ -49,8 +49,7 @@ namespace Orion.Launcher.Items
 
             // Note that the last item should be ignored, as it is not a real item.
             _items = new WrappedReadOnlyList<OrionItem, Terraria.Item>(
-                Terraria.Main.item.AsMemory(..^1),
-                (itemIndex, terrariaItem) => new OrionItem(itemIndex, terrariaItem));
+                Terraria.Main.item.AsMemory(..^1), (itemIndex, terrariaItem) => new OrionItem(itemIndex, terrariaItem));
 
             OTAPI.Hooks.Item.PreSetDefaultsById = PreSetDefaultsByIdHandler;
             OTAPI.Hooks.Item.PreUpdate = PreUpdateHandler;
@@ -64,7 +63,6 @@ namespace Orion.Launcher.Items
 
         public IItem Spawn(ItemStack itemStack, Vector2f position)
         {
-            // Not localized because this string is developer-facing.
             Log.Debug("Spawning {ItemStack} at {Position}", itemStack);
 
             lock (_lock)
@@ -117,13 +115,13 @@ namespace Orion.Launcher.Items
             // `GetItem`.
             terrariaItem.whoAmI = itemIndex;
 
-            var evt = new ItemTickEvent(this[itemIndex]);
+            var item = this[itemIndex];
+            var evt = new ItemTickEvent(item);
             _events.Raise(evt, _log);
             return evt.IsCanceled ? OTAPI.HookResult.Cancel : OTAPI.HookResult.Continue;
         }
 
-        // Gets an `IItem` which corresponds to the given Terraria item. Retrieves the `IItem` from the `Items` array,
-        // if possible.
+        // Gets an `IItem` instance corresponding to the given Terraria item, avoiding extra allocations, if possible.
         private IItem GetItem(Terraria.Item terrariaItem)
         {
             var itemIndex = terrariaItem.whoAmI;

@@ -34,7 +34,7 @@ namespace Orion.Launcher.Items
         [Theory]
         [InlineData(-1)]
         [InlineData(10000)]
-        public void Item_GetInvalidIndex_ThrowsIndexOutOfRangeException(int index)
+        public void Item_GetIndexOutOfRange_ThrowsIndexOutOfRangeException(int index)
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -94,8 +94,7 @@ namespace Orion.Launcher.Items
             Mock.Get(events)
                 .Setup(em => em.Raise(
                     It.Is<ItemDefaultsEvent>(
-                        evt => ((OrionItem)evt.Item).Wrapped == Terraria.Main.item[0] &&
-                            evt.Id == ItemId.Sdmg),
+                        evt => ((OrionItem)evt.Item).Wrapped == Terraria.Main.item[0] && evt.Id == ItemId.Sdmg),
                     log));
 
             Terraria.Main.item[0].SetDefaults((int)ItemId.Sdmg);
@@ -106,7 +105,7 @@ namespace Orion.Launcher.Items
         }
 
         [Fact]
-        public void ItemDefaults_AbstractItemEventTriggered()
+        public void ItemDefaults_AbstractItem_EventTriggered()
         {
             var terrariaItem = new Terraria.Item();
 
@@ -117,8 +116,7 @@ namespace Orion.Launcher.Items
             Mock.Get(events)
                 .Setup(em => em.Raise(
                     It.Is<ItemDefaultsEvent>(
-                        evt => ((OrionItem)evt.Item).Wrapped == terrariaItem &&
-                            evt.Id == ItemId.Sdmg),
+                        evt => ((OrionItem)evt.Item).Wrapped == terrariaItem && evt.Id == ItemId.Sdmg),
                     log));
 
             terrariaItem.SetDefaults((int)ItemId.Sdmg);
@@ -176,9 +174,7 @@ namespace Orion.Launcher.Items
 
             Mock.Get(events)
                 .Setup(em => em.Raise(
-                    It.Is<ItemTickEvent>(
-                        evt => ((OrionItem)evt.Item).Wrapped == Terraria.Main.item[0]),
-                    log));
+                    It.Is<ItemTickEvent>(evt => ((OrionItem)evt.Item).Wrapped == Terraria.Main.item[0]), log));
 
             Terraria.Main.item[0].UpdateItem(0);
 

@@ -55,8 +55,7 @@ namespace Orion.Launcher.Npcs
 
             // Note that the last NPC should be ignored, as it is not a real NPC.
             _npcs = new WrappedReadOnlyList<OrionNpc, Terraria.NPC>(
-                Terraria.Main.npc.AsMemory(..^1),
-                (npcIndex, terrariaNpc) => new OrionNpc(npcIndex, terrariaNpc));
+                Terraria.Main.npc.AsMemory(..^1), (npcIndex, terrariaNpc) => new OrionNpc(npcIndex, terrariaNpc));
 
             OTAPI.Hooks.Npc.PreSetDefaultsById = PreSetDefaultsByIdHandler;
             OTAPI.Hooks.Npc.Spawn = SpawnHandler;
@@ -75,7 +74,6 @@ namespace Orion.Launcher.Npcs
 
         public INpc? Spawn(NpcId id, Vector2f position)
         {
-            // Not localized because this string is developer-facing.
             Log.Debug("Spawning {NpcId} at {Position}", id, position);
 
             lock (_lock)
@@ -155,7 +153,8 @@ namespace Orion.Launcher.Npcs
         {
             Debug.Assert(npcIndex >= 0 && npcIndex < Count);
 
-            var evt = new NpcTickEvent(this[npcIndex]);
+            var npc = this[npcIndex];
+            var evt = new NpcTickEvent(npc);
             _events.Raise(evt, _log);
             return evt.IsCanceled ? OTAPI.HookResult.Cancel : OTAPI.HookResult.Continue;
         }
@@ -193,8 +192,7 @@ namespace Orion.Launcher.Npcs
             return OTAPI.HookResult.Continue;
         }
 
-        // Gets an `INpc` which corresponds to the given Terraria NPC. Retrieves the `INpc` from the `Npcs` array, if
-        // possible.
+        // Gets an `INpc` instance corresponding to the given Terraria NPC, avoiding extra allocations, if possible.
         private INpc GetNpc(Terraria.NPC terrariaNpc)
         {
             var npcIndex = terrariaNpc.whoAmI;
@@ -208,7 +206,7 @@ namespace Orion.Launcher.Npcs
         // NPC event publishers
         //
 
-        [EventHandler("orion-npcs", Priority = EventPriority.Lowest)]
+        [EventHandler("orion-npcs", Priority = EventPriority.Low)]
         [SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Implicitly used")]
         private void OnNpcAddBuff(PacketReceiveEvent<NpcAddBuff> evt)
         {
@@ -218,7 +216,7 @@ namespace Orion.Launcher.Npcs
             _events.Forward(evt, new NpcAddBuffEvent(this[packet.NpcIndex], evt.Sender, buff), _log);
         }
 
-        [EventHandler("orion-npcs", Priority = EventPriority.Lowest)]
+        [EventHandler("orion-npcs", Priority = EventPriority.Low)]
         [SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Implicitly used")]
         private void OnNpcCatch(PacketReceiveEvent<NpcCatch> evt)
         {
@@ -227,7 +225,7 @@ namespace Orion.Launcher.Npcs
             _events.Forward(evt, new NpcCatchEvent(this[packet.NpcIndex], evt.Sender), _log);
         }
 
-        [EventHandler("orion-npcs", Priority = EventPriority.Lowest)]
+        [EventHandler("orion-npcs", Priority = EventPriority.Low)]
         [SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Implicitly used")]
         private void OnNpcFish(PacketReceiveEvent<NpcFish> evt)
         {
