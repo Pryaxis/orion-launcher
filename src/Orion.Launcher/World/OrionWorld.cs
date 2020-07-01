@@ -20,6 +20,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using Destructurama.Attributed;
 using Orion.Core;
 using Orion.Core.Events;
 using Orion.Core.Events.Packets;
@@ -33,6 +34,7 @@ using Serilog;
 namespace Orion.Launcher.World
 {
     [Binding("orion-world", Author = "Pryaxis", Priority = BindingPriority.Lowest)]
+    [LogAsScalar]
     internal sealed partial class OrionWorld : IWorld, IDisposable
     {
         private readonly IEventManager _events;

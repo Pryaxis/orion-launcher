@@ -180,9 +180,10 @@ namespace Orion.Launcher.Players
             {
                 // Write the packet using the `Server` context since we're sending this packet.
                 var packetLength = packet.Write(sendBuffer, PacketContext.Server);
+
                 terrariaClient.Socket.AsyncSend(sendBuffer, 0, packetLength, state =>
                 {
-                    ArrayPool<byte>.Shared.Return((byte[])state);
+                    pool.Return((byte[])state);
                     terrariaClient.ServerWriteCallBack(null!);
                 }, sendBuffer);
 

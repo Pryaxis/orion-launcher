@@ -255,8 +255,8 @@ namespace Orion.Launcher.Players
             }
 
             // Read the packet using the `Server` context since we're receiving this packet.
-            var packetLength = packet.ReadBody(span[1..], PacketContext.Server);
-            Debug.Assert(packetLength == span.Length - 1);
+            var packetBodyLength = packet.ReadBody(span[1..], PacketContext.Server);
+            Debug.Assert(packetBodyLength == span.Length - 1);
 
             this[playerIndex].ReceivePacket(packet);
         }
@@ -275,8 +275,8 @@ namespace Orion.Launcher.Players
             }
 
             // Read the packet using the `Client` context since we're sending this packet.
-            var packetLength = packet.ReadBody(span[1..], PacketContext.Client);
-            Debug.Assert(packetLength == span.Length - 1);
+            var packetBodyLength = packet.ReadBody(span[1..], PacketContext.Client);
+            Debug.Assert(packetBodyLength == span.Length - 1);
 
             this[playerIndex].SendPacket(packet);
         }
