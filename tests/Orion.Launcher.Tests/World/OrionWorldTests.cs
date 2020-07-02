@@ -2217,7 +2217,7 @@ namespace Orion.Launcher
                 .Setup(em => em.Raise(
                     It.Is<TileLiquidEvent>(
                         evt => evt.World == world && evt.Player == sender && evt.X == 100 &&
-                            evt.Y == 256 && evt.LiquidAmount == 255 && evt.Liquid == LiquidType.Honey),
+                            evt.Y == 256 && evt.Liquid == new Liquid(LiquidType.Honey, 255)),
                     log));
 
             Assert.NotNull(registeredHandler);

@@ -207,10 +207,9 @@ namespace Orion.Launcher.World
         private void OnTileLiquid(PacketReceiveEvent<TileLiquid> evt)
         {
             var packet = evt.Packet;
+            var liquid = new Liquid(packet.LiquidType, packet.LiquidAmount);
 
-            _events.Forward(
-                evt, new TileLiquidEvent(this, evt.Sender, packet.X, packet.Y, packet.LiquidAmount, packet.LiquidType),
-                _log);
+            _events.Forward(evt, new TileLiquidEvent(this, evt.Sender, packet.X, packet.Y, liquid), _log);
         }
 
         [EventHandler("orion-world", Priority = EventPriority.Lowest)]
