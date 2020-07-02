@@ -43,6 +43,7 @@ namespace Orion.Launcher.World
             }
 
             public int Width => Terraria.Main.maxTilesX;
+
             public int Height => Terraria.Main.maxTilesY;
         }
     }

@@ -31,6 +31,7 @@ namespace Orion.Launcher.World
         {
             private readonly Tile* _tile;
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public TileAdapter(ref Tile tile)
             {
                 _tile = (Tile*)Unsafe.AsPointer(ref tile);
@@ -38,49 +39,73 @@ namespace Orion.Launcher.World
 
             public ushort type
             {
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 get => (ushort)_tile->BlockId;
+
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 set => _tile->BlockId = (BlockId)value;
             }
 
             public ushort wall
             {
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 get => (ushort)_tile->WallId;
+
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 set => _tile->WallId = (WallId)value;
             }
 
             public byte liquid
             {
-                get => _tile->LiquidAmount;
-                set => _tile->LiquidAmount = value;
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                get => *((byte*)_tile + 4);
+
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                set => *((byte*)_tile + 4) = value;
             }
 
             public short frameX
             {
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 get => _tile->BlockFrameX;
+
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 set => _tile->BlockFrameX = value;
             }
 
             public short frameY
             {
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 get => _tile->BlockFrameY;
+
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 set => _tile->BlockFrameY = value;
             }
 
             public short sTileHeader
             {
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 get => Unsafe.ReadUnaligned<short>(((byte*)_tile) + 9);
+
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 set => Unsafe.WriteUnaligned(((byte*)_tile) + 9, value);
             }
 
             public byte bTileHeader
             {
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 get => *((byte*)_tile + 11);
+
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 set => *((byte*)_tile + 11) = value;
             }
 
             public byte bTileHeader3
             {
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 get => *((byte*)_tile + 12);
+
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 set => *((byte*)_tile + 12) = value;
             }
 
@@ -92,35 +117,88 @@ namespace Orion.Launcher.World
             {
                 [ExcludeFromCodeCoverage]
                 get => 0;
+
                 [ExcludeFromCodeCoverage]
                 set { }
             }
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public byte color() => (byte)_tile->BlockColor;
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void color(byte color) => _tile->BlockColor = (PaintColor)color;
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public bool active() => _tile->IsBlockActive;
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void active(bool active) => _tile->IsBlockActive = active;
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public bool inActive() => _tile->IsBlockActuated;
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void inActive(bool inActive) => _tile->IsBlockActuated = inActive;
-            public bool nactive() => (sTileHeader & 0x60) == 0x20;
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool nactive() => (sTileHeader & 0x0060) == 0x0020;
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public bool wire() => _tile->HasRedWire;
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void wire(bool wire) => _tile->HasRedWire = wire;
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public bool wire2() => _tile->HasBlueWire;
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void wire2(bool wire2) => _tile->HasBlueWire = wire2;
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public bool wire3() => _tile->HasGreenWire;
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void wire3(bool wire3) => _tile->HasGreenWire = wire3;
-            public bool halfBrick() => _tile->IsBlockHalved;
-            public void halfBrick(bool halfBrick) => _tile->IsBlockHalved = halfBrick;
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool halfBrick() => (sTileHeader & 0x0400) != 0;
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void halfBrick(bool halfBrick)
+            {
+                if (halfBrick)
+                {
+                    sTileHeader |= 0x0400;
+                }
+                else
+                {
+                    sTileHeader = (short)(sTileHeader & 0xFBFF);
+                }
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public bool actuator() => _tile->HasActuator;
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void actuator(bool actuator) => _tile->HasActuator = actuator;
-            public byte slope() => (byte)_tile->Slope;
-            public void slope(byte slope) => _tile->Slope = (Slope)slope;
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public byte slope() => (byte)((sTileHeader & 0x7000) >> 12);
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void slope(byte slope) => sTileHeader = (short)((sTileHeader & 0x8FFF) | ((slope & 7) << 12));
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public byte wallColor() => (byte)_tile->WallColor;
-            public void wallColor(byte wallColor) => _tile->WallColor = (PaintColor)wallColor;
-            public bool lava() => (bTileHeader & 0x20) == 0x20;
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void wallColor(byte wallColor) => _tile->WallColor = (PaintColor)wallColor;
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool lava() => (bTileHeader & 0x20) != 0;
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void lava(bool lava)
             {
                 if (lava)
@@ -129,12 +207,14 @@ namespace Orion.Launcher.World
                 }
                 else
                 {
-                    bTileHeader &= 223;
+                    bTileHeader &= 0xdf;
                 }
             }
 
-            public bool honey() => (bTileHeader & 0x40) == 0x40;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool honey() => (bTileHeader & 0x40) != 0;
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void honey(bool honey)
             {
                 if (honey)
@@ -143,21 +223,59 @@ namespace Orion.Launcher.World
                 }
                 else
                 {
-                    bTileHeader &= 191;
+                    bTileHeader &= 0xbf;
                 }
             }
 
-            public byte liquidType() => (byte)_tile->LiquidType;
-            public void liquidType(int liquidType) => _tile->LiquidType = (LiquidType)liquidType;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public byte liquidType() => (byte)((bTileHeader & 0x60) >> 5);
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void liquidType(int liquidType) => bTileHeader = (byte)((bTileHeader & 0x9f) | (liquidType << 5));
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public bool wire4() => _tile->HasYellowWire;
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void wire4(bool wire4) => _tile->HasYellowWire = wire4;
 
-            public byte frameNumber() => _tile->BlockFrameNumber;
-            public void frameNumber(byte frameNumber) => _tile->BlockFrameNumber = frameNumber;
-            public bool checkingLiquid() => _tile->IsCheckingLiquid;
-            public void checkingLiquid(bool checkingLiquid) => _tile->IsCheckingLiquid = checkingLiquid;
-            public bool skipLiquid() => _tile->ShouldSkipLiquid;
-            public void skipLiquid(bool skipLiquid) => _tile->ShouldSkipLiquid = skipLiquid;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public byte frameNumber() => (byte)(bTileHeader3 & 0x03);
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void frameNumber(byte frameNumber) => bTileHeader3 = (byte)((bTileHeader3 & 0xfc) | frameNumber);
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool checkingLiquid() => (bTileHeader3 & 0x04) != 0;
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void checkingLiquid(bool checkingLiquid)
+            {
+                if (checkingLiquid)
+                {
+                    bTileHeader3 |= 0x04;
+                }
+                else
+                {
+                    bTileHeader3 &= 0xfb;
+                }
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool skipLiquid() => (bTileHeader3 & 0x08) != 0;
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void skipLiquid(bool skipLiquid)
+            {
+                if (skipLiquid)
+                {
+                    bTileHeader3 |= 0x08;
+                }
+                else
+                {
+                    bTileHeader3 &= 0xf7;
+                }
+            }
 
             public void CopyFrom(OTAPI.Tile.ITile from)
             {
@@ -336,12 +454,22 @@ namespace Orion.Launcher.World
                 active(true);
             }
 
-            public bool topSlope() => IsSlope(Slope.TopRight, Slope.TopLeft);
-            public bool bottomSlope() => IsSlope(Slope.BottomRight, Slope.BottomLeft);
-            public bool leftSlope() => IsSlope(Slope.TopLeft, Slope.BottomLeft);
-            public bool rightSlope() => IsSlope(Slope.TopRight, Slope.BottomRight);
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool topSlope() => IsSlope(1, 2);
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool bottomSlope() => IsSlope(3, 4);
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool leftSlope() => IsSlope(2, 4);
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool rightSlope() => IsSlope(1, 3);
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public bool HasSameSlope(OTAPI.Tile.ITile tile) => (sTileHeader & 29696) == (tile.sTileHeader & 29696);
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public int blockType()
             {
                 if (halfBrick())
@@ -370,9 +498,10 @@ namespace Orion.Launcher.World
             [ExcludeFromCodeCoverage] public int wallFrameY() => 0;
             [ExcludeFromCodeCoverage] public void wallFrameY(int wallFrameY) { }
 
-            private bool IsSlope(Slope slope1, Slope slope2)
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            private bool IsSlope(byte slope1, byte slope2)
             {
-                var slope = (Slope)this.slope();
+                var slope = this.slope();
                 return slope == slope1 || slope == slope2;
             }
         }
