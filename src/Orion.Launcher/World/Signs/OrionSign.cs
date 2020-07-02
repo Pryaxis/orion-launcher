@@ -65,6 +65,6 @@ namespace Orion.Launcher.World.Signs
         public Terraria.Sign Wrapped { get; }
 
         [Pure, ExcludeFromCodeCoverage]
-        public override string ToString() => this.IsConcrete() ? $"(index: {Index})" : "<abstract instance>";
+        public override string ToString() => this.IsConcrete() ? $"<(index: {Index})>" : "<abstract instance>";
     }
 }

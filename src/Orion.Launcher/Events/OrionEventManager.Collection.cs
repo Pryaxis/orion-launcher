@@ -59,7 +59,7 @@ namespace Orion.Launcher.Events
                 _registrations.Add(registration);
                 _handlerToRegistration[handler] = registration;
 
-                log.Debug("Registering {@Registration} to {EventName}", _eventName, registration);
+                log.Debug("Registering {@Registration} to {EventName}", registration, _eventName);
             }
 
             public void RegisterAsyncHandler(Func<TEvent, Task> handler, ILogger log)
@@ -71,7 +71,7 @@ namespace Orion.Launcher.Events
                 _asyncRegistrations.Add(registration);
                 _handlerToAsyncRegistration[handler] = registration;
 
-                log.Debug("Registering {@AsyncRegistration} to {EventName}", _eventName, registration);
+                log.Debug("Registering {@AsyncRegistration} to {EventName}", registration, _eventName);
             }
 
             public void DeregisterHandler(Action<TEvent> handler, ILogger log)
@@ -84,7 +84,7 @@ namespace Orion.Launcher.Events
                     _registrations.Remove(registration);
                     _handlerToRegistration.Remove(handler);
 
-                    log.Debug("Deregistering {@Registration} from {EventName}", _eventName, registration);
+                    log.Debug("Deregistering {@Registration} from {EventName}", registration, _eventName);
                 }
             }
 
@@ -98,7 +98,7 @@ namespace Orion.Launcher.Events
                     _asyncRegistrations.Remove(registration);
                     _handlerToAsyncRegistration.Remove(handler);
 
-                    log.Debug("Deregistering {@AsyncRegistration} from {EventName}", _eventName, registration);
+                    log.Debug("Deregistering {@AsyncRegistration} from {EventName}", registration, _eventName);
                 }
             }
 
@@ -107,14 +107,14 @@ namespace Orion.Launcher.Events
                 Debug.Assert(evt != null);
                 Debug.Assert(log != null);
 
-                log.Write(_eventLoggingLevel, "Raising {@Event} on {EventName}", _eventName, evt);
+                log.Write(_eventLoggingLevel, "Raising {@Event} on {EventName}", evt, _eventName);
 
                 RaiseHandlers();
                 RaiseAsyncHandlers();
 
                 if (evt.IsCanceled)
                 {
-                    log.Write(_eventLoggingLevel, "Canceled {@Event} for {CancellationReason}", _eventName,
+                    log.Write(_eventLoggingLevel, "Canceled {@Event} for {CancellationReason}", evt,
                         evt.CancellationReason);
                 }
 
@@ -133,7 +133,7 @@ namespace Orion.Launcher.Events
                         }
                         catch (Exception ex)
                         {
-                            log.Error(ex, "Unhandled exception in {@Registration}", _eventName, registration);
+                            log.Error(ex, "Unhandled exception in {@Registration}", registration);
                         }
                     }
                 }
@@ -153,7 +153,7 @@ namespace Orion.Launcher.Events
                             var ex = t.Exception;
                             if (ex != null)
                             {
-                                log.Error(ex, "Unhandled exception in {@AsyncRegistration}", _eventName, registration);
+                                log.Error(ex, "Unhandled exception in {@AsyncRegistration}", registration);
                             }
                         });
                     }

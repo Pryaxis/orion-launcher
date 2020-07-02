@@ -75,7 +75,7 @@ namespace Orion.Launcher.World.Chests
         //
 
         [EventHandler("orion-chests", Priority = EventPriority.Lowest)]
-        [SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Implicitly used")]
+        [SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Implicit usage")]
         private void OnChestOpen(PacketReceiveEvent<ChestOpen> evt)
         {
             var packet = evt.Packet;
@@ -89,7 +89,7 @@ namespace Orion.Launcher.World.Chests
         }
 
         [EventHandler("orion-chests", Priority = EventPriority.Lowest)]
-        [SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Implicitly used")]
+        [SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Implicit usage")]
         private void OnChestInventory(PacketReceiveEvent<ChestInventory> evt)
         {
             var packet = evt.Packet;

@@ -75,12 +75,7 @@ namespace Orion.Launcher.World
                 Debug.Assert(x >= 0 && x <= Width);
                 Debug.Assert(y >= 0 && y <= Height);
 
-                if (_tiles is null)
-                {
-                    // Allocate the `Tile` array in unmanaged memory so that it doesn't need to be pinned. The bounds
-                    // are increased by 1 to fix some OOB issues in world generation code.
-                    _tiles = (Tile*)Marshal.AllocHGlobal(sizeof(Tile) * (Width + 1) * (Height + 1));
-                }
+                AllocateUnmanaged();
 
                 return ref _tiles[y * Width + x];
             }
@@ -122,11 +117,27 @@ namespace Orion.Launcher.World
             _events.DeregisterHandlers(this, _log);
         }
 
+        private unsafe void AllocateUnmanaged()
+        {
+            if (_tiles is null)
+            {
+                // Allocate the `Tile` array in unmanaged memory so that it doesn't need to be pinned. The bounds are
+                // increased by 1 to fix some OOB issues in world generation code.
+                var size = sizeof(Tile) * (Width + 1) * (Height + 1);
+
+                _tiles = (Tile*)Marshal.AllocHGlobal(size);
+                GC.AddMemoryPressure(size);
+            }
+        }
+
         private unsafe void DisposeUnmanaged()
         {
             if (_tiles != null)
             {
+                var size = sizeof(Tile) * (Width + 1) * (Height + 1);
+
                 Marshal.FreeHGlobal((IntPtr)_tiles);
+                GC.RemoveMemoryPressure(size);
             }
         }
 
@@ -152,7 +163,7 @@ namespace Orion.Launcher.World
         //
 
         [EventHandler("orion-world", Priority = EventPriority.Lowest)]
-        [SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Implicitly used")]
+        [SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Implicit usage")]
         private void OnTileModify(PacketReceiveEvent<TileModify> evt)
         {
             var packet = evt.Packet;
@@ -195,7 +206,7 @@ namespace Orion.Launcher.World
         }
 
         [EventHandler("orion-world", Priority = EventPriority.Lowest)]
-        [SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Implicitly used")]
+        [SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Implicit usage")]
         private void OnTileSquare(PacketReceiveEvent<TileSquare> evt)
         {
             var packet = evt.Packet;
@@ -204,7 +215,7 @@ namespace Orion.Launcher.World
         }
 
         [EventHandler("orion-world", Priority = EventPriority.Lowest)]
-        [SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Implicitly used")]
+        [SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Implicit usage")]
         private void OnTileLiquid(PacketReceiveEvent<TileLiquid> evt)
         {
             var packet = evt.Packet;
@@ -214,7 +225,7 @@ namespace Orion.Launcher.World
         }
 
         [EventHandler("orion-world", Priority = EventPriority.Lowest)]
-        [SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Implicitly used")]
+        [SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Implicit usage")]
         private void OnWireActivate(PacketReceiveEvent<WireActivate> evt)
         {
             var packet = evt.Packet;
@@ -223,7 +234,7 @@ namespace Orion.Launcher.World
         }
 
         [EventHandler("orion-world", Priority = EventPriority.Lowest)]
-        [SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Implicitly used")]
+        [SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Implicit usage")]
         private void OnBlockPaint(PacketReceiveEvent<BlockPaint> evt)
         {
             var packet = evt.Packet;
@@ -232,7 +243,7 @@ namespace Orion.Launcher.World
         }
 
         [EventHandler("orion-world", Priority = EventPriority.Lowest)]
-        [SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Implicitly used")]
+        [SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Implicit usage")]
         private void OnWallPaint(PacketReceiveEvent<WallPaint> evt)
         {
             var packet = evt.Packet;

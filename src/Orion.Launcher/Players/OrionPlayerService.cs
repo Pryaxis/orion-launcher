@@ -31,6 +31,7 @@ using Orion.Core.Packets.DataStructures.Modules;
 using Orion.Core.Packets.Players;
 using Orion.Core.Packets.Server;
 using Orion.Core.Players;
+using Orion.Core.Utils;
 using Orion.Launcher.Utils;
 using Serilog;
 
@@ -72,8 +73,6 @@ namespace Orion.Launcher.Players
                 Terraria.Main.player.AsMemory(..^1),
                 (playerIndex, terrariaPlayer) => new OrionPlayer(playerIndex, terrariaPlayer, events, log));
 
-            // Construct the `_onReceivePacketHandlers` and `_onSendPacketHandlers` arrays ahead of time for the valid
-            // `PacketId` instances. The invalid instances are handled by defaulting to `UnknownPacket`.
             foreach (var packetId in (PacketId[])Enum.GetValues(typeof(PacketId)))
             {
                 var packetType = packetId.Type();
@@ -81,8 +80,6 @@ namespace Orion.Launcher.Players
                 _onSendPacketHandlers[(byte)packetId] = MakeOnSendPacketHandler(packetType);
             }
 
-            // Construct the `_onReceiveModuleHandlers` and `_onSendModuleHandlers` arrays ahead of time for the valid
-            // `ModuleId` instances. The invalid instances are handled by defaulting to `UnknownModule`.
             foreach (var moduleId in (ModuleId[])Enum.GetValues(typeof(ModuleId)))
             {
                 var packetType = typeof(ModulePacket<>).MakeGenericType(moduleId.Type());
@@ -151,7 +148,12 @@ namespace Orion.Launcher.Players
             var span = buffer.readBuffer.AsSpan(start..(start + length));
             if (packetId == (byte)PacketId.Module)
             {
-                var moduleId = Unsafe.ReadUnaligned<ushort>(ref span[1]);
+                if (span.Length < 3)
+                {
+                    return OTAPI.HookResult.Cancel;
+                }
+
+                var moduleId = Unsafe.ReadUnaligned<ushort>(ref span.At(1));
                 handler = _onReceiveModuleHandlers[moduleId] ?? OnReceivePacket<ModulePacket<UnknownModule>>;
             }
             else
@@ -173,7 +175,7 @@ namespace Orion.Launcher.Players
             Debug.Assert(size >= 3);
 
             var span = data.AsSpan((offset + 2)..(offset + size));
-            var packetId = span[0];
+            var packetId = span.At(0);
 
             // The `SendBytes` event is only triggered for non-module packets.
             var handler = _onSendPacketHandlers[packetId] ?? OnSendPacket<UnknownPacket>;
@@ -204,7 +206,7 @@ namespace Orion.Launcher.Players
             Debug.Assert(playerIndex >= 0 && playerIndex < Count);
 
             var span = packet.Buffer.Data.AsSpan(2..((int)packet.Writer.BaseStream.Position));
-            var moduleId = Unsafe.ReadUnaligned<ushort>(ref span[1]);
+            var moduleId = Unsafe.ReadUnaligned<ushort>(ref span.At(1));
 
             // The `SendBytes` event is only triggered for module packets.
             var handler = _onSendModuleHandlers[moduleId] ?? OnSendPacket<ModulePacket<UnknownModule>>;
@@ -216,7 +218,8 @@ namespace Orion.Launcher.Players
         {
             Debug.Assert(playerIndex >= 0 && playerIndex < Count);
 
-            var evt = new PlayerTickEvent(this[playerIndex]);
+            var player = this[playerIndex];
+            var evt = new PlayerTickEvent(player);
             _events.Raise(evt, _log);
             return evt.IsCanceled ? OTAPI.HookResult.Cancel : OTAPI.HookResult.Continue;
         }
@@ -232,7 +235,8 @@ namespace Orion.Launcher.Players
                 return OTAPI.HookResult.Continue;
             }
 
-            var evt = new PlayerQuitEvent(this[remoteClient.Id]);
+            var player = this[remoteClient.Id];
+            var evt = new PlayerQuitEvent(player);
             _events.Raise(evt, _log);
             return OTAPI.HookResult.Continue;
         }
@@ -243,16 +247,7 @@ namespace Orion.Launcher.Players
 
         private void OnReceivePacket<TPacket>(int playerIndex, Span<byte> span) where TPacket : IPacket
         {
-            TPacket packet = default;
-
-            if (typeof(TPacket) == typeof(UnknownPacket))
-            {
-                packet = (TPacket)(object)new UnknownPacket(span.Length - 1, (PacketId)span[0]);
-            }
-            else if (packet is null)
-            {
-                packet = (TPacket)Activator.CreateInstance(typeof(TPacket))!;
-            }
+            var packet = MakePacket<TPacket>(span);
 
             // Read the packet using the `Server` context since we're receiving this packet.
             var packetBodyLength = packet.ReadBody(span[1..], PacketContext.Server);
@@ -263,8 +258,21 @@ namespace Orion.Launcher.Players
 
         private void OnSendPacket<TPacket>(int playerIndex, Span<byte> span) where TPacket : IPacket
         {
+            var packet = MakePacket<TPacket>(span);
+
+            // Read the packet using the `Client` context since we're sending this packet.
+            var packetBodyLength = packet.ReadBody(span[1..], PacketContext.Client);
+            Debug.Assert(packetBodyLength == span.Length - 1);
+
+            this[playerIndex].SendPacket(packet);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static TPacket MakePacket<TPacket>(Span<byte> span) where TPacket : IPacket
+        {
             TPacket packet = default;
 
+            // `UnknownPacket` is a special case since it has no default constructor.
             if (typeof(TPacket) == typeof(UnknownPacket))
             {
                 packet = (TPacket)(object)new UnknownPacket(span.Length - 1, (PacketId)span[0]);
@@ -274,11 +282,7 @@ namespace Orion.Launcher.Players
                 packet = (TPacket)Activator.CreateInstance(typeof(TPacket))!;
             }
 
-            // Read the packet using the `Client` context since we're sending this packet.
-            var packetBodyLength = packet.ReadBody(span[1..], PacketContext.Client);
-            Debug.Assert(packetBodyLength == span.Length - 1);
-
-            this[playerIndex].SendPacket(packet);
+            return packet;
         }
 
         // =============================================================================================================
@@ -286,14 +290,14 @@ namespace Orion.Launcher.Players
         //
 
         [EventHandler("orion-players", Priority = EventPriority.Lowest)]
-        [SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Implicitly used")]
+        [SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Implicit usage")]
         private void OnPlayerJoin(PacketReceiveEvent<PlayerJoin> evt)
         {
             _events.Forward(evt, new PlayerJoinEvent(evt.Sender), _log);
         }
 
         [EventHandler("orion-players", Priority = EventPriority.Lowest)]
-        [SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Implicitly used")]
+        [SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Implicit usage")]
         private void OnPlayerHealth(PacketReceiveEvent<PlayerHealth> evt)
         {
             var packet = evt.Packet;
@@ -302,7 +306,7 @@ namespace Orion.Launcher.Players
         }
 
         [EventHandler("orion-players", Priority = EventPriority.Lowest)]
-        [SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Implicitly used")]
+        [SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Implicit usage")]
         private void OnPlayerPvp(PacketReceiveEvent<PlayerPvp> evt)
         {
             var packet = evt.Packet;
@@ -311,7 +315,7 @@ namespace Orion.Launcher.Players
         }
 
         [EventHandler("orion-players", Priority = EventPriority.Lowest)]
-        [SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Implicitly used")]
+        [SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Implicit usage")]
         private void OnPasswordResponse(PacketReceiveEvent<PasswordResponse> evt)
         {
             var packet = evt.Packet;
@@ -320,7 +324,7 @@ namespace Orion.Launcher.Players
         }
 
         [EventHandler("orion-players", Priority = EventPriority.Lowest)]
-        [SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Implicitly used")]
+        [SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Implicit usage")]
         private void OnPlayerMana(PacketReceiveEvent<PlayerMana> evt)
         {
             var packet = evt.Packet;
@@ -329,7 +333,7 @@ namespace Orion.Launcher.Players
         }
 
         [EventHandler("orion-players", Priority = EventPriority.Lowest)]
-        [SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Implicitly used")]
+        [SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Implicit usage")]
         private void OnPlayerTeam(PacketReceiveEvent<PlayerTeam> evt)
         {
             var packet = evt.Packet;
@@ -338,7 +342,7 @@ namespace Orion.Launcher.Players
         }
 
         [EventHandler("orion-players", Priority = EventPriority.Lowest)]
-        [SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Implicitly used")]
+        [SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Implicit usage")]
         private void OnClientUuid(PacketReceiveEvent<ClientUuid> evt)
         {
             var packet = evt.Packet;
@@ -347,7 +351,7 @@ namespace Orion.Launcher.Players
         }
 
         [EventHandler("orion-players", Priority = EventPriority.Lowest)]
-        [SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Implicitly used")]
+        [SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Implicit usage")]
         private void OnChat(PacketReceiveEvent<ModulePacket<Chat>> evt)
         {
             var module = evt.Packet.Module;

@@ -17,6 +17,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using Orion.Core.World;
 
 namespace Orion.Launcher.World
@@ -36,9 +37,11 @@ namespace Orion.Launcher.World
 
             public unsafe OTAPI.Tile.ITile this[int x, int y]
             {
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 get => new TileAdapter(ref _world[x, y]);
 
                 // TODO: optimize this to not generate garbage.
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 set => this[x, y].CopyFrom(value);
             }
 

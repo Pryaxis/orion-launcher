@@ -74,7 +74,7 @@ namespace Orion.Launcher.World.Signs
         //
 
         [EventHandler("orion-signs", Priority = EventPriority.Lowest)]
-        [SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Implicitly used")]
+        [SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Implicit usage")]
         private void OnSignRead(PacketReceiveEvent<SignRead> evt)
         {
             var packet = evt.Packet;

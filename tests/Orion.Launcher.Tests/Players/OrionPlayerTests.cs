@@ -72,6 +72,17 @@ namespace Orion.Launcher.Players
         }
 
         [Fact]
+        public void Character_Get()
+        {
+            var events = Mock.Of<IEventManager>();
+            var log = Mock.Of<ILogger>();
+            var terrariaPlayer = new Terraria.Player();
+            var player = new OrionPlayer(terrariaPlayer, events, log);
+
+            Assert.NotNull(player.Character);
+        }
+
+        [Fact]
         public void Health_Get()
         {
             var events = Mock.Of<IEventManager>();
@@ -170,7 +181,7 @@ namespace Orion.Launcher.Players
         [Theory]
         [InlineData(-1)]
         [InlineData(100)]
-        public void Buffs_Get_Item_GetInvalidIndex_ThrowsIndexOutOfRangeException(int index)
+        public void Buffs_Get_Item_GetIndexOutOfRange_ThrowsIndexOutOfRangeException(int index)
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -213,7 +224,7 @@ namespace Orion.Launcher.Players
         [Theory]
         [InlineData(-1)]
         [InlineData(100)]
-        public void Buffs_Get_Item_SetInvalidIndex_ThrowsIndexOutOfRangeException(int index)
+        public void Buffs_Get_Item_SetIndexOutOfRange_ThrowsIndexOutOfRangeException(int index)
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -257,30 +268,6 @@ namespace Orion.Launcher.Players
                 Assert.Equal(new Buff((BuffId)i, 60), buffs[i]);
             }
         }
-
-        /*[Fact]
-        public void Difficulty_Get()
-        {
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            var terrariaPlayer = new Terraria.Player { difficulty = (byte)CharacterDifficulty.Journey };
-            var player = new OrionPlayer(terrariaPlayer, events, log);
-
-            Assert.Equal(CharacterDifficulty.Journey, player.Difficulty);
-        }
-
-        [Fact]
-        public void Difficulty_Set()
-        {
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            var terrariaPlayer = new Terraria.Player();
-            var player = new OrionPlayer(terrariaPlayer, events, log);
-
-            player.Difficulty = CharacterDifficulty.Journey;
-
-            Assert.Equal(CharacterDifficulty.Journey, (CharacterDifficulty)terrariaPlayer.difficulty);
-        }*/
 
         [Fact]
         public void IsInPvp_Get()
@@ -345,12 +332,9 @@ namespace Orion.Launcher.Players
             Mock.Get(events)
                 .Setup(em => em.Raise(
                     It.Is<PacketReceiveEvent<ClientConnect>>(
-                        evt => ((OrionPlayer)evt.Sender).Wrapped == terrariaPlayer),
-                    log))
-                .Callback<PacketReceiveEvent<ClientConnect>, ILogger>((evt, log) =>
-                {
-                    Assert.Equal("Terraria" + Terraria.Main.curRelease, evt.Packet.Version);
-                });
+                        evt => ((OrionPlayer)evt.Sender).Wrapped == terrariaPlayer &&
+                            evt.Packet.Version == "Terraria" + Terraria.Main.curRelease),
+                    log));
 
             var packet = new ClientConnect { Version = "Terraria" + Terraria.Main.curRelease };
             player.ReceivePacket(packet);
@@ -454,8 +438,7 @@ namespace Orion.Launcher.Players
 
             Mock.Get(events)
                 .Setup(em => em.Raise(
-                    It.Is<PacketSendEvent<TestPacket>>(
-                        evt => ((OrionPlayer)evt.Receiver).Wrapped == terrariaPlayer),
+                    It.Is<PacketSendEvent<TestPacket>>(evt => ((OrionPlayer)evt.Receiver).Wrapped == terrariaPlayer),
                     log))
                 .Callback<PacketSendEvent<TestPacket>, ILogger>((evt, log) =>
                 {

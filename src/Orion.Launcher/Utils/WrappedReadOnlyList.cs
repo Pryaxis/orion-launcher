@@ -23,7 +23,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Orion.Launcher.Utils
 {
-    // Wraps an array of type `TWrapped` to act as a read-only array of type `T`. This is extremely useful for wrapping
+    // Wraps an array of type `TWrapped` to act as a read-only list of type `T`. This is extremely useful for wrapping
     // Terraria arrays as Orion interface arrays.
     internal sealed class WrappedReadOnlyList<T, TWrapped> : IReadOnlyList<T> where T : class, IWrapping<TWrapped>
     {

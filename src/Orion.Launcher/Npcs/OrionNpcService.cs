@@ -176,10 +176,8 @@ namespace Orion.Launcher.Npcs
             Debug.Assert(terrariaNpc != null);
 
             var npc = GetNpc(terrariaNpc);
-            var evt = new NpcLootEvent(npc)
-            {
-                Item = new ItemStack((ItemId)itemId, (ItemPrefix)prefix, (short)stackSize)
-            };
+            var item = new ItemStack((ItemId)itemId, (ItemPrefix)prefix, (short)stackSize);
+            var evt = new NpcLootEvent(npc) { Item = item };
             _events.Raise(evt, _log);
             if (evt.IsCanceled)
             {
@@ -206,8 +204,8 @@ namespace Orion.Launcher.Npcs
         // NPC event publishers
         //
 
-        [EventHandler("orion-npcs", Priority = EventPriority.Low)]
-        [SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Implicitly used")]
+        [EventHandler("orion-npcs", Priority = EventPriority.Lowest)]
+        [SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Implicit usage")]
         private void OnNpcAddBuff(PacketReceiveEvent<NpcAddBuff> evt)
         {
             var packet = evt.Packet;
@@ -216,8 +214,8 @@ namespace Orion.Launcher.Npcs
             _events.Forward(evt, new NpcAddBuffEvent(this[packet.NpcIndex], evt.Sender, buff), _log);
         }
 
-        [EventHandler("orion-npcs", Priority = EventPriority.Low)]
-        [SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Implicitly used")]
+        [EventHandler("orion-npcs", Priority = EventPriority.Lowest)]
+        [SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Implicit usage")]
         private void OnNpcCatch(PacketReceiveEvent<NpcCatch> evt)
         {
             var packet = evt.Packet;
@@ -225,8 +223,8 @@ namespace Orion.Launcher.Npcs
             _events.Forward(evt, new NpcCatchEvent(this[packet.NpcIndex], evt.Sender), _log);
         }
 
-        [EventHandler("orion-npcs", Priority = EventPriority.Low)]
-        [SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Implicitly used")]
+        [EventHandler("orion-npcs", Priority = EventPriority.Lowest)]
+        [SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Implicit usage")]
         private void OnNpcFish(PacketReceiveEvent<NpcFish> evt)
         {
             var packet = evt.Packet;

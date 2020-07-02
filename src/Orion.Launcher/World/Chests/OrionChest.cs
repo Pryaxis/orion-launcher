@@ -73,7 +73,7 @@ namespace Orion.Launcher.World.Chests
         public Terraria.Chest Wrapped { get; }
 
         [Pure, ExcludeFromCodeCoverage]
-        public override string ToString() => this.IsConcrete() ? $"(index: {Index})" : "<abstract instance>";
+        public override string ToString() => this.IsConcrete() ? $"<(index: {Index})>" : "<abstract instance>";
 
         private sealed class ItemArray : IArray<ItemStack>
         {
@@ -84,7 +84,6 @@ namespace Orion.Launcher.World.Chests
             {
                 Debug.Assert(items != null);
 
-                // Initialize the entire array ahead of time so that there are no `null` elements.
                 for (var i = 0; i < items.Length; ++i)
                 {
                     items[i] ??= new Terraria.Item();
@@ -103,7 +102,6 @@ namespace Orion.Launcher.World.Chests
 
                     var item = _items[index];
 
-                    // This operation requires a lock since the `ItemStack` construction wouldn't be atomic otherwise.
                     lock (_lock)
                     {
                         return new ItemStack((ItemId)item.type, (ItemPrefix)item.prefix, (short)item.stack);
@@ -119,7 +117,6 @@ namespace Orion.Launcher.World.Chests
 
                     var item = _items[index];
 
-                    // This operation requires a lock since the `ItemStack` assignment wouldn't be atomic otherwise.
                     lock (_lock)
                     {
                         item.type = (int)value.Id;

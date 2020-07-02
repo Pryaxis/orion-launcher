@@ -124,12 +124,12 @@ namespace Orion.Launcher.Players
             var buffer = Terraria.NetMessage.buffer[Index];
 
             // To simulate the receival of the packet, we must swap out the read buffer and reader, and call `GetData()`
-            // while ensuring that the next `ReceiveDataHandler()` call is ignored.
+            // while ensuring that there isn't an infinite loop.
             var oldReadBuffer = buffer.readBuffer;
             var oldReader = buffer.reader;
 
             var pool = ArrayPool<byte>.Shared;
-            var receiveBuffer = pool.Rent(65536);
+            var receiveBuffer = pool.Rent(ushort.MaxValue);
 
             try
             {
@@ -141,12 +141,12 @@ namespace Orion.Launcher.Players
                 buffer.readBuffer = receiveBuffer;
                 buffer.reader = new BinaryReader(new MemoryStream(buffer.readBuffer), Encoding.UTF8);
                 buffer.GetData(2, packetLength - 2, out _);
-                OrionPlayerService._ignoreGetData = false;
             }
             finally
             {
                 pool.Return(receiveBuffer);
 
+                OrionPlayerService._ignoreGetData = false;
                 buffer.readBuffer = oldReadBuffer;
                 buffer.reader = oldReader;
             }
@@ -175,7 +175,7 @@ namespace Orion.Launcher.Players
             packet = evt.Packet;
 
             var pool = ArrayPool<byte>.Shared;
-            var sendBuffer = pool.Rent(65536);
+            var sendBuffer = pool.Rent(ushort.MaxValue);
             var wasSuccessful = false;
 
             try
@@ -185,40 +185,28 @@ namespace Orion.Launcher.Players
 
                 terrariaClient.Socket.AsyncSend(sendBuffer, 0, packetLength, state =>
                 {
-                    pool.Return((byte[])state);
-                    terrariaClient.ServerWriteCallBack(null!);
+                    try
+                    {
+                        terrariaClient.ServerWriteCallBack(null!);
+                    }
+                    finally
+                    {
+                        pool.Return((byte[])state);
+                    }
                 }, sendBuffer);
 
                 wasSuccessful = true;
             }
             catch (IOException)
             {
+                terrariaClient.Socket.Close();
             }
             finally
             {
-                // To prevent leakage, return the buffer if the send wasn't successful.
                 if (!wasSuccessful)
                 {
                     pool.Return(sendBuffer);
                 }
-            }
-        }
-
-        private sealed class OrionCharacter : ICharacter
-        {
-            private readonly Terraria.Player _wrapped;
-
-            public OrionCharacter(Terraria.Player terrariaPlayer)
-            {
-                Debug.Assert(terrariaPlayer != null);
-
-                _wrapped = terrariaPlayer;
-            }
-
-            public CharacterDifficulty Difficulty
-            {
-                get => (CharacterDifficulty)_wrapped.difficulty;
-                set => _wrapped.difficulty = (byte)value;
             }
         }
 
@@ -242,14 +230,9 @@ namespace Orion.Launcher.Players
                         throw new IndexOutOfRangeException($"Index out of range (expected: 0 to {Count - 1})");
                     }
 
-                    var ticks = _wrapped.buffTime[index];
-                    if (ticks <= 0)
-                    {
-                        return default;
-                    }
-
                     var id = (BuffId)_wrapped.buffType[index];
-                    return new Buff(id, ticks);
+                    var ticks = _wrapped.buffTime[index];
+                    return ticks > 0 ? new Buff(id, ticks) : default;
                 }
 
                 set

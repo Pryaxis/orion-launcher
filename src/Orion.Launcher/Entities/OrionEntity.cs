@@ -67,6 +67,6 @@ namespace Orion.Launcher.Entities
         public TTerrariaEntity Wrapped { get; }
 
         [Pure, ExcludeFromCodeCoverage]
-        public override string ToString() => this.IsConcrete() ? $"{Name} (index: {Index})" : "<abstract instance>";
+        public override string ToString() => this.IsConcrete() ? $"<{Name} (index: {Index})>" : "<abstract instance>";
     }
 }
