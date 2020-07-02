@@ -204,7 +204,6 @@ namespace Orion.Launcher
                         ServiceScope.Singleton => binding.InSingletonScope(),
                         ServiceScope.Transient => binding.InTransientScope(),
 
-                        // Not localized because this string is developer-facing.
                         _ => throw new InvalidOperationException("Invalid service scope")
                     };
                 }

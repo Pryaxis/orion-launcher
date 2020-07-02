@@ -66,7 +66,6 @@ namespace Orion.Launcher.Entities
 
         public TTerrariaEntity Wrapped { get; }
 
-        // Not localized because this string is developer-facing.
         [Pure, ExcludeFromCodeCoverage]
         public override string ToString() => this.IsConcrete() ? $"{Name} (index: {Index})" : "<abstract instance>";
     }

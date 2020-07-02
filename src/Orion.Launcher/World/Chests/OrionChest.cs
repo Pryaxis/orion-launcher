@@ -55,6 +55,7 @@ namespace Orion.Launcher.World.Chests
         public IArray<ItemStack> Items { get; }
 
         public int Index { get; }
+
         public bool IsActive { get; }
 
         public int X
@@ -71,7 +72,6 @@ namespace Orion.Launcher.World.Chests
 
         public Terraria.Chest Wrapped { get; }
 
-        // Not localized because this string is developer-facing.
         [Pure, ExcludeFromCodeCoverage]
         public override string ToString() => this.IsConcrete() ? $"(index: {Index})" : "<abstract instance>";
 
@@ -98,7 +98,6 @@ namespace Orion.Launcher.World.Chests
                 {
                     if (index < 0 || index >= Count)
                     {
-                        // Not localized because this string is developer-facing.
                         throw new IndexOutOfRangeException($"Index out of range (expected: 0 to {Count - 1})");
                     }
 
@@ -115,7 +114,6 @@ namespace Orion.Launcher.World.Chests
                 {
                     if (index < 0 || index >= Count)
                     {
-                        // Not localized because this string is developer-facing.
                         throw new IndexOutOfRangeException($"Index out of range (expected: 0 to {Count - 1})");
                     }
 

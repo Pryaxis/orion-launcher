@@ -34,7 +34,7 @@ namespace Orion.Launcher.Projectiles
         [Theory]
         [InlineData(-1)]
         [InlineData(10000)]
-        public void Item_GetInvalidIndex_ThrowsIndexOutOfRangeException(int index)
+        public void Item_GetIndexOutOfRange_ThrowsIndexOutOfRangeException(int index)
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();

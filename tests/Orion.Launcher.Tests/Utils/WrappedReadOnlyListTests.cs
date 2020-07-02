@@ -41,7 +41,7 @@ namespace Orion.Launcher.Utils
         [Theory]
         [InlineData(-1)]
         [InlineData(1000)]
-        public void Item_GetIndexOutOfRange_ThrowsArgumentOutOfRangeException(int index)
+        public void Item_GetIndexOutOfRange_ThrowsIndexOutOfRangeException(int index)
         {
             var wrappedItems = new TestWrappedClass[10];
             for (var i = 0; i < 10; ++i)

@@ -93,10 +93,9 @@ namespace Orion.Launcher.World.Chests
         private void OnChestInventory(PacketReceiveEvent<ChestInventory> evt)
         {
             var packet = evt.Packet;
-            var itemStack = new ItemStack(packet.Id, packet.Prefix, packet.StackSize);
+            var item = new ItemStack(packet.Id, packet.Prefix, packet.StackSize);
 
-            _events.Forward(
-                evt, new ChestInventoryEvent(this[packet.ChestIndex], evt.Sender, packet.Slot, itemStack), _log);
+            _events.Forward(evt, new ChestInventoryEvent(this[packet.ChestIndex], evt.Sender, packet.Slot, item), _log);
         }
     }
 }

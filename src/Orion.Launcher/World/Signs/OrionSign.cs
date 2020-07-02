@@ -47,6 +47,7 @@ namespace Orion.Launcher.World.Signs
         }
 
         public int Index { get; }
+
         public bool IsActive { get; }
 
         public int X
@@ -63,7 +64,6 @@ namespace Orion.Launcher.World.Signs
 
         public Terraria.Sign Wrapped { get; }
 
-        // Not localized because this string is developer-facing.
         [Pure, ExcludeFromCodeCoverage]
         public override string ToString() => this.IsConcrete() ? $"(index: {Index})" : "<abstract instance>";
     }

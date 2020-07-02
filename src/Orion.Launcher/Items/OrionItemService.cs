@@ -121,7 +121,7 @@ namespace Orion.Launcher.Items
             return evt.IsCanceled ? OTAPI.HookResult.Cancel : OTAPI.HookResult.Continue;
         }
 
-        // Gets an `IItem` instance corresponding to the given Terraria item, avoiding extra allocations, if possible.
+        // Gets an `IItem` instance corresponding to the given Terraria item, avoiding extra allocations if possible.
         private IItem GetItem(Terraria.Item terrariaItem)
         {
             var itemIndex = terrariaItem.whoAmI;

@@ -46,7 +46,6 @@ namespace Orion.Launcher.Utils
             {
                 if (index < 0 || index >= Count)
                 {
-                    // Not localized because this string is developer-facing.
                     throw new IndexOutOfRangeException($"Index out of range (expected: 0 to {Count - 1})");
                 }
 

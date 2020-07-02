@@ -192,7 +192,7 @@ namespace Orion.Launcher.Npcs
             return OTAPI.HookResult.Continue;
         }
 
-        // Gets an `INpc` instance corresponding to the given Terraria NPC, avoiding extra allocations, if possible.
+        // Gets an `INpc` instance corresponding to the given Terraria NPC, avoiding extra allocations if possible.
         private INpc GetNpc(Terraria.NPC terrariaNpc)
         {
             var npcIndex = terrariaNpc.whoAmI;

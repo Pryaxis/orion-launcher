@@ -64,7 +64,6 @@ namespace Orion.Launcher.Projectiles
 
         public IProjectile Spawn(ProjectileId id, Vector2f position, Vector2f velocity, int damage, float knockback)
         {
-            // Not localized because this string is developer-facing.
             Log.Debug("Spawning {ProjectileId} at {Position}", id, position);
 
             lock (_lock)
@@ -110,13 +109,14 @@ namespace Orion.Launcher.Projectiles
         {
             Debug.Assert(projectileIndex >= 0 && projectileIndex < Count);
 
-            var evt = new ProjectileTickEvent(this[projectileIndex]);
+            var projectile = this[projectileIndex];
+            var evt = new ProjectileTickEvent(projectile);
             _events.Raise(evt, _log);
             return evt.IsCanceled ? OTAPI.HookResult.Cancel : OTAPI.HookResult.Continue;
         }
 
-        // Gets an `IProjectile` which corresponds to the given Terraria projectile. Retrieves the `IProjectile` from
-        // the `Projectiles` array, if possible.
+        // Gets an `IProjectile` instance corresponding to the given Terraria projectile, avoiding extra allocations
+        // if possible.
         private IProjectile GetProjectile(Terraria.Projectile terrariaProjectile)
         {
             var projectileIndex = terrariaProjectile.whoAmI;
