@@ -46,6 +46,18 @@ namespace Orion.Launcher.Projectiles
 
         public Span<float> AiValues => Wrapped.ai;
 
+        public int Damage
+        {
+            get => Wrapped.damage;
+            set => Wrapped.damage = value;
+        }
+
+        public float Knockback
+        {
+            get => Wrapped.knockBack;
+            set => Wrapped.knockBack = value;
+        }
+
         public void SetId(ProjectileId id)
         {
             Wrapped.SetDefaults((int)id);

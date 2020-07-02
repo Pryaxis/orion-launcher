@@ -43,21 +43,21 @@ namespace Orion.Launcher.Items
 
         public ItemPrefix Prefix => (ItemPrefix)Wrapped.prefix;
 
-        public short StackSize
+        public int StackSize
         {
-            get => (short)Wrapped.stack;
+            get => Wrapped.stack;
             set => Wrapped.stack = value;
         }
 
-        public short Damage
+        public int Damage
         {
-            get => (short)Wrapped.damage;
+            get => Wrapped.damage;
             set => Wrapped.damage = value;
         }
 
-        public short UseTime
+        public int UseTime
         {
-            get => (short)Wrapped.useTime;
+            get => Wrapped.useTime;
             set => Wrapped.useTime = value;
         }
 

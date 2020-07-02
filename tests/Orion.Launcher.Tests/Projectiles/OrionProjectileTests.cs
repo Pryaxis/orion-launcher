@@ -92,6 +92,46 @@ namespace Orion.Launcher.Projectiles
         }
 
         [Fact]
+        public void Damage_Get()
+        {
+            var terrariaProjectile = new Terraria.Projectile { damage = 123 };
+            var projectile = new OrionProjectile(terrariaProjectile);
+
+            Assert.Equal(123, projectile.Damage);
+        }
+
+        [Fact]
+        public void Damage_Set()
+        {
+            var terrariaProjectile = new Terraria.Projectile();
+            var projectile = new OrionProjectile(terrariaProjectile);
+
+            projectile.Damage = 123;
+
+            Assert.Equal(123, terrariaProjectile.damage);
+        }
+
+        [Fact]
+        public void Knockback_Get()
+        {
+            var terrariaProjectile = new Terraria.Projectile { knockBack = 2.34f };
+            var projectile = new OrionProjectile(terrariaProjectile);
+
+            Assert.Equal(2.34f, projectile.Knockback);
+        }
+
+        [Fact]
+        public void Knockback_Set()
+        {
+            var terrariaProjectile = new Terraria.Projectile();
+            var projectile = new OrionProjectile(terrariaProjectile);
+
+            projectile.Knockback = 2.34f;
+
+            Assert.Equal(2.34f, terrariaProjectile.knockBack);
+        }
+
+        [Fact]
         public void SetId()
         {
             var terrariaProjectile = new Terraria.Projectile();
