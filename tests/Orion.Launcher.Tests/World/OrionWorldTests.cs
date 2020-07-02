@@ -30,6 +30,8 @@ using Orion.Core.World;
 using System.Diagnostics.CodeAnalysis;
 using Orion.Core.Packets.World.Tiles;
 using Orion.Core.Packets.DataStructures;
+using System.Linq.Expressions;
+using Orion.Core.Packets;
 
 namespace Orion.Launcher
 {
@@ -39,7 +41,7 @@ namespace Orion.Launcher
     public partial class OrionWorldTests
     {
         [Fact]
-        public void Item_Mutate()
+        public void Item_Get()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -123,7 +125,7 @@ namespace Orion.Launcher
         }
 
         [Fact]
-        public void Evil_Set_Corruption()
+        public void Evil_SetCorruption()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -135,7 +137,7 @@ namespace Orion.Launcher
         }
 
         [Fact]
-        public void Evil_Set_Crimson()
+        public void Evil_SetCrimson()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -211,83 +213,25 @@ namespace Orion.Launcher
         [Fact]
         public void PacketReceive_TileModify_BreakBlock_EventTriggered()
         {
-            Action<PacketReceiveEvent<TileModify>>? registeredHandler = null;
-
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            Mock.Get(events)
-                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<TileModify>>>(), log))
-                .Callback<Action<PacketReceiveEvent<TileModify>>, ILogger>(
-                    (handler, log) => registeredHandler = handler);
-
-            using var world = new OrionWorld(events, log);
-
             var packet = new TileModify { X = 100, Y = 256, Modification = TileModify.TileModification.BreakBlock };
             var sender = Mock.Of<IPlayer>();
-            var evt = new PacketReceiveEvent<TileModify>(packet, sender);
 
-            Mock.Get(events)
-                .Setup(em => em.Raise(
-                    It.Is<BlockBreakEvent>(
-                        evt => evt.World == world && evt.Player == sender && evt.X == 100 &&
-                            evt.Y == 256 && !evt.IsItemless),
-                    log));
-
-            Assert.NotNull(registeredHandler);
-            registeredHandler!(evt);
-
-            Mock.Get(events).VerifyAll();
+            PacketReceive_EventTriggered<TileModify, BlockBreakEvent>(packet, sender,
+                evt => evt.Player == sender && evt.X == 100 && evt.Y == 256 && !evt.IsItemless);
         }
 
         [Fact]
         public void PacketReceive_TileModify_BreakBlock_EventCanceled()
         {
-            Action<PacketReceiveEvent<TileModify>>? registeredHandler = null;
-
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            Mock.Get(events)
-                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<TileModify>>>(), log))
-                .Callback<Action<PacketReceiveEvent<TileModify>>, ILogger>(
-                    (handler, log) => registeredHandler = handler);
-
-            using var world = new OrionWorld(events, log);
-
             var packet = new TileModify { X = 100, Y = 256, Modification = TileModify.TileModification.BreakBlock };
             var sender = Mock.Of<IPlayer>();
-            var evt = new PacketReceiveEvent<TileModify>(packet, sender);
 
-            Mock.Get(events)
-                .Setup(em => em.Raise(It.IsAny<BlockBreakEvent>(), log))
-                .Callback<BlockBreakEvent, ILogger>((evt, log) => evt.Cancel());
-
-            Assert.NotNull(registeredHandler);
-            registeredHandler!(evt);
-
-            Assert.True(evt.IsCanceled);
-
-            Mock.Get(events).VerifyAll();
+            PacketReceive_EventCanceled<TileModify, BlockBreakEvent>(packet, sender);
         }
 
         [Fact]
         public void PacketReceive_TileModify_BreakBlockFailure_EventNotTriggered()
         {
-            for (var i = 0; i < Terraria.Sign.maxSigns; ++i)
-            {
-                Terraria.Main.sign[i] = new Terraria.Sign();
-            }
-
-            Action<PacketReceiveEvent<TileModify>>? registeredHandler = null;
-
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            Mock.Get(events)
-                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<TileModify>>>(), log))
-                .Callback<Action<PacketReceiveEvent<TileModify>>, ILogger>(
-                    (handler, log) => registeredHandler = handler);
-
-            using var world = new OrionWorld(events, log);
-
             var packet = new TileModify
             {
                 X = 100,
@@ -296,29 +240,13 @@ namespace Orion.Launcher
                 IsFailure = true
             };
             var sender = Mock.Of<IPlayer>();
-            var evt = new PacketReceiveEvent<TileModify>(packet, sender);
 
-            Assert.NotNull(registeredHandler);
-            registeredHandler!(evt);
-
-            Mock.Get(events)
-                .Verify(em => em.Raise(It.IsAny<BlockBreakEvent>(), log), Times.Never);
+            PacketReceive_EventNotTriggered<TileModify, BlockBreakEvent>(packet, sender);
         }
 
         [Fact]
         public void PacketReceive_TileModify_PlaceBlock_EventTriggered()
         {
-            Action<PacketReceiveEvent<TileModify>>? registeredHandler = null;
-
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            Mock.Get(events)
-                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<TileModify>>>(), log))
-                .Callback<Action<PacketReceiveEvent<TileModify>>, ILogger>(
-                    (handler, log) => registeredHandler = handler);
-
-            using var world = new OrionWorld(events, log);
-
             var packet = new TileModify
             {
                 X = 100,
@@ -328,35 +256,15 @@ namespace Orion.Launcher
                 BlockStyle = 1
             };
             var sender = Mock.Of<IPlayer>();
-            var evt = new PacketReceiveEvent<TileModify>(packet, sender);
 
-            Mock.Get(events)
-                .Setup(em => em.Raise(
-                    It.Is<BlockPlaceEvent>(
-                        evt => evt.World == world && evt.Player == sender && evt.X == 100 &&
-                            evt.Y == 256 && evt.Id == BlockId.Torches && evt.Style == 1 && !evt.IsReplacement),
-                    log));
-
-            Assert.NotNull(registeredHandler);
-            registeredHandler!(evt);
-
-            Mock.Get(events).VerifyAll();
+            PacketReceive_EventTriggered<TileModify, BlockPlaceEvent>(packet, sender,
+                evt => evt.Player == sender && evt.X == 100 && evt.Y == 256 && evt.Id == BlockId.Torches &&
+                    evt.Style == 1 && !evt.IsReplacement);
         }
 
         [Fact]
         public void PacketReceive_TileModify_PlaceBlock_EventCanceled()
         {
-            Action<PacketReceiveEvent<TileModify>>? registeredHandler = null;
-
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            Mock.Get(events)
-                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<TileModify>>>(), log))
-                .Callback<Action<PacketReceiveEvent<TileModify>>, ILogger>(
-                    (handler, log) => registeredHandler = handler);
-
-            using var world = new OrionWorld(events, log);
-
             var packet = new TileModify
             {
                 X = 100,
@@ -366,99 +274,32 @@ namespace Orion.Launcher
                 BlockStyle = 1
             };
             var sender = Mock.Of<IPlayer>();
-            var evt = new PacketReceiveEvent<TileModify>(packet, sender);
 
-            Mock.Get(events)
-                .Setup(em => em.Raise(It.IsAny<BlockPlaceEvent>(), log))
-                .Callback<BlockPlaceEvent, ILogger>((evt, log) => evt.Cancel());
-
-            Assert.NotNull(registeredHandler);
-            registeredHandler!(evt);
-
-            Assert.True(evt.IsCanceled);
-
-            Mock.Get(events).VerifyAll();
+            PacketReceive_EventCanceled<TileModify, BlockPlaceEvent>(packet, sender);
         }
 
         [Fact]
         public void PacketReceive_TileModify_BreakWall_EventTriggered()
         {
-            Action<PacketReceiveEvent<TileModify>>? registeredHandler = null;
-
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            Mock.Get(events)
-                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<TileModify>>>(), log))
-                .Callback<Action<PacketReceiveEvent<TileModify>>, ILogger>(
-                    (handler, log) => registeredHandler = handler);
-
-            using var world = new OrionWorld(events, log);
-
             var packet = new TileModify { X = 100, Y = 256, Modification = TileModify.TileModification.BreakWall };
             var sender = Mock.Of<IPlayer>();
-            var evt = new PacketReceiveEvent<TileModify>(packet, sender);
 
-            Mock.Get(events)
-                .Setup(em => em.Raise(
-                    It.Is<WallBreakEvent>(
-                        evt => evt.World == world && evt.Player == sender && evt.X == 100 && evt.Y == 256),
-                    log));
-
-            Assert.NotNull(registeredHandler);
-            registeredHandler!(evt);
-
-            Mock.Get(events).VerifyAll();
+            PacketReceive_EventTriggered<TileModify, WallBreakEvent>(packet, sender,
+                evt => evt.Player == sender && evt.X == 100 && evt.Y == 256);
         }
 
         [Fact]
         public void PacketReceive_TileModify_BreakWall_EventCanceled()
         {
-            Action<PacketReceiveEvent<TileModify>>? registeredHandler = null;
-
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            Mock.Get(events)
-                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<TileModify>>>(), log))
-                .Callback<Action<PacketReceiveEvent<TileModify>>, ILogger>(
-                    (handler, log) => registeredHandler = handler);
-
-            using var world = new OrionWorld(events, log);
-
             var packet = new TileModify { X = 100, Y = 256, Modification = TileModify.TileModification.BreakWall };
             var sender = Mock.Of<IPlayer>();
-            var evt = new PacketReceiveEvent<TileModify>(packet, sender);
 
-            Mock.Get(events)
-                .Setup(em => em.Raise(It.IsAny<WallBreakEvent>(), log))
-                .Callback<WallBreakEvent, ILogger>((evt, log) => evt.Cancel());
-
-            Assert.NotNull(registeredHandler);
-            registeredHandler!(evt);
-
-            Assert.True(evt.IsCanceled);
-
-            Mock.Get(events).VerifyAll();
+            PacketReceive_EventCanceled<TileModify, WallBreakEvent>(packet, sender);
         }
 
         [Fact]
         public void PacketReceive_TileModify_BreakWallFailure_EventNotTriggered()
         {
-            for (var i = 0; i < Terraria.Sign.maxSigns; ++i)
-            {
-                Terraria.Main.sign[i] = new Terraria.Sign();
-            }
-
-            Action<PacketReceiveEvent<TileModify>>? registeredHandler = null;
-
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            Mock.Get(events)
-                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<TileModify>>>(), log))
-                .Callback<Action<PacketReceiveEvent<TileModify>>, ILogger>(
-                    (handler, log) => registeredHandler = handler);
-
-            using var world = new OrionWorld(events, log);
-
             var packet = new TileModify
             {
                 X = 100,
@@ -467,29 +308,13 @@ namespace Orion.Launcher
                 IsFailure = true
             };
             var sender = Mock.Of<IPlayer>();
-            var evt = new PacketReceiveEvent<TileModify>(packet, sender);
 
-            Assert.NotNull(registeredHandler);
-            registeredHandler!(evt);
-
-            Mock.Get(events)
-                .Verify(em => em.Raise(It.IsAny<WallBreakEvent>(), log), Times.Never);
+            PacketReceive_EventNotTriggered<TileModify, WallBreakEvent>(packet, sender);
         }
 
         [Fact]
         public void PacketReceive_TileModify_PlaceWall_EventTriggered()
         {
-            Action<PacketReceiveEvent<TileModify>>? registeredHandler = null;
-
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            Mock.Get(events)
-                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<TileModify>>>(), log))
-                .Callback<Action<PacketReceiveEvent<TileModify>>, ILogger>(
-                    (handler, log) => registeredHandler = handler);
-
-            using var world = new OrionWorld(events, log);
-
             var packet = new TileModify
             {
                 X = 100,
@@ -498,35 +323,15 @@ namespace Orion.Launcher
                 WallId = WallId.Stone
             };
             var sender = Mock.Of<IPlayer>();
-            var evt = new PacketReceiveEvent<TileModify>(packet, sender);
 
-            Mock.Get(events)
-                .Setup(em => em.Raise(
-                    It.Is<WallPlaceEvent>(
-                        evt => evt.World == world && evt.Player == sender && evt.X == 100 &&
-                            evt.Y == 256 && evt.Id == WallId.Stone && !evt.IsReplacement),
-                    log));
-
-            Assert.NotNull(registeredHandler);
-            registeredHandler!(evt);
-
-            Mock.Get(events).VerifyAll();
+            PacketReceive_EventTriggered<TileModify, WallPlaceEvent>(packet, sender,
+                evt => evt.Player == sender && evt.X == 100 && evt.Y == 256 && evt.Id == WallId.Stone &&
+                    !evt.IsReplacement);
         }
 
         [Fact]
         public void PacketReceive_TileModify_PlaceWall_EventCanceled()
         {
-            Action<PacketReceiveEvent<TileModify>>? registeredHandler = null;
-
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            Mock.Get(events)
-                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<TileModify>>>(), log))
-                .Callback<Action<PacketReceiveEvent<TileModify>>, ILogger>(
-                    (handler, log) => registeredHandler = handler);
-
-            using var world = new OrionWorld(events, log);
-
             var packet = new TileModify
             {
                 X = 100,
@@ -535,34 +340,13 @@ namespace Orion.Launcher
                 WallId = WallId.Stone
             };
             var sender = Mock.Of<IPlayer>();
-            var evt = new PacketReceiveEvent<TileModify>(packet, sender);
 
-            Mock.Get(events)
-                .Setup(em => em.Raise(It.IsAny<WallPlaceEvent>(), log))
-                .Callback<WallPlaceEvent, ILogger>((evt, log) => evt.Cancel());
-
-            Assert.NotNull(registeredHandler);
-            registeredHandler!(evt);
-
-            Assert.True(evt.IsCanceled);
-
-            Mock.Get(events).VerifyAll();
+            PacketReceive_EventCanceled<TileModify, WallPlaceEvent>(packet, sender);
         }
 
         [Fact]
         public void PacketReceive_TileModify_BreakBlockItemless_EventTriggered()
         {
-            Action<PacketReceiveEvent<TileModify>>? registeredHandler = null;
-
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            Mock.Get(events)
-                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<TileModify>>>(), log))
-                .Callback<Action<PacketReceiveEvent<TileModify>>, ILogger>(
-                    (handler, log) => registeredHandler = handler);
-
-            using var world = new OrionWorld(events, log);
-
             var packet = new TileModify
             {
                 X = 100,
@@ -570,35 +354,14 @@ namespace Orion.Launcher
                 Modification = TileModify.TileModification.BreakBlockItemless
             };
             var sender = Mock.Of<IPlayer>();
-            var evt = new PacketReceiveEvent<TileModify>(packet, sender);
 
-            Mock.Get(events)
-                .Setup(em => em.Raise(
-                    It.Is<BlockBreakEvent>(
-                        evt => evt.World == world && evt.Player == sender && evt.X == 100 &&
-                            evt.Y == 256 && evt.IsItemless),
-                    log));
-
-            Assert.NotNull(registeredHandler);
-            registeredHandler!(evt);
-
-            Mock.Get(events).VerifyAll();
+            PacketReceive_EventTriggered<TileModify, BlockBreakEvent>(packet, sender,
+                evt => evt.Player == sender && evt.X == 100 && evt.Y == 256 && evt.IsItemless);
         }
 
         [Fact]
         public void PacketReceive_TileModify_BreakBlockItemless_EventCanceled()
         {
-            Action<PacketReceiveEvent<TileModify>>? registeredHandler = null;
-
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            Mock.Get(events)
-                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<TileModify>>>(), log))
-                .Callback<Action<PacketReceiveEvent<TileModify>>, ILogger>(
-                    (handler, log) => registeredHandler = handler);
-
-            using var world = new OrionWorld(events, log);
-
             var packet = new TileModify
             {
                 X = 100,
@@ -606,39 +369,13 @@ namespace Orion.Launcher
                 Modification = TileModify.TileModification.BreakBlockItemless
             };
             var sender = Mock.Of<IPlayer>();
-            var evt = new PacketReceiveEvent<TileModify>(packet, sender);
 
-            Mock.Get(events)
-                .Setup(em => em.Raise(It.IsAny<BlockBreakEvent>(), log))
-                .Callback<BlockBreakEvent, ILogger>((evt, log) => evt.Cancel());
-
-            Assert.NotNull(registeredHandler);
-            registeredHandler!(evt);
-
-            Assert.True(evt.IsCanceled);
-
-            Mock.Get(events).VerifyAll();
+            PacketReceive_EventCanceled<TileModify, BlockBreakEvent>(packet, sender);
         }
 
         [Fact]
         public void PacketReceive_TileModify_BreakBlockItemlessFailure_EventNotTriggered()
         {
-            for (var i = 0; i < Terraria.Sign.maxSigns; ++i)
-            {
-                Terraria.Main.sign[i] = new Terraria.Sign();
-            }
-
-            Action<PacketReceiveEvent<TileModify>>? registeredHandler = null;
-
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            Mock.Get(events)
-                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<TileModify>>>(), log))
-                .Callback<Action<PacketReceiveEvent<TileModify>>, ILogger>(
-                    (handler, log) => registeredHandler = handler);
-
-            using var world = new OrionWorld(events, log);
-
             var packet = new TileModify
             {
                 X = 100,
@@ -647,29 +384,13 @@ namespace Orion.Launcher
                 IsFailure = true
             };
             var sender = Mock.Of<IPlayer>();
-            var evt = new PacketReceiveEvent<TileModify>(packet, sender);
 
-            Assert.NotNull(registeredHandler);
-            registeredHandler!(evt);
-
-            Mock.Get(events)
-                .Verify(em => em.Raise(It.IsAny<BlockBreakEvent>(), log), Times.Never);
+            PacketReceive_EventNotTriggered<TileModify, BlockBreakEvent>(packet, sender);
         }
 
         [Fact]
         public void PacketReceive_TileModify_ReplaceBlock_EventTriggered()
         {
-            Action<PacketReceiveEvent<TileModify>>? registeredHandler = null;
-
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            Mock.Get(events)
-                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<TileModify>>>(), log))
-                .Callback<Action<PacketReceiveEvent<TileModify>>, ILogger>(
-                    (handler, log) => registeredHandler = handler);
-
-            using var world = new OrionWorld(events, log);
-
             var packet = new TileModify
             {
                 X = 100,
@@ -678,35 +399,15 @@ namespace Orion.Launcher
                 BlockId = BlockId.Stone
             };
             var sender = Mock.Of<IPlayer>();
-            var evt = new PacketReceiveEvent<TileModify>(packet, sender);
 
-            Mock.Get(events)
-                .Setup(em => em.Raise(
-                    It.Is<BlockPlaceEvent>(
-                        evt => evt.World == world && evt.Player == sender && evt.X == 100 &&
-                            evt.Y == 256 && evt.Id == BlockId.Stone && evt.Style == 0 && evt.IsReplacement),
-                    log));
-
-            Assert.NotNull(registeredHandler);
-            registeredHandler!(evt);
-
-            Mock.Get(events).VerifyAll();
+            PacketReceive_EventTriggered<TileModify, BlockPlaceEvent>(packet, sender,
+                evt => evt.Player == sender && evt.X == 100 && evt.Y == 256 && evt.Id == BlockId.Stone &&
+                    evt.Style == 0 && evt.IsReplacement);
         }
 
         [Fact]
         public void PacketReceive_TileModify_ReplaceBlock_EventCanceled()
         {
-            Action<PacketReceiveEvent<TileModify>>? registeredHandler = null;
-
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            Mock.Get(events)
-                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<TileModify>>>(), log))
-                .Callback<Action<PacketReceiveEvent<TileModify>>, ILogger>(
-                    (handler, log) => registeredHandler = handler);
-
-            using var world = new OrionWorld(events, log);
-
             var packet = new TileModify
             {
                 X = 100,
@@ -715,34 +416,13 @@ namespace Orion.Launcher
                 BlockId = BlockId.Stone
             };
             var sender = Mock.Of<IPlayer>();
-            var evt = new PacketReceiveEvent<TileModify>(packet, sender);
 
-            Mock.Get(events)
-                .Setup(em => em.Raise(It.IsAny<BlockPlaceEvent>(), log))
-                .Callback<BlockPlaceEvent, ILogger>((evt, log) => evt.Cancel());
-
-            Assert.NotNull(registeredHandler);
-            registeredHandler!(evt);
-
-            Assert.True(evt.IsCanceled);
-
-            Mock.Get(events).VerifyAll();
+            PacketReceive_EventCanceled<TileModify, BlockPlaceEvent>(packet, sender);
         }
 
         [Fact]
         public void PacketReceive_TileModify_ReplaceWall_EventTriggered()
         {
-            Action<PacketReceiveEvent<TileModify>>? registeredHandler = null;
-
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            Mock.Get(events)
-                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<TileModify>>>(), log))
-                .Callback<Action<PacketReceiveEvent<TileModify>>, ILogger>(
-                    (handler, log) => registeredHandler = handler);
-
-            using var world = new OrionWorld(events, log);
-
             var packet = new TileModify
             {
                 X = 100,
@@ -751,35 +431,15 @@ namespace Orion.Launcher
                 WallId = WallId.Stone
             };
             var sender = Mock.Of<IPlayer>();
-            var evt = new PacketReceiveEvent<TileModify>(packet, sender);
 
-            Mock.Get(events)
-                .Setup(em => em.Raise(
-                    It.Is<WallPlaceEvent>(
-                        evt => evt.World == world && evt.Player == sender && evt.X == 100 &&
-                            evt.Y == 256 && evt.Id == WallId.Stone && evt.IsReplacement),
-                    log));
-
-            Assert.NotNull(registeredHandler);
-            registeredHandler!(evt);
-
-            Mock.Get(events).VerifyAll();
+            PacketReceive_EventTriggered<TileModify, WallPlaceEvent>(packet, sender,
+                evt => evt.Player == sender && evt.X == 100 && evt.Y == 256 && evt.Id == WallId.Stone &&
+                    evt.IsReplacement);
         }
 
         [Fact]
         public void PacketReceive_TileModify_ReplaceWall_EventCanceled()
         {
-            Action<PacketReceiveEvent<TileModify>>? registeredHandler = null;
-
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            Mock.Get(events)
-                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<TileModify>>>(), log))
-                .Callback<Action<PacketReceiveEvent<TileModify>>, ILogger>(
-                    (handler, log) => registeredHandler = handler);
-
-            using var world = new OrionWorld(events, log);
-
             var packet = new TileModify
             {
                 X = 100,
@@ -788,34 +448,13 @@ namespace Orion.Launcher
                 WallId = WallId.Stone
             };
             var sender = Mock.Of<IPlayer>();
-            var evt = new PacketReceiveEvent<TileModify>(packet, sender);
 
-            Mock.Get(events)
-                .Setup(em => em.Raise(It.IsAny<WallPlaceEvent>(), log))
-                .Callback<WallPlaceEvent, ILogger>((evt, log) => evt.Cancel());
-
-            Assert.NotNull(registeredHandler);
-            registeredHandler!(evt);
-
-            Assert.True(evt.IsCanceled);
-
-            Mock.Get(events).VerifyAll();
+            PacketReceive_EventCanceled<TileModify, WallPlaceEvent>(packet, sender);
         }
 
         [Fact]
         public void PacketReceive_TileModify_InvalidModification()
         {
-            Action<PacketReceiveEvent<TileModify>>? registeredHandler = null;
-
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            Mock.Get(events)
-                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<TileModify>>>(), log))
-                .Callback<Action<PacketReceiveEvent<TileModify>>, ILogger>(
-                    (handler, log) => registeredHandler = handler);
-
-            using var world = new OrionWorld(events, log);
-
             var packet = new TileModify
             {
                 X = 100,
@@ -823,279 +462,130 @@ namespace Orion.Launcher
                 Modification = (TileModify.TileModification)255
             };
             var sender = Mock.Of<IPlayer>();
-            var evt = new PacketReceiveEvent<TileModify>(packet, sender);
 
-            Assert.NotNull(registeredHandler);
-            registeredHandler!(evt);
+            PacketReceive_EventNotTriggered<TileModify, BlockBreakEvent>(packet, sender);
+            PacketReceive_EventNotTriggered<TileModify, BlockPlaceEvent>(packet, sender);
+            PacketReceive_EventNotTriggered<TileModify, WallBreakEvent>(packet, sender);
+            PacketReceive_EventNotTriggered<TileModify, WallPlaceEvent>(packet, sender);
         }
 
         [Fact]
         public void PacketReceive_TileSquarePacket_EventTriggered()
         {
-            Action<PacketReceiveEvent<TileSquare>>? registeredHandler = null;
-
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            Mock.Get(events)
-                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<TileSquare>>>(), log))
-                .Callback<Action<PacketReceiveEvent<TileSquare>>, ILogger>(
-                    (handler, log) => registeredHandler = handler);
-
-            using var world = new OrionWorld(events, log);
-
             var packet = new TileSquare { X = 100, Y = 256, Tiles = new NetworkTileSlice(3, 3) };
             var sender = Mock.Of<IPlayer>();
-            var evt = new PacketReceiveEvent<TileSquare>(packet, sender);
 
-            Mock.Get(events)
-                .Setup(em => em.Raise(
-                    It.Is<TileSquareEvent>(
-                        evt => evt.World == world && evt.Player == sender && evt.X == 100 &&
-                            evt.Y == 256 && evt.Tiles.Width == 3 && evt.Tiles.Height == 3),
-                    log));
-
-            Assert.NotNull(registeredHandler);
-            registeredHandler!(evt);
-
-            Mock.Get(events).VerifyAll();
+            PacketReceive_EventTriggered<TileSquare, TileSquareEvent>(packet, sender,
+                evt => evt.Player == sender && evt.X == 100 && evt.Y == 256 && evt.Tiles.Width == 3 &&
+                    evt.Tiles.Height == 3);
         }
 
         [Fact]
         public void PacketReceive_TileSquarePacket_EventCanceled()
         {
-            Action<PacketReceiveEvent<TileSquare>>? registeredHandler = null;
-
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            Mock.Get(events)
-                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<TileSquare>>>(), log))
-                .Callback<Action<PacketReceiveEvent<TileSquare>>, ILogger>(
-                    (handler, log) => registeredHandler = handler);
-
-            using var world = new OrionWorld(events, log);
-
             var packet = new TileSquare { X = 100, Y = 256, Tiles = new NetworkTileSlice(3, 3) };
             var sender = Mock.Of<IPlayer>();
-            var evt = new PacketReceiveEvent<TileSquare>(packet, sender);
 
-            Mock.Get(events)
-                .Setup(em => em.Raise(It.IsAny<TileSquareEvent>(), log))
-                .Callback<TileSquareEvent, ILogger>((evt, log) => evt.Cancel());
-
-            Assert.NotNull(registeredHandler);
-            registeredHandler!(evt);
-
-            Assert.True(evt.IsCanceled);
-
-            Mock.Get(events).VerifyAll();
+            PacketReceive_EventCanceled<TileSquare, TileSquareEvent>(packet, sender);
         }
 
         [Fact]
         public void PacketReceive_TileLiquidPacket_EventTriggered()
         {
-            Action<PacketReceiveEvent<TileLiquid>>? registeredHandler = null;
-
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            Mock.Get(events)
-                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<TileLiquid>>>(), log))
-                .Callback<Action<PacketReceiveEvent<TileLiquid>>, ILogger>(
-                    (handler, log) => registeredHandler = handler);
-
-            using var world = new OrionWorld(events, log);
-
             var packet = new TileLiquid { X = 100, Y = 256, LiquidAmount = 255, LiquidType = LiquidType.Honey };
             var sender = Mock.Of<IPlayer>();
-            var evt = new PacketReceiveEvent<TileLiquid>(packet, sender);
 
-            Mock.Get(events)
-                .Setup(em => em.Raise(
-                    It.Is<TileLiquidEvent>(
-                        evt => evt.World == world && evt.Player == sender && evt.X == 100 &&
-                            evt.Y == 256 && evt.Liquid == new Liquid(LiquidType.Honey, 255)),
-                    log));
-
-            Assert.NotNull(registeredHandler);
-            registeredHandler!(evt);
-
-            Mock.Get(events).VerifyAll();
+            PacketReceive_EventTriggered<TileLiquid, TileLiquidEvent>(packet, sender,
+                evt => evt.Player == sender && evt.X == 100 && evt.Y == 256 &&
+                    evt.Liquid == new Liquid(LiquidType.Honey, 255));
         }
 
         [Fact]
         public void PacketReceive_TileLiquidPacket_EventCanceled()
         {
-            Action<PacketReceiveEvent<TileLiquid>>? registeredHandler = null;
-
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            Mock.Get(events)
-                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<TileLiquid>>>(), log))
-                .Callback<Action<PacketReceiveEvent<TileLiquid>>, ILogger>(
-                    (handler, log) => registeredHandler = handler);
-
-            using var world = new OrionWorld(events, log);
-
             var packet = new TileLiquid { X = 100, Y = 256, LiquidAmount = 255, LiquidType = LiquidType.Honey };
             var sender = Mock.Of<IPlayer>();
-            var evt = new PacketReceiveEvent<TileLiquid>(packet, sender);
 
-            Mock.Get(events)
-                .Setup(em => em.Raise(It.IsAny<TileLiquidEvent>(), log))
-                .Callback<TileLiquidEvent, ILogger>((evt, log) => evt.Cancel());
-
-            Assert.NotNull(registeredHandler);
-            registeredHandler!(evt);
-
-            Assert.True(evt.IsCanceled);
-
-            Mock.Get(events).VerifyAll();
+            PacketReceive_EventCanceled<TileLiquid, TileLiquidEvent>(packet, sender);
         }
 
         [Fact]
         public void PacketReceive_WireActivatePacket_EventTriggered()
         {
-            Action<PacketReceiveEvent<WireActivate>>? registeredHandler = null;
-
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            Mock.Get(events)
-                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<WireActivate>>>(), log))
-                .Callback<Action<PacketReceiveEvent<WireActivate>>, ILogger>(
-                    (handler, log) => registeredHandler = handler);
-
-            using var world = new OrionWorld(events, log);
-
             var packet = new WireActivate { X = 100, Y = 256 };
             var sender = Mock.Of<IPlayer>();
-            var evt = new PacketReceiveEvent<WireActivate>(packet, sender);
 
-            Mock.Get(events)
-                .Setup(em => em.Raise(
-                    It.Is<WiringActivateEvent>(
-                        evt => evt.World == world && evt.Player == sender && evt.X == 100 && evt.Y == 256),
-                    log));
-
-            Assert.NotNull(registeredHandler);
-            registeredHandler!(evt);
-
-            Mock.Get(events).VerifyAll();
+            PacketReceive_EventTriggered<WireActivate, WiringActivateEvent>(packet, sender,
+                evt => evt.Player == sender && evt.X == 100 && evt.Y == 256);
         }
 
         [Fact]
         public void PacketReceive_WireActivatePacket_EventCanceled()
         {
-            Action<PacketReceiveEvent<WireActivate>>? registeredHandler = null;
-
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            Mock.Get(events)
-                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<WireActivate>>>(), log))
-                .Callback<Action<PacketReceiveEvent<WireActivate>>, ILogger>(
-                    (handler, log) => registeredHandler = handler);
-
-            using var world = new OrionWorld(events, log);
-
             var packet = new WireActivate { X = 100, Y = 256 };
             var sender = Mock.Of<IPlayer>();
-            var evt = new PacketReceiveEvent<WireActivate>(packet, sender);
 
-            Mock.Get(events)
-                .Setup(em => em.Raise(It.IsAny<WiringActivateEvent>(), log))
-                .Callback<WiringActivateEvent, ILogger>((evt, log) => evt.Cancel());
-
-            Assert.NotNull(registeredHandler);
-            registeredHandler!(evt);
-
-            Assert.True(evt.IsCanceled);
-
-            Mock.Get(events).VerifyAll();
+            PacketReceive_EventCanceled<WireActivate, WiringActivateEvent>(packet, sender);
         }
 
         [Fact]
         public void PacketReceive_BlockPaintPacket_EventTriggered()
         {
-            Action<PacketReceiveEvent<BlockPaint>>? registeredHandler = null;
-
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            Mock.Get(events)
-                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<BlockPaint>>>(), log))
-                .Callback<Action<PacketReceiveEvent<BlockPaint>>, ILogger>(
-                    (handler, log) => registeredHandler = handler);
-
-            using var world = new OrionWorld(events, log);
-
             var packet = new BlockPaint { X = 100, Y = 256, Color = PaintColor.Red };
             var sender = Mock.Of<IPlayer>();
-            var evt = new PacketReceiveEvent<BlockPaint>(packet, sender);
 
-            Mock.Get(events)
-                .Setup(em => em.Raise(
-                    It.Is<BlockPaintEvent>(
-                        evt => evt.World == world && evt.Player == sender && evt.X == 100 &&
-                            evt.Y == 256 && evt.Color == PaintColor.Red),
-                    log));
-
-            Assert.NotNull(registeredHandler);
-            registeredHandler!(evt);
-
-            Mock.Get(events).VerifyAll();
+            PacketReceive_EventTriggered<BlockPaint, BlockPaintEvent>(packet, sender,
+                evt => evt.Player == sender && evt.X == 100 && evt.Y == 256 && evt.Color == PaintColor.Red);
         }
 
         [Fact]
         public void PacketReceive_BlockPaintPacket_EventCanceled()
         {
-            Action<PacketReceiveEvent<BlockPaint>>? registeredHandler = null;
-
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            Mock.Get(events)
-                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<BlockPaint>>>(), log))
-                .Callback<Action<PacketReceiveEvent<BlockPaint>>, ILogger>(
-                    (handler, log) => registeredHandler = handler);
-
-            using var world = new OrionWorld(events, log);
-
             var packet = new BlockPaint { X = 100, Y = 256, Color = PaintColor.Red };
             var sender = Mock.Of<IPlayer>();
-            var evt = new PacketReceiveEvent<BlockPaint>(packet, sender);
 
-            Mock.Get(events)
-                .Setup(em => em.Raise(It.IsAny<BlockPaintEvent>(), log))
-                .Callback<BlockPaintEvent, ILogger>((evt, log) => evt.Cancel());
-
-            Assert.NotNull(registeredHandler);
-            registeredHandler!(evt);
-
-            Assert.True(evt.IsCanceled);
-
-            Mock.Get(events).VerifyAll();
+            PacketReceive_EventCanceled<BlockPaint, BlockPaintEvent>(packet, sender);
         }
 
         [Fact]
         public void PacketReceive_WallPaintPacket_EventTriggered()
         {
-            Action<PacketReceiveEvent<WallPaint>>? registeredHandler = null;
+            var packet = new WallPaint { X = 100, Y = 256, Color = PaintColor.Red };
+            var sender = Mock.Of<IPlayer>();
+
+            PacketReceive_EventTriggered<WallPaint, WallPaintEvent>(packet, sender,
+                evt => evt.Player == sender && evt.X == 100 && evt.Y == 256 && evt.Color == PaintColor.Red);
+        }
+
+        [Fact]
+        public void PacketReceive_WallPaintPacket_EventCanceled()
+        {
+            var packet = new WallPaint { X = 100, Y = 256, Color = PaintColor.Red };
+            var sender = Mock.Of<IPlayer>();
+
+            PacketReceive_EventCanceled<WallPaint, WallPaintEvent>(packet, sender);
+        }
+
+        private void PacketReceive_EventTriggered<TPacket, TEvent>(
+            TPacket packet, IPlayer sender, Expression<Func<TEvent, bool>> match)
+            where TPacket : IPacket
+            where TEvent : Event
+        {
+            Action<PacketReceiveEvent<TPacket>>? registeredHandler = null;
 
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             Mock.Get(events)
-                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<WallPaint>>>(), log))
-                .Callback<Action<PacketReceiveEvent<WallPaint>>, ILogger>(
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<TPacket>>>(), log))
+                .Callback<Action<PacketReceiveEvent<TPacket>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
             using var world = new OrionWorld(events, log);
 
-            var packet = new WallPaint { X = 100, Y = 256, Color = PaintColor.Red };
-            var sender = Mock.Of<IPlayer>();
-            var evt = new PacketReceiveEvent<WallPaint>(packet, sender);
+            var evt = new PacketReceiveEvent<TPacket>(packet, sender);
 
             Mock.Get(events)
-                .Setup(em => em.Raise(
-                    It.Is<WallPaintEvent>(
-                        evt => evt.World == world && evt.Player == sender && evt.X == 100 &&
-                            evt.Y == 256 && evt.Color == PaintColor.Red),
-                    log));
+                .Setup(em => em.Raise(It.Is(match), log));
 
             Assert.NotNull(registeredHandler);
             registeredHandler!(evt);
@@ -1103,27 +593,26 @@ namespace Orion.Launcher
             Mock.Get(events).VerifyAll();
         }
 
-        [Fact]
-        public void PacketReceive_WallPaintPacket_EventCanceled()
+        private void PacketReceive_EventCanceled<TPacket, TEvent>(TPacket packet, IPlayer sender)
+            where TPacket : IPacket
+            where TEvent : Event
         {
-            Action<PacketReceiveEvent<WallPaint>>? registeredHandler = null;
+            Action<PacketReceiveEvent<TPacket>>? registeredHandler = null;
 
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             Mock.Get(events)
-                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<WallPaint>>>(), log))
-                .Callback<Action<PacketReceiveEvent<WallPaint>>, ILogger>(
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<TPacket>>>(), log))
+                .Callback<Action<PacketReceiveEvent<TPacket>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
             using var world = new OrionWorld(events, log);
 
-            var packet = new WallPaint { X = 100, Y = 256, Color = PaintColor.Red };
-            var sender = Mock.Of<IPlayer>();
-            var evt = new PacketReceiveEvent<WallPaint>(packet, sender);
+            var evt = new PacketReceiveEvent<TPacket>(packet, sender);
 
             Mock.Get(events)
-                .Setup(em => em.Raise(It.IsAny<WallPaintEvent>(), log))
-                .Callback<WallPaintEvent, ILogger>((evt, log) => evt.Cancel());
+                .Setup(em => em.Raise(It.IsAny<TEvent>(), log))
+                .Callback<TEvent, ILogger>((evt, log) => evt.Cancel());
 
             Assert.NotNull(registeredHandler);
             registeredHandler!(evt);
@@ -1131,6 +620,30 @@ namespace Orion.Launcher
             Assert.True(evt.IsCanceled);
 
             Mock.Get(events).VerifyAll();
+        }
+
+        private void PacketReceive_EventNotTriggered<TPacket, TEvent>(TPacket packet, IPlayer sender)
+            where TPacket : IPacket
+            where TEvent : Event
+        {
+            Action<PacketReceiveEvent<TPacket>>? registeredHandler = null;
+
+            var events = Mock.Of<IEventManager>();
+            var log = Mock.Of<ILogger>();
+            Mock.Get(events)
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<TPacket>>>(), log))
+                .Callback<Action<PacketReceiveEvent<TPacket>>, ILogger>(
+                    (handler, log) => registeredHandler = handler);
+
+            using var world = new OrionWorld(events, log);
+
+            var evt = new PacketReceiveEvent<TPacket>(packet, sender);
+
+            Assert.NotNull(registeredHandler);
+            registeredHandler!(evt);
+
+            Mock.Get(events)
+                .Verify(em => em.Raise(It.IsAny<TEvent>(), log), Times.Never);
         }
     }
 }

@@ -87,6 +87,7 @@ namespace Orion.Launcher.World
         }
 
         public int Width => Terraria.Main.maxTilesX;
+
         public int Height => Terraria.Main.maxTilesY;
 
         public string Name => Terraria.Main.worldName ?? string.Empty;
@@ -108,7 +109,7 @@ namespace Orion.Launcher.World
             DisposeUnmanaged();
             GC.SuppressFinalize(this);
 
-            // Replace the original `Terraria.Main.tile` implementation using a reflection hack.
+            // HACK: replace the original `Terraria.Main.tile` implementation using reflection.
             Terraria.Main.tile =
                 (OTAPI.Tile.ITileCollection)typeof(OTAPI.Hooks).Assembly
                     .GetType("OTAPI.Callbacks.Terraria.Collection")!

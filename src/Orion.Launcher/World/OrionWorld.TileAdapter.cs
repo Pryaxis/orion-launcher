@@ -311,9 +311,9 @@ namespace Orion.Launcher.World
 
                 if (compTile is TileAdapter adapter)
                 {
-                    var mask = liquid == 0 ?
-                        0b_00000000_11111111_11111111_11111111 :
-                        0b_00000000_10011111_11111111_11111111;
+                    var mask = liquid == 0
+                        ? 0b_00000000_11111111_11111111_11111111
+                        : 0b_00000000_10011111_11111111_11111111;
                     if ((_tile->Header & mask) != (adapter._tile->Header & mask))
                     {
                         return false;
@@ -383,9 +383,13 @@ namespace Orion.Launcher.World
                 return true;
             }
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void ClearEverything() => Unsafe.InitBlockUnaligned(_tile, 0, 13);
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void ClearMetadata() => Unsafe.InitBlockUnaligned(((byte*)_tile) + 4, 0, 9);
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void ClearTile()
             {
                 active(false);
@@ -394,6 +398,7 @@ namespace Orion.Launcher.World
                 halfBrick(false);
             }
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void Clear(Terraria.DataStructures.TileDataType types)
             {
                 if ((types & Terraria.DataStructures.TileDataType.Tile) != 0)
@@ -447,6 +452,7 @@ namespace Orion.Launcher.World
                 }
             }
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void ResetToType(ushort type)
             {
                 ClearMetadata();
