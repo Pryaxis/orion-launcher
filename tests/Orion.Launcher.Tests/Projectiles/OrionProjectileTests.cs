@@ -75,7 +75,7 @@ namespace Orion.Launcher.Projectiles
 
             Assert.Equal(2, projectile.AiValues.Length);
             Assert.Equal(1.23f, projectile.AiValues[0]);
-            Assert.Equal(1.23f, projectile.AiValues[1]);
+            Assert.Equal(4.56f, projectile.AiValues[1]);
         }
 
         [Fact]
@@ -88,7 +88,7 @@ namespace Orion.Launcher.Projectiles
             projectile.AiValues[1] = 4.56f;
 
             Assert.Equal(1.23f, terrariaProjectile.ai[0]);
-            Assert.Equal(1.23f, terrariaProjectile.ai[1]);
+            Assert.Equal(4.56f, terrariaProjectile.ai[1]);
         }
 
         [Fact]
