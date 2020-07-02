@@ -64,7 +64,7 @@ namespace Orion.Launcher
 
             _kernel.Bind<IServer>().ToConstant(this).InTransientScope();
 
-            // Bind `Ilogger` so that plugins/services retrieve plugin/service-specific logs.
+            // Bind `ILogger` to allow plugin/binding-specific logs.
             _kernel
                 .Bind<ILogger>()
                 .ToMethod(ctx =>
@@ -100,12 +100,19 @@ namespace Orion.Launcher
         }
 
         public IEventManager Events => _events.Value;
+
         public IItemService Items => _items.Value;
+
         public INpcService Npcs => _npcs.Value;
+
         public IPlayerService Players => _players.Value;
+
         public IProjectileService Projectiles => _projectiles.Value;
+
         public IChestService Chests => _chests.Value;
+
         public ISignService Signs => _signs.Value;
+
         public IWorld World => _world.Value;
 
         public void Dispose()
@@ -178,12 +185,6 @@ namespace Orion.Launcher
             InitializeServiceBindings();
             InitializePlugins();
 
-            // Clear out the loaded types so that a second `Initialize` call won't perform redundant initialization
-            // logic.
-            _serviceInterfaceTypes.Clear();
-            _serviceBindingTypes.Clear();
-            _pluginTypes.Clear();
-
             void InitializeServiceBindings()
             {
                 // Initialize the service bindings.
@@ -194,7 +195,6 @@ namespace Orion.Launcher
                         .FirstOrDefault();
                     if (bindingType is null)
                     {
-                        // We didn't find a binding for `interfaceType`, so continue.
                         continue;
                     }
 
@@ -208,7 +208,8 @@ namespace Orion.Launcher
                     };
                 }
 
-                // Initialize the singleton services so that an instance always exists.
+                // Initialize the singleton services so that an instance always exists. This must be done in a separate
+                // stage since not all of the bindings are available.
                 foreach (var interfaceType in _serviceInterfaceTypes)
                 {
                     if (interfaceType.GetCustomAttribute<ServiceAttribute>()!.Scope == ServiceScope.Singleton)

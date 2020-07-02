@@ -113,16 +113,24 @@ namespace Orion.Launcher
         }
 
         [Service(ServiceScope.Singleton)]
-        public interface ITestSingletonService { }
+        public interface ITestSingletonService
+        {
+        }
 
         [Service(ServiceScope.Transient)]
-        public interface ITestTransientService { }
+        public interface ITestTransientService
+        {
+        }
 
         [Binding("test-service")]
-        internal class TestService : ITestSingletonService, ITestTransientService { }
+        internal sealed class TestService : ITestSingletonService, ITestTransientService
+        {
+        }
 
         [Binding("test-service-2", Priority = BindingPriority.Highest)]
-        internal class TestService2 : ITestTransientService { }
+        internal sealed class TestService2 : ITestTransientService
+        {
+        }
 
         [Plugin("test-plugin")]
         public class TestOrionPlugin : OrionPlugin

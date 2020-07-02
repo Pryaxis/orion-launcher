@@ -222,7 +222,7 @@ namespace Orion.Launcher.Players
             }
         }
 
-        private class BuffArray : IArray<Buff>
+        private sealed class BuffArray : IArray<Buff>
         {
             private readonly Terraria.Player _wrapped;
 

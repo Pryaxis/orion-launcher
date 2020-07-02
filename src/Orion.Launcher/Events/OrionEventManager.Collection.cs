@@ -34,13 +34,13 @@ namespace Orion.Launcher.Events
             private readonly string _eventName;
             private readonly LogEventLevel _eventLoggingLevel;
 
-            private readonly ISet<Registration> _registrations =
+            private readonly SortedSet<Registration> _registrations =
                 new SortedSet<Registration>(
                     Comparer<Registration>.Create((r1, r2) => r1.Priority.CompareTo(r2.Priority)));
-            private readonly ISet<AsyncRegistration> _asyncRegistrations = new HashSet<AsyncRegistration>();
-            private readonly IDictionary<Action<TEvent>, Registration> _handlerToRegistration =
+            private readonly HashSet<AsyncRegistration> _asyncRegistrations = new HashSet<AsyncRegistration>();
+            private readonly Dictionary<Action<TEvent>, Registration> _handlerToRegistration =
                 new Dictionary<Action<TEvent>, Registration>();
-            private readonly IDictionary<Func<TEvent, Task>, AsyncRegistration> _handlerToAsyncRegistration =
+            private readonly Dictionary<Func<TEvent, Task>, AsyncRegistration> _handlerToAsyncRegistration =
                 new Dictionary<Func<TEvent, Task>, AsyncRegistration>();
 
             public Collection()
@@ -114,8 +114,7 @@ namespace Orion.Launcher.Events
 
                 if (evt.IsCanceled)
                 {
-                    log.Write(
-                        _eventLoggingLevel, "Canceled {@Event} for {CancellationReason}", _eventName,
+                    log.Write(_eventLoggingLevel, "Canceled {@Event} for {CancellationReason}", _eventName,
                         evt.CancellationReason);
                 }
 

@@ -117,7 +117,7 @@ namespace Orion.Launcher.Entities
             Assert.Equal(new Microsoft.Xna.Framework.Vector2(100, 100), terrariaEntity.Size);
         }
 
-        private class TestOrionEntity : OrionEntity<TestTerrariaEntity>
+        private sealed class TestOrionEntity : OrionEntity<TestTerrariaEntity>
         {
             public override string Name { get; set; } = "test";
 
@@ -131,7 +131,7 @@ namespace Orion.Launcher.Entities
             }
         }
 
-        private class TestTerrariaEntity : Terraria.Entity
+        private sealed class TestTerrariaEntity : Terraria.Entity
         {
         }
     }

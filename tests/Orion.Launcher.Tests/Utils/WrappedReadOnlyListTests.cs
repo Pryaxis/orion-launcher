@@ -105,7 +105,7 @@ namespace Orion.Launcher.Utils
             }
         }
 
-        private class TestClass : IWrapping<TestWrappedClass>
+        private sealed class TestClass : IWrapping<TestWrappedClass>
         {
             public TestWrappedClass Wrapped { get; }
 
@@ -115,7 +115,7 @@ namespace Orion.Launcher.Utils
             }
         }
 
-        private class TestWrappedClass
+        private sealed class TestWrappedClass
         {
         }
     }

@@ -61,15 +61,14 @@ namespace Orion.Launcher.Items
 
         public IEnumerator<IItem> GetEnumerator() => _items.GetEnumerator();
 
-        public IItem Spawn(ItemStack itemStack, Vector2f position)
+        public IItem Spawn(ItemStack item, Vector2f position)
         {
-            Log.Debug("Spawning {ItemStack} at {Position}", itemStack);
+            Log.Debug("Spawning {Item} at {Position}", item);
 
             lock (_lock)
             {
                 var itemIndex = Terraria.Item.NewItem(
-                    (int)position.X, (int)position.Y, 0, 0, (int)itemStack.Id, itemStack.StackSize, false,
-                    (int)itemStack.Prefix);
+                    (int)position.X, (int)position.Y, 0, 0, (int)item.Id, item.StackSize, false, (int)item.Prefix);
                 Debug.Assert(itemIndex >= 0 && itemIndex < Count);
 
                 return this[itemIndex];
