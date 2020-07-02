@@ -165,7 +165,7 @@ namespace Orion.Launcher.Events
                 [NotLogged] public Action<TEvent> Handler { get; }
                 public string Name { get; }
                 public EventPriority Priority { get; }
-                public bool IgnoreCanceled { get; }
+                [NotLogged] public bool IgnoreCanceled { get; }
 
                 public Registration(Action<TEvent> handler)
                 {
@@ -182,7 +182,7 @@ namespace Orion.Launcher.Events
             {
                 [NotLogged] public Func<TEvent, Task> Handler { get; }
                 public string Name { get; }
-                public bool IgnoreCanceled { get; }
+                [NotLogged] public bool IgnoreCanceled { get; }
 
                 public AsyncRegistration(Func<TEvent, Task> handler)
                 {
