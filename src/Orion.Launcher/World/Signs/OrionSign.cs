@@ -36,7 +36,9 @@ namespace Orion.Launcher.World.Signs
             Wrapped = terrariaSign ?? new Terraria.Sign();
         }
 
-        public OrionSign(Terraria.Sign? terrariaSign) : this(-1, terrariaSign) { }
+        public OrionSign(Terraria.Sign? terrariaSign) : this(-1, terrariaSign)
+        {
+        }
 
         public string Text
         {

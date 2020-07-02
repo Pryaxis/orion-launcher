@@ -55,7 +55,9 @@ namespace Orion.Launcher.Players
         }
 
         public OrionPlayer(Terraria.Player terrariaPlayer, IEventManager events, ILogger log)
-            : this(-1, terrariaPlayer, events, log) { }
+            : this(-1, terrariaPlayer, events, log)
+        {
+        }
 
         public override string Name
         {

@@ -115,6 +115,8 @@ namespace Orion.Launcher.Utils
             }
         }
 
-        private class TestWrappedClass { }
+        private class TestWrappedClass
+        {
+        }
     }
 }

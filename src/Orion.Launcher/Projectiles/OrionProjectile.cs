@@ -28,9 +28,13 @@ namespace Orion.Launcher.Projectiles
         private string? _nameOverride;
 
         public OrionProjectile(int projectileIndex, Terraria.Projectile terrariaProjectile)
-            : base(projectileIndex, terrariaProjectile) { }
+            : base(projectileIndex, terrariaProjectile)
+        {
+        }
 
-        public OrionProjectile(Terraria.Projectile terrariaProjectile) : this(-1, terrariaProjectile) { }
+        public OrionProjectile(Terraria.Projectile terrariaProjectile) : this(-1, terrariaProjectile)
+        {
+        }
 
         public override string Name
         {
@@ -39,6 +43,8 @@ namespace Orion.Launcher.Projectiles
         }
 
         public ProjectileId Id => (ProjectileId)Wrapped.type;
+
+        public Span<float> AiValues => Wrapped.ai;
 
         public void SetId(ProjectileId id)
         {

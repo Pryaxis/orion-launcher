@@ -66,6 +66,32 @@ namespace Orion.Launcher.Projectiles
         }
 
         [Fact]
+        public void AiValues_Get()
+        {
+            var terrariaProjectile = new Terraria.Projectile();
+            terrariaProjectile.ai[0] = 1.23f;
+            terrariaProjectile.ai[1] = 4.56f;
+            var projectile = new OrionProjectile(terrariaProjectile);
+
+            Assert.Equal(2, projectile.AiValues.Length);
+            Assert.Equal(1.23f, projectile.AiValues[0]);
+            Assert.Equal(1.23f, projectile.AiValues[1]);
+        }
+
+        [Fact]
+        public void AiValues_Set()
+        {
+            var terrariaProjectile = new Terraria.Projectile();
+            var projectile = new OrionProjectile(terrariaProjectile);
+
+            projectile.AiValues[0] = 1.23f;
+            projectile.AiValues[1] = 4.56f;
+
+            Assert.Equal(1.23f, terrariaProjectile.ai[0]);
+            Assert.Equal(1.23f, terrariaProjectile.ai[1]);
+        }
+
+        [Fact]
         public void SetId()
         {
             var terrariaProjectile = new Terraria.Projectile();

@@ -25,8 +25,13 @@ namespace Orion.Launcher.Npcs
     [LogAsScalar]
     internal sealed class OrionNpc : OrionEntity<Terraria.NPC>, INpc
     {
-        public OrionNpc(int npcIndex, Terraria.NPC terrariaNpc) : base(npcIndex, terrariaNpc) { }
-        public OrionNpc(Terraria.NPC terrariaNpc) : this(-1, terrariaNpc) { }
+        public OrionNpc(int npcIndex, Terraria.NPC terrariaNpc) : base(npcIndex, terrariaNpc)
+        {
+        }
+
+        public OrionNpc(Terraria.NPC terrariaNpc) : this(-1, terrariaNpc)
+        {
+        }
 
         public override string Name
         {

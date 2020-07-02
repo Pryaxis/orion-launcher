@@ -42,7 +42,9 @@ namespace Orion.Launcher.World.Chests
             Items = new ItemArray(Wrapped.item);
         }
 
-        public OrionChest(Terraria.Chest? terrariaChest) : this(-1, terrariaChest) { }
+        public OrionChest(Terraria.Chest? terrariaChest) : this(-1, terrariaChest)
+        {
+        }
 
         public string Name
         {

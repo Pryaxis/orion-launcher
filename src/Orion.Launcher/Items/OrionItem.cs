@@ -25,8 +25,13 @@ namespace Orion.Launcher.Items
     [LogAsScalar]
     internal sealed class OrionItem : OrionEntity<Terraria.Item>, IItem
     {
-        public OrionItem(int itemIndex, Terraria.Item terrariaItem) : base(itemIndex, terrariaItem) { }
-        public OrionItem(Terraria.Item terrariaItem) : this(-1, terrariaItem) { }
+        public OrionItem(int itemIndex, Terraria.Item terrariaItem) : base(itemIndex, terrariaItem)
+        {
+        }
+
+        public OrionItem(Terraria.Item terrariaItem) : this(-1, terrariaItem)
+        {
+        }
 
         public override string Name
         {
