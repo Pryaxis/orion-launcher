@@ -171,6 +171,54 @@ namespace Orion.Launcher
 
             Assert.Equal(WorldDifficulty.Master, (WorldDifficulty)Terraria.Main.GameMode);
         }
+        
+        [Fact]
+        public void BaseNpcSpawnRate_Get()
+        {
+            Terraria.NPC.defaultSpawnRate = 123;
+
+            var events = Mock.Of<IEventManager>();
+            var log = Mock.Of<ILogger>();
+            using var world = new OrionWorld(events, log);
+
+            Assert.Equal(123, world.BaseNpcSpawnRate);
+        }
+
+        [Fact]
+        public void BaseNpcSpawnRate_Set()
+        {
+            var events = Mock.Of<IEventManager>();
+            var log = Mock.Of<ILogger>();
+            using var world = new OrionWorld(events, log);
+
+            world.BaseNpcSpawnRate = 123;
+
+            Assert.Equal(123, Terraria.NPC.defaultSpawnRate);
+        }
+
+        [Fact]
+        public void BaseNpcSpawnLimit_Get()
+        {
+            Terraria.NPC.defaultMaxSpawns = 456;
+
+            var events = Mock.Of<IEventManager>();
+            var log = Mock.Of<ILogger>();
+            using var world = new OrionWorld(events, log);
+
+            Assert.Equal(456, world.BaseNpcSpawnLimit);
+        }
+
+        [Fact]
+        public void BaseNpcSpawnLimit_Set()
+        {
+            var events = Mock.Of<IEventManager>();
+            var log = Mock.Of<ILogger>();
+            using var world = new OrionWorld(events, log);
+
+            world.BaseNpcSpawnLimit = 456;
+
+            Assert.Equal(456, Terraria.NPC.defaultMaxSpawns);
+        }
 
         [Fact]
         public void WorldSave_EventTriggered()

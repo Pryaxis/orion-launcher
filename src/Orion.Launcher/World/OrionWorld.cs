@@ -99,6 +99,18 @@ namespace Orion.Launcher.World
             set => Terraria.Main.GameMode = (int)value;
         }
 
+        public int BaseNpcSpawnRate
+        {
+            get => Terraria.NPC.defaultSpawnRate;
+            set => Terraria.NPC.defaultSpawnRate = value;
+        }
+
+        public int BaseNpcSpawnLimit
+        {
+            get => Terraria.NPC.defaultMaxSpawns;
+            set => Terraria.NPC.defaultMaxSpawns = value;
+        }
+
         public unsafe void Dispose()
         {
             DisposeUnmanaged();
