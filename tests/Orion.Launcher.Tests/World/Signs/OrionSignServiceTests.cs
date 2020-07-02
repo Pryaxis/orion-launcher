@@ -65,7 +65,7 @@ namespace Orion.Launcher.World.Signs
         public void Item_GetMultipleTimes_ReturnsSameInstance()
         {
             Terraria.Main.sign[0] = new Terraria.Sign();
-            
+
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             using var signService = new OrionSignService(events, log);

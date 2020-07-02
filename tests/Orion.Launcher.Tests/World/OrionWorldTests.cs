@@ -16,22 +16,22 @@
 // along with Orion.  If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq.Expressions;
 using Moq;
 using Orion.Core.Events;
 using Orion.Core.Events.Packets;
+using Orion.Core.Events.World;
 using Orion.Core.Events.World.Tiles;
+using Orion.Core.Packets;
+using Orion.Core.Packets.DataStructures;
+using Orion.Core.Packets.World.Tiles;
 using Orion.Core.Players;
+using Orion.Core.World;
+using Orion.Core.World.Tiles;
+using Orion.Launcher.World;
 using Serilog;
 using Xunit;
-using Orion.Launcher.World;
-using Orion.Core.Events.World;
-using Orion.Core.World.Tiles;
-using Orion.Core.World;
-using System.Diagnostics.CodeAnalysis;
-using Orion.Core.Packets.World.Tiles;
-using Orion.Core.Packets.DataStructures;
-using System.Linq.Expressions;
-using Orion.Core.Packets;
 
 namespace Orion.Launcher
 {
