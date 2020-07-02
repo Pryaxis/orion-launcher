@@ -17,10 +17,12 @@
 
 using System;
 using System.Linq;
+using System.Linq.Expressions;
 using Moq;
 using Orion.Core.Events;
 using Orion.Core.Events.Packets;
 using Orion.Core.Events.World.Signs;
+using Orion.Core.Packets;
 using Orion.Core.Packets.World.Signs;
 using Orion.Core.Players;
 using Serilog;
@@ -99,29 +101,11 @@ namespace Orion.Launcher.World.Signs
         {
             Terraria.Main.sign[0] = new Terraria.Sign { x = 256, y = 100, text = "test" };
 
-            Action<PacketReceiveEvent<SignRead>>? registeredHandler = null;
-
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            Mock.Get(events)
-                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<SignRead>>>(), log))
-                .Callback<Action<PacketReceiveEvent<SignRead>>, ILogger>(
-                    (handler, log) => registeredHandler = handler);
-
-            using var signService = new OrionSignService(events, log);
-
             var packet = new SignRead { X = 256, Y = 100 };
             var sender = Mock.Of<IPlayer>();
-            var evt = new PacketReceiveEvent<SignRead>(packet, sender);
 
-            Mock.Get(events)
-                .Setup(em => em.Raise(
-                    It.Is<SignReadEvent>(evt => evt.Sign == signService[0] && evt.Player == sender), log));
-
-            Assert.NotNull(registeredHandler);
-            registeredHandler!(evt);
-
-            Mock.Get(events).VerifyAll();
+            PacketReceive_EventTriggered<SignRead, SignReadEvent>(packet, sender,
+                evt => ((OrionSign)evt.Sign).Wrapped == Terraria.Main.sign[0] && evt.Player == sender);
         }
 
         [Fact]
@@ -129,31 +113,10 @@ namespace Orion.Launcher.World.Signs
         {
             Terraria.Main.sign[0] = new Terraria.Sign { x = 256, y = 100, text = "test" };
 
-            Action<PacketReceiveEvent<SignRead>>? registeredHandler = null;
-
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            Mock.Get(events)
-                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<SignRead>>>(), log))
-                .Callback<Action<PacketReceiveEvent<SignRead>>, ILogger>(
-                    (handler, log) => registeredHandler = handler);
-
-            using var signService = new OrionSignService(events, log);
-
             var packet = new SignRead { X = 256, Y = 100 };
             var sender = Mock.Of<IPlayer>();
-            var evt = new PacketReceiveEvent<SignRead>(packet, sender);
 
-            Mock.Get(events)
-                .Setup(em => em.Raise(It.IsAny<SignReadEvent>(), log))
-                .Callback<SignReadEvent, ILogger>((evt, log) => evt.Cancel());
-
-            Assert.NotNull(registeredHandler);
-            registeredHandler!(evt);
-
-            Assert.True(evt.IsCanceled);
-
-            Mock.Get(events).VerifyAll();
+            PacketReceive_EventCanceled<SignRead, SignReadEvent>(packet, sender);
         }
 
         [Fact]
@@ -164,26 +127,90 @@ namespace Orion.Launcher.World.Signs
                 Terraria.Main.sign[i] = new Terraria.Sign();
             }
 
-            Action<PacketReceiveEvent<SignRead>>? registeredHandler = null;
+            var packet = new SignRead { X = 256, Y = 100 };
+            var sender = Mock.Of<IPlayer>();
+
+            PacketReceive_EventNotTriggered<SignRead, SignReadEvent>(packet, sender);
+        }
+
+        private void PacketReceive_EventTriggered<TPacket, TEvent>(
+            TPacket packet, IPlayer sender, Expression<Func<TEvent, bool>> match)
+            where TPacket : IPacket
+            where TEvent : Event
+        {
+            Action<PacketReceiveEvent<TPacket>>? registeredHandler = null;
 
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             Mock.Get(events)
-                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<SignRead>>>(), log))
-                .Callback<Action<PacketReceiveEvent<SignRead>>, ILogger>(
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<TPacket>>>(), log))
+                .Callback<Action<PacketReceiveEvent<TPacket>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
             using var signService = new OrionSignService(events, log);
 
-            var packet = new SignRead { X = 256, Y = 100 };
-            var sender = Mock.Of<IPlayer>();
-            var evt = new PacketReceiveEvent<SignRead>(packet, sender);
+            var evt = new PacketReceiveEvent<TPacket>(packet, sender);
+
+            Mock.Get(events)
+                .Setup(em => em.Raise(It.Is(match), log));
+
+            Assert.NotNull(registeredHandler);
+            registeredHandler!(evt);
+
+            Mock.Get(events).VerifyAll();
+        }
+
+        private void PacketReceive_EventCanceled<TPacket, TEvent>(TPacket packet, IPlayer sender)
+            where TPacket : IPacket
+            where TEvent : Event
+        {
+            Action<PacketReceiveEvent<TPacket>>? registeredHandler = null;
+
+            var events = Mock.Of<IEventManager>();
+            var log = Mock.Of<ILogger>();
+            Mock.Get(events)
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<TPacket>>>(), log))
+                .Callback<Action<PacketReceiveEvent<TPacket>>, ILogger>(
+                    (handler, log) => registeredHandler = handler);
+
+            using var signService = new OrionSignService(events, log);
+
+            var evt = new PacketReceiveEvent<TPacket>(packet, sender);
+
+            Mock.Get(events)
+                .Setup(em => em.Raise(It.IsAny<TEvent>(), log))
+                .Callback<TEvent, ILogger>((evt, log) => evt.Cancel());
+
+            Assert.NotNull(registeredHandler);
+            registeredHandler!(evt);
+
+            Assert.True(evt.IsCanceled);
+
+            Mock.Get(events).VerifyAll();
+        }
+
+        private void PacketReceive_EventNotTriggered<TPacket, TEvent>(TPacket packet, IPlayer sender)
+            where TPacket : IPacket
+            where TEvent : Event
+        {
+            Action<PacketReceiveEvent<TPacket>>? registeredHandler = null;
+
+            var events = Mock.Of<IEventManager>();
+            var log = Mock.Of<ILogger>();
+            Mock.Get(events)
+                .Setup(em => em.RegisterHandler(It.IsAny<Action<PacketReceiveEvent<TPacket>>>(), log))
+                .Callback<Action<PacketReceiveEvent<TPacket>>, ILogger>(
+                    (handler, log) => registeredHandler = handler);
+
+            using var signService = new OrionSignService(events, log);
+
+            var evt = new PacketReceiveEvent<TPacket>(packet, sender);
 
             Assert.NotNull(registeredHandler);
             registeredHandler!(evt);
 
             Mock.Get(events)
-                .Verify(em => em.Raise(It.IsAny<SignReadEvent>(), log), Times.Never);
+                .Verify(em => em.Raise(It.IsAny<TEvent>(), log), Times.Never);
         }
     }
 }

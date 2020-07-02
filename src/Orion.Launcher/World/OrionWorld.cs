@@ -209,7 +209,7 @@ namespace Orion.Launcher.World
             var packet = evt.Packet;
 
             _events.Forward(
-                evt, new TileLiquidEvent(this, evt.Sender, packet.X, packet.Y, packet.LiquidAmount, packet.Liquid),
+                evt, new TileLiquidEvent(this, evt.Sender, packet.X, packet.Y, packet.LiquidAmount, packet.LiquidType),
                 _log);
         }
 

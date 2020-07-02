@@ -147,8 +147,8 @@ namespace Orion.Launcher.World
                 }
             }
 
-            public byte liquidType() => (byte)_tile->Liquid;
-            public void liquidType(int liquidType) => _tile->Liquid = (Liquid)liquidType;
+            public byte liquidType() => (byte)_tile->LiquidType;
+            public void liquidType(int liquidType) => _tile->LiquidType = (LiquidType)liquidType;
             public bool wire4() => _tile->HasYellowWire;
             public void wire4(bool wire4) => _tile->HasYellowWire = wire4;
 

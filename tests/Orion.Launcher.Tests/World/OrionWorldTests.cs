@@ -565,17 +565,17 @@ namespace Orion.Launcher
             var log = Mock.Of<ILogger>();
             using var world = new OrionWorld(events, log);
 
-            world[0, 0] = new Tile { Liquid = Liquid.Lava };
+            world[0, 0] = new Tile { LiquidType = LiquidType.Lava };
 
             Assert.True(Terraria.Main.tile[0, 0].lava());
 
             Terraria.Main.tile[0, 0].lava(false);
 
-            Assert.NotEqual(Liquid.Lava, world[0, 0].Liquid);
+            Assert.NotEqual(LiquidType.Lava, world[0, 0].LiquidType);
 
             Terraria.Main.tile[0, 0].lava(true);
 
-            Assert.Equal(Liquid.Lava, world[0, 0].Liquid);
+            Assert.Equal(LiquidType.Lava, world[0, 0].LiquidType);
         }
 
         [Fact]
@@ -585,17 +585,17 @@ namespace Orion.Launcher
             var log = Mock.Of<ILogger>();
             using var world = new OrionWorld(events, log);
 
-            world[0, 0] = new Tile { Liquid = Liquid.Honey };
+            world[0, 0] = new Tile { LiquidType = LiquidType.Honey };
 
             Assert.True(Terraria.Main.tile[0, 0].honey());
 
             Terraria.Main.tile[0, 0].honey(false);
 
-            Assert.NotEqual(Liquid.Honey, world[0, 0].Liquid);
+            Assert.NotEqual(LiquidType.Honey, world[0, 0].LiquidType);
 
             Terraria.Main.tile[0, 0].honey(true);
 
-            Assert.Equal(Liquid.Honey, world[0, 0].Liquid);
+            Assert.Equal(LiquidType.Honey, world[0, 0].LiquidType);
         }
 
         [Fact]
@@ -605,13 +605,13 @@ namespace Orion.Launcher
             var log = Mock.Of<ILogger>();
             using var world = new OrionWorld(events, log);
 
-            world[0, 0] = new Tile { Liquid = Liquid.Lava };
+            world[0, 0] = new Tile { LiquidType = LiquidType.Lava };
 
-            Assert.Equal((byte)Liquid.Lava, Terraria.Main.tile[0, 0].liquidType());
+            Assert.Equal((byte)LiquidType.Lava, Terraria.Main.tile[0, 0].liquidType());
 
-            Terraria.Main.tile[0, 0].liquidType((int)Liquid.Honey);
+            Terraria.Main.tile[0, 0].liquidType((int)LiquidType.Honey);
 
-            Assert.Equal(Liquid.Honey, world[0, 0].Liquid);
+            Assert.Equal(LiquidType.Honey, world[0, 0].LiquidType);
         }
 
         [Fact]
@@ -1255,14 +1255,14 @@ namespace Orion.Launcher
             world[0, 0] = new Tile
             {
                 LiquidAmount = 100,
-                Liquid = Liquid.Honey,
+                LiquidType = LiquidType.Honey,
                 IsCheckingLiquid = true
             };
 
             Terraria.Main.tile[0, 0].Clear(Terraria.DataStructures.TileDataType.Liquid);
 
             Assert.Equal(0, world[0, 0].LiquidAmount);
-            Assert.Equal(Liquid.Water, world[0, 0].Liquid);
+            Assert.Equal(LiquidType.Water, world[0, 0].LiquidType);
             Assert.False(world[0, 0].IsCheckingLiquid);
         }
 
@@ -2209,7 +2209,7 @@ namespace Orion.Launcher
 
             using var world = new OrionWorld(events, log);
 
-            var packet = new TileLiquid { X = 100, Y = 256, LiquidAmount = 255, Liquid = Liquid.Honey };
+            var packet = new TileLiquid { X = 100, Y = 256, LiquidAmount = 255, LiquidType = LiquidType.Honey };
             var sender = Mock.Of<IPlayer>();
             var evt = new PacketReceiveEvent<TileLiquid>(packet, sender);
 
@@ -2217,7 +2217,7 @@ namespace Orion.Launcher
                 .Setup(em => em.Raise(
                     It.Is<TileLiquidEvent>(
                         evt => evt.World == world && evt.Player == sender && evt.X == 100 &&
-                            evt.Y == 256 && evt.LiquidAmount == 255 && evt.Liquid == Liquid.Honey),
+                            evt.Y == 256 && evt.LiquidAmount == 255 && evt.Liquid == LiquidType.Honey),
                     log));
 
             Assert.NotNull(registeredHandler);
@@ -2240,7 +2240,7 @@ namespace Orion.Launcher
 
             using var world = new OrionWorld(events, log);
 
-            var packet = new TileLiquid { X = 100, Y = 256, LiquidAmount = 255, Liquid = Liquid.Honey };
+            var packet = new TileLiquid { X = 100, Y = 256, LiquidAmount = 255, LiquidType = LiquidType.Honey };
             var sender = Mock.Of<IPlayer>();
             var evt = new PacketReceiveEvent<TileLiquid>(packet, sender);
 
