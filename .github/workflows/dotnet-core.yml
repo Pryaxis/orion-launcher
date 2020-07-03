@@ -6,29 +6,38 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Check out repository
-        uses: actions/checkout@master
+      - name: Check out orion-launcher repository
+        uses: actions/checkout@v2
+      - name: Check out orion-core repository
+        uses: actions/checkout@v2
+        with:
+          repository: Pryaxis/orion-core
       - name: Set up .NET core
         uses: actions/setup-dotnet@v1
         with:
           dotnet-version: 3.1.300
+      - name: Run tests (with code coverage)
+        run: >
+          dotnet test -f netcoreapp3.1 -c Release tests/Orion.Launcher.Tests/Orion.Launcher.Tests.csproj
+          /p:CollectCoverage=true
+          /p:CoverletOutputFormat=opencover
+          /p:ExcludeByAttribute=GeneratedCodeAttribute
+      - name: Upload code coverage
+        uses: codecov/codecov-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          file: tests/Orion.Launcher.Tests/coverage.opencover.xml
       - name: Build artifacts
         run: |
-          dotnet publish -c Release -r linux-x64 src/Orion.Launcher/Orion.Launcher.csproj /p:PublishSingleFile=true
-          dotnet publish -c Release -r osx-x64 src/Orion.Launcher/Orion.Launcher.csproj /p:PublishSingleFile=true
-          dotnet publish -c Release -r win-x64 src/Orion.Launcher/Orion.Launcher.csproj /p:PublishSingleFile=true
-      - name: Publish artifacts (Linux x64)
-        uses: actions/upload-artifact@master
+          dotnet publish -c Debug src/Orion.Launcher/Orion.Launcher.csproj
+          dotnet publish -c Release src/Orion.Launcher/Orion.Launcher.csproj
+      - name: Publish artifacts (Debug)
+        uses: actions/upload-artifact@v2
         with:
-          name: Orion.Launcher (Linux x64)
-          path: src/Orion.Launcher/bin/Release/netcoreapp3.1/linux-x64/publish
-      - name: Publish artifacts (OS X x64)
-        uses: actions/upload-artifact@master
+          name: Orion.Launcher (Debug)
+          path: src/Orion.Launcher/bin/Debug/netcoreapp3.1/publish
+      - name: Publish artifacts (Release)
+        uses: actions/upload-artifact@v2
         with:
-          name: Orion.Launcher (OS X x64)
-          path: src/Orion.Launcher/bin/Release/netcoreapp3.1/osx-x64/publish
-      - name: Publish artifacts (Windows x64)
-        uses: actions/upload-artifact@master
-        with:
-          name: Orion.Launcher (Windows x64)
-          path: src/Orion.Launcher/bin/Release/netcoreapp3.1/win-x64/publish
+          name: Orion.Launcher (Release)
+          path: src/Orion.Launcher/bin/Release/netcoreapp3.1/publish

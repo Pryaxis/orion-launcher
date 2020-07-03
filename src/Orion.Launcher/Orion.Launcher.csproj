@@ -7,7 +7,6 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <StartupObject>Orion.Launcher.Program</StartupObject>
-    <PublishTrimmed>true</PublishTrimmed>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,9 +16,8 @@
     </PackageReference>
     <PackageReference Include="Serilog.Sinks.Console" Version="3.1.1" />
     <PackageReference Include="Serilog.Sinks.File" Version="4.1.0" />
-    <PackageReference Include="System.IO.Packaging" Version="4.7.0" />
-    <PackageReference Include="System.Security.Permissions" Version="4.7.0" />
     <PackageReference Include="Ninject" Version="3.3.4" />
+    <PackageReference Include="System.IO.Packaging" Version="4.7.0" />
   </ItemGroup>
 
   <ItemGroup>
