@@ -30,7 +30,7 @@ namespace Orion.Launcher.World
     public partial class OrionWorldTests
     {
         [Fact]
-        public void Main_tile_Width_Get()
+        public void Main_tile_Get_Width_Get()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -40,7 +40,7 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
-        public void Main_tile_Height_Get()
+        public void Main_tile_Get_Height_Get()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -50,7 +50,7 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
-        public void Main_tile_type_Get()
+        public void Main_tile_Get_type_Get()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -62,7 +62,7 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
-        public void Main_tile_type_Set()
+        public void Main_tile_Get_type_Set()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -74,7 +74,7 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
-        public void Main_tile_wall_Get()
+        public void Main_tile_Get_wall_Get()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -86,7 +86,7 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
-        public void Main_tile_wall_Set()
+        public void Main_tile_Get_wall_Set()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -98,7 +98,7 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
-        public void Main_tile_liquid_Get()
+        public void Main_tile_Get_liquid_Get()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -110,7 +110,7 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
-        public void Main_tile_liquid_Set()
+        public void Main_tile_Get_liquid_Set()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -122,7 +122,7 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
-        public void Main_tile_sTileHeader_Get()
+        public void Main_tile_Get_sTileHeader_Get()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -134,7 +134,7 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
-        public void Main_tile_sTileHeader_Set()
+        public void Main_tile_Get_sTileHeader_Set()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -146,7 +146,7 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
-        public void Main_tile_bTileHeader_Get()
+        public void Main_tile_Get_bTileHeader_Get()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -158,7 +158,7 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
-        public void Main_tile_bTileHeader_Set()
+        public void Main_tile_Get_bTileHeader_Set()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -170,7 +170,7 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
-        public void Main_tile_bTileHeader3_Get()
+        public void Main_tile_Get_bTileHeader3_Get()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -182,7 +182,7 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
-        public void Main_tile_bTileHeader3_Set()
+        public void Main_tile_Get_bTileHeader3_Set()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -194,7 +194,7 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
-        public void Main_tile_frameX_Get()
+        public void Main_tile_Get_frameX_Get()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -206,7 +206,7 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
-        public void Main_tile_frameX_Set()
+        public void Main_tile_Get_frameX_Set()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -218,7 +218,7 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
-        public void Main_tile_frameY_Get()
+        public void Main_tile_Get_frameY_Get()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -230,7 +230,7 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
-        public void Main_tile_frameY_Set()
+        public void Main_tile_Get_frameY_Set()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -242,7 +242,7 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
-        public void Main_tile_color_Get()
+        public void Main_tile_Get_color_Get()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -254,7 +254,7 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
-        public void Main_tile_color_Set()
+        public void Main_tile_Get_color_Set()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -268,7 +268,7 @@ namespace Orion.Launcher.World
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
-        public void Main_tile_active_Get(bool value)
+        public void Main_tile_Get_active_Get(bool value)
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -282,7 +282,7 @@ namespace Orion.Launcher.World
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
-        public void Main_tile_active_Set(bool value)
+        public void Main_tile_Get_active_Set(bool value)
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -296,7 +296,7 @@ namespace Orion.Launcher.World
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
-        public void Main_tile_inActive_Get(bool value)
+        public void Main_tile_Get_inActive_Get(bool value)
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -310,7 +310,7 @@ namespace Orion.Launcher.World
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
-        public void Main_tile_inActive_Set(bool value)
+        public void Main_tile_Get_inActive_Set(bool value)
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -322,7 +322,7 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
-        public void Main_tile_nactive_Get_ReturnsTrue()
+        public void Main_tile_Get_nactive_Get_ReturnsTrue()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -338,7 +338,7 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
-        public void Main_tile_nactive_Get_ReturnsFalse()
+        public void Main_tile_Get_nactive_Get_ReturnsFalse()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -352,7 +352,7 @@ namespace Orion.Launcher.World
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
-        public void Main_tile_wire_Get(bool value)
+        public void Main_tile_Get_wire_Get(bool value)
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -366,7 +366,7 @@ namespace Orion.Launcher.World
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
-        public void Main_tile_wire_Set(bool value)
+        public void Main_tile_Get_wire_Set(bool value)
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -380,7 +380,7 @@ namespace Orion.Launcher.World
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
-        public void Main_tile_wire2_Get(bool value)
+        public void Main_tile_Get_wire2_Get(bool value)
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -394,7 +394,7 @@ namespace Orion.Launcher.World
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
-        public void Main_tile_wire2_Set(bool value)
+        public void Main_tile_Get_wire2_Set(bool value)
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -408,7 +408,7 @@ namespace Orion.Launcher.World
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
-        public void Main_tile_wire3_Get(bool value)
+        public void Main_tile_Get_wire3_Get(bool value)
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -422,7 +422,7 @@ namespace Orion.Launcher.World
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
-        public void Main_tile_wire3_Set(bool value)
+        public void Main_tile_Get_wire3_Set(bool value)
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -436,7 +436,7 @@ namespace Orion.Launcher.World
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
-        public void Main_tile_halfBrick_Set_Get(bool value)
+        public void Main_tile_Get_halfBrick_Set_Get(bool value)
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -450,7 +450,7 @@ namespace Orion.Launcher.World
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
-        public void Main_tile_actuator_Get(bool value)
+        public void Main_tile_Get_actuator_Get(bool value)
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -464,7 +464,7 @@ namespace Orion.Launcher.World
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
-        public void Main_tile_actuator_Set(bool value)
+        public void Main_tile_Get_actuator_Set(bool value)
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -476,7 +476,7 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
-        public void Main_tile_slope_Set_Get()
+        public void Main_tile_Get_slope_Set_Get()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -488,7 +488,7 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
-        public void Main_tile_wallColor_Get()
+        public void Main_tile_Get_wallColor_Get()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -500,7 +500,7 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
-        public void Main_tile_wallColor_Set()
+        public void Main_tile_Get_wallColor_Set()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -512,7 +512,7 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
-        public void Main_tile_lava_Get()
+        public void Main_tile_Get_lava_Get()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -530,7 +530,7 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
-        public void Main_tile_lava_Set()
+        public void Main_tile_Get_lava_Set()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -546,7 +546,7 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
-        public void Main_tile_honey_Get()
+        public void Main_tile_Get_honey_Get()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -564,7 +564,7 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
-        public void Main_tile_honey_Set()
+        public void Main_tile_Get_honey_Set()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -583,7 +583,7 @@ namespace Orion.Launcher.World
         [InlineData(LiquidType.Water)]
         [InlineData(LiquidType.Honey)]
         [InlineData(LiquidType.Lava)]
-        public void Main_tile_liquidType_Get(LiquidType value)
+        public void Main_tile_Get_liquidType_Get(LiquidType value)
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -598,7 +598,7 @@ namespace Orion.Launcher.World
         [InlineData(LiquidType.Water)]
         [InlineData(LiquidType.Honey)]
         [InlineData(LiquidType.Lava)]
-        public void Main_tile_liquidType_Set(LiquidType value)
+        public void Main_tile_Get_liquidType_Set(LiquidType value)
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -612,7 +612,7 @@ namespace Orion.Launcher.World
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
-        public void Main_tile_wire4_Get(bool value)
+        public void Main_tile_Get_wire4_Get(bool value)
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -626,7 +626,7 @@ namespace Orion.Launcher.World
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
-        public void Main_tile_wire4_Set(bool value)
+        public void Main_tile_Get_wire4_Set(bool value)
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -638,7 +638,7 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
-        public void Main_tile_frameNumber_Set_Get()
+        public void Main_tile_Get_frameNumber_Set_Get()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -652,7 +652,7 @@ namespace Orion.Launcher.World
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
-        public void Main_tile_checkingLiquid_Set_Get(bool value)
+        public void Main_tile_Get_checkingLiquid_Set_Get(bool value)
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -666,7 +666,7 @@ namespace Orion.Launcher.World
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
-        public void Main_tile_skipLiquid_Set_Get(bool value)
+        public void Main_tile_Get_skipLiquid_Set_Get(bool value)
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -678,7 +678,7 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
-        public void Main_tile_CopyFrom_NullTile()
+        public void Main_tile_Get_CopyFrom_NullTile()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -691,7 +691,7 @@ namespace Orion.Launcher.World
                 Liquid = new Liquid(LiquidType.Water, 3),
                 BlockFrameX = 4,
                 BlockFrameY = 5,
-                Header = 12345678u
+                Header = 0x12345678u
             };
 
             Terraria.Main.tile[0, 0].CopyFrom(null);
@@ -705,7 +705,7 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
-        public void Main_tile_CopyFrom_TileAdapter()
+        public void Main_tile_Get_CopyFrom_TileAdapter()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -718,7 +718,7 @@ namespace Orion.Launcher.World
                 Liquid = new Liquid(LiquidType.Water, 3),
                 BlockFrameX = 4,
                 BlockFrameY = 5,
-                Header = 12345678u
+                Header = 0x12345678u
             };
 
             Terraria.Main.tile[0, 1].CopyFrom(Terraria.Main.tile[0, 0]);
@@ -728,11 +728,33 @@ namespace Orion.Launcher.World
             Assert.Equal(3, world[0, 1].Liquid.Amount);
             Assert.Equal(4, world[0, 1].BlockFrameX);
             Assert.Equal(5, world[0, 1].BlockFrameY);
-            Assert.Equal(12345678u, world[0, 1].Header);
+            Assert.Equal(0x12345678u, world[0, 1].Header);
         }
 
         [Fact]
-        public void Main_tile_isTheSameAs_NullTile_ReturnsFalse()
+        public void Main_tile_Get_CopyFrom_ITile()
+        {
+            var events = Mock.Of<IEventManager>();
+            var log = Mock.Of<ILogger>();
+            using var world = new OrionWorld(events, log);
+
+            var tile = Mock.Of<OTAPI.Tile.ITile>(
+                t => t.type == (ushort)BlockId.Stone && t.wall == (ushort)WallId.Dirt && t.liquid == 3 &&
+                    t.frameX == 4 && t.frameY == 5 && t.sTileHeader == 0x5678 && t.bTileHeader == 0x34 &&
+                    t.bTileHeader3 == 0x12);
+
+            Terraria.Main.tile[0, 1].CopyFrom(tile);
+
+            Assert.Equal(BlockId.Stone, world[0, 1].BlockId);
+            Assert.Equal(WallId.Dirt, world[0, 1].WallId);
+            Assert.Equal(3, world[0, 1].Liquid.Amount);
+            Assert.Equal(4, world[0, 1].BlockFrameX);
+            Assert.Equal(5, world[0, 1].BlockFrameY);
+            Assert.Equal(0x12345678u, world[0, 1].Header);
+        }
+
+        [Fact]
+        public void Main_tile_Get_isTheSameAs_NullTile_ReturnsFalse()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -742,7 +764,7 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
-        public void Main_tile_isTheSameAs_TileAdapterDifferentHeader_ReturnsFalse()
+        public void Main_tile_Get_isTheSameAs_TileAdapterDifferentHeader_ReturnsFalse()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -755,7 +777,7 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
-        public void Main_tile_isTheSameAs_TileAdapterDifferentHeader2_ReturnsFalse()
+        public void Main_tile_Get_isTheSameAs_TileAdapterDifferentHeader2_ReturnsFalse()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -768,7 +790,7 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
-        public void Main_tile_isTheSameAs_TileAdapterDifferentBlockIdAndBlockActive_ReturnsFalse()
+        public void Main_tile_Get_isTheSameAs_TileAdapterDifferentBlockIdAndBlockActive_ReturnsFalse()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -781,7 +803,7 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
-        public void Main_tile_isTheSameAs_TileAdapterDifferentBlockIdButNotBlockActive_ReturnsTrue()
+        public void Main_tile_Get_isTheSameAs_TileAdapterDifferentBlockIdButNotBlockActive_ReturnsTrue()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -794,7 +816,7 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
-        public void Main_tile_isTheSameAs_TileAdapterDifferentBlockFrameXAndHasFrames_ReturnsFalse()
+        public void Main_tile_Get_isTheSameAs_TileAdapterDifferentBlockFrameXAndHasFrames_ReturnsFalse()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -807,7 +829,7 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
-        public void Main_tile_isTheSameAs_TileAdapterDifferentBlockFrameYAndHasFrames_ReturnsFalse()
+        public void Main_tile_Get_isTheSameAs_TileAdapterDifferentBlockFrameYAndHasFrames_ReturnsFalse()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -820,7 +842,7 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
-        public void Main_tile_isTheSameAs_TileAdapterDifferentBlockFramesButNotHasFrames_ReturnsTrue()
+        public void Main_tile_Get_isTheSameAs_TileAdapterDifferentBlockFramesButNotHasFrames_ReturnsTrue()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -845,7 +867,7 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
-        public void Main_tile_isTheSameAs_TileAdapterDifferentWallId_ReturnsFalse()
+        public void Main_tile_Get_isTheSameAs_TileAdapterDifferentWallId_ReturnsFalse()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -858,7 +880,7 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
-        public void Main_tile_isTheSameAs_TileAdapterDifferentLiquidAmount_ReturnsFalse()
+        public void Main_tile_Get_isTheSameAs_TileAdapterDifferentLiquidAmount_ReturnsFalse()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -871,7 +893,7 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
-        public void Main_tile_isTheSameAs_TileAdapterDifferentWallColor_ReturnsFalse()
+        public void Main_tile_Get_isTheSameAs_TileAdapterDifferentWallColor_ReturnsFalse()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -884,7 +906,7 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
-        public void Main_tile_isTheSameAs_TileAdapterDifferentYellowWire_ReturnsFalse()
+        public void Main_tile_Get_isTheSameAs_TileAdapterDifferentYellowWire_ReturnsFalse()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -897,7 +919,7 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
-        public void Main_tile_isTheSameAs_ITileDifferentSTileHeader_ReturnsFalse()
+        public void Main_tile_Get_isTheSameAs_ITileDifferentSTileHeader_ReturnsFalse()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -910,7 +932,7 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
-        public void Main_tile_isTheSameAs_ITileDifferentBTileHeader_ReturnsFalse()
+        public void Main_tile_Get_isTheSameAs_ITileDifferentBTileHeader_ReturnsFalse()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -924,7 +946,7 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
-        public void Main_tile_isTheSameAs_ITileDifferentBlockIdAndBlockActive_ReturnsFalse()
+        public void Main_tile_Get_isTheSameAs_ITileDifferentBlockIdAndBlockActive_ReturnsFalse()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -937,7 +959,7 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
-        public void Main_tile_isTheSameAs_ITileDifferentBlockIdButNotBlockActive_ReturnsTrue()
+        public void Main_tile_Get_isTheSameAs_ITileDifferentBlockIdButNotBlockActive_ReturnsTrue()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -950,7 +972,7 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
-        public void Main_tile_isTheSameAs_ITileDifferentBlockFrameXAndHasFrames_ReturnsFalse()
+        public void Main_tile_Get_isTheSameAs_ITileDifferentBlockFrameXAndHasFrames_ReturnsFalse()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -964,7 +986,7 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
-        public void Main_tile_isTheSameAs_ITileDifferentBlockFrameYAndHasFrames_ReturnsFalse()
+        public void Main_tile_Get_isTheSameAs_ITileDifferentBlockFrameYAndHasFrames_ReturnsFalse()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -978,7 +1000,7 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
-        public void Main_tile_isTheSameAs_ITileDifferentBlockFramesButNotHasFrames_ReturnsTrue()
+        public void Main_tile_Get_isTheSameAs_ITileDifferentBlockFramesButNotHasFrames_ReturnsTrue()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -998,7 +1020,7 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
-        public void Main_tile_isTheSameAs_ITileDifferentWallId_ReturnsFalse()
+        public void Main_tile_Get_isTheSameAs_ITileDifferentWallId_ReturnsFalse()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -1011,7 +1033,7 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
-        public void Main_tile_isTheSameAs_ITileDifferentLiquidAmount_ReturnsFalse()
+        public void Main_tile_Get_isTheSameAs_ITileDifferentLiquidAmount_ReturnsFalse()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -1024,7 +1046,7 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
-        public void Main_tile_isTheSameAs_ITileDifferentWallColor_ReturnsFalse()
+        public void Main_tile_Get_isTheSameAs_ITileDifferentWallColor_ReturnsFalse()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -1037,7 +1059,7 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
-        public void Main_tile_isTheSameAs_ITileDifferentYellowWire_ReturnsFalse()
+        public void Main_tile_Get_isTheSameAs_ITileDifferentYellowWire_ReturnsFalse()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -1050,7 +1072,7 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
-        public void Main_tile_ClearEverything()
+        public void Main_tile_Get_ClearEverything()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -1063,7 +1085,7 @@ namespace Orion.Launcher.World
                 Liquid = new Liquid(LiquidType.Water, 3),
                 BlockFrameX = 4,
                 BlockFrameY = 5,
-                Header = 12345678u
+                Header = 0x12345678u
             };
 
             Terraria.Main.tile[0, 0].ClearEverything();
@@ -1077,7 +1099,7 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
-        public void Main_tile_ClearMetadata()
+        public void Main_tile_Get_ClearMetadata()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -1090,7 +1112,7 @@ namespace Orion.Launcher.World
                 Liquid = new Liquid(LiquidType.Water, 3),
                 BlockFrameX = 4,
                 BlockFrameY = 5,
-                Header = 12345678u
+                Header = 0x12345678u
             };
 
             Terraria.Main.tile[0, 0].ClearMetadata();
@@ -1104,7 +1126,7 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
-        public void Main_tile_ClearTile()
+        public void Main_tile_Get_ClearTile()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -1125,7 +1147,7 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
-        public void Main_tile_Clear_Tile()
+        public void Main_tile_Get_Clear_Tile()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -1148,7 +1170,7 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
-        public void Main_tile_Clear_TilePaint()
+        public void Main_tile_Get_Clear_TilePaint()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -1162,7 +1184,7 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
-        public void Main_tile_Clear_Wall()
+        public void Main_tile_Get_Clear_Wall()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -1176,7 +1198,7 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
-        public void Main_tile_Clear_WallPaint()
+        public void Main_tile_Get_Clear_WallPaint()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -1190,7 +1212,7 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
-        public void Main_tile_Clear_Liquid()
+        public void Main_tile_Get_Clear_Liquid()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -1204,7 +1226,7 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
-        public void Main_tile_Clear_Wiring()
+        public void Main_tile_Get_Clear_Wiring()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -1227,7 +1249,7 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
-        public void Main_tile_Clear_Actuator()
+        public void Main_tile_Get_Clear_Actuator()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -1242,7 +1264,7 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
-        public void Main_tile_Clear_Slope()
+        public void Main_tile_Get_Clear_Slope()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -1256,7 +1278,7 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
-        public void Main_tile_ResetToType()
+        public void Main_tile_Get_ResetToType()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -1269,7 +1291,7 @@ namespace Orion.Launcher.World
                 Liquid = new Liquid(LiquidType.Water, 3),
                 BlockFrameX = 4,
                 BlockFrameY = 5,
-                Header = 12345678u
+                Header = 0x12345678u
             };
 
             Terraria.Main.tile[0, 0].ResetToType((ushort)BlockId.Stone);
@@ -1288,7 +1310,7 @@ namespace Orion.Launcher.World
         [InlineData(BlockShape.TopRight, true)]
         [InlineData(BlockShape.BottomLeft, false)]
         [InlineData(BlockShape.BottomRight, false)]
-        public void Main_tile_topSlope(BlockShape shape, bool value)
+        public void Main_tile_Get_topSlope(BlockShape shape, bool value)
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -1305,7 +1327,7 @@ namespace Orion.Launcher.World
         [InlineData(BlockShape.TopRight, false)]
         [InlineData(BlockShape.BottomLeft, true)]
         [InlineData(BlockShape.BottomRight, true)]
-        public void Main_tile_bottomSlope(BlockShape shape, bool value)
+        public void Main_tile_Get_bottomSlope(BlockShape shape, bool value)
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -1322,7 +1344,7 @@ namespace Orion.Launcher.World
         [InlineData(BlockShape.TopRight, false)]
         [InlineData(BlockShape.BottomLeft, true)]
         [InlineData(BlockShape.BottomRight, false)]
-        public void Main_tile_leftSlope(BlockShape shape, bool value)
+        public void Main_tile_Get_leftSlope(BlockShape shape, bool value)
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -1339,7 +1361,7 @@ namespace Orion.Launcher.World
         [InlineData(BlockShape.TopRight, true)]
         [InlineData(BlockShape.BottomLeft, false)]
         [InlineData(BlockShape.BottomRight, true)]
-        public void Main_tile_rightSlope(BlockShape shape, bool value)
+        public void Main_tile_Get_rightSlope(BlockShape shape, bool value)
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -1351,7 +1373,7 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
-        public void Main_tile_HasSameSlope_SameSlopes()
+        public void Main_tile_Get_HasSameSlope_SameSlopes()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -1364,7 +1386,7 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
-        public void Main_tile_HasSameSlope_DifferentSlopes()
+        public void Main_tile_Get_HasSameSlope_DifferentSlopes()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -1383,7 +1405,7 @@ namespace Orion.Launcher.World
         [InlineData(BlockShape.TopRight)]
         [InlineData(BlockShape.BottomLeft)]
         [InlineData(BlockShape.BottomRight)]
-        public void Main_tile_blockType_Get(BlockShape value)
+        public void Main_tile_Get_blockType_Get(BlockShape value)
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -1392,6 +1414,82 @@ namespace Orion.Launcher.World
             world[0, 0] = new Tile { BlockShape = value };
 
             Assert.Equal(value, (BlockShape)Terraria.Main.tile[0, 0].blockType());
+        }
+
+        [Fact]
+        public void Main_tile_Set_NullTile()
+        {
+            var events = Mock.Of<IEventManager>();
+            var log = Mock.Of<ILogger>();
+            using var world = new OrionWorld(events, log);
+
+            world[0, 0] = new Tile
+            {
+                BlockId = (BlockId)1,
+                WallId = (WallId)2,
+                Liquid = new Liquid(LiquidType.Water, 3),
+                BlockFrameX = 4,
+                BlockFrameY = 5,
+                Header = 0x12345678u
+            };
+
+            Terraria.Main.tile[0, 0] = null;
+
+            Assert.Equal(BlockId.Dirt, world[0, 0].BlockId);
+            Assert.Equal(WallId.None, world[0, 0].WallId);
+            Assert.Equal(default, world[0, 0].Liquid);
+            Assert.Equal(0, world[0, 0].BlockFrameX);
+            Assert.Equal(0, world[0, 0].BlockFrameY);
+            Assert.Equal(0u, world[0, 0].Header);
+        }
+
+        [Fact]
+        public void Main_tile_Set_TileAdapter()
+        {
+            var events = Mock.Of<IEventManager>();
+            var log = Mock.Of<ILogger>();
+            using var world = new OrionWorld(events, log);
+
+            world[0, 0] = new Tile
+            {
+                BlockId = BlockId.Stone,
+                WallId = WallId.Dirt,
+                Liquid = new Liquid(LiquidType.Water, 3),
+                BlockFrameX = 4,
+                BlockFrameY = 5,
+                Header = 0x12345678u
+            };
+
+            Terraria.Main.tile[0, 1] = Terraria.Main.tile[0, 0];
+
+            Assert.Equal(BlockId.Stone, world[0, 1].BlockId);
+            Assert.Equal(WallId.Dirt, world[0, 1].WallId);
+            Assert.Equal(3, world[0, 1].Liquid.Amount);
+            Assert.Equal(4, world[0, 1].BlockFrameX);
+            Assert.Equal(5, world[0, 1].BlockFrameY);
+            Assert.Equal(0x12345678u, world[0, 1].Header);
+        }
+
+        [Fact]
+        public void Main_tile_Set_ITile()
+        {
+            var events = Mock.Of<IEventManager>();
+            var log = Mock.Of<ILogger>();
+            using var world = new OrionWorld(events, log);
+
+            var tile = Mock.Of<OTAPI.Tile.ITile>(
+                t => t.type == (ushort)BlockId.Stone && t.wall == (ushort)WallId.Dirt && t.liquid == 3 &&
+                    t.frameX == 4 && t.frameY == 5 && t.sTileHeader == 0x5678 && t.bTileHeader == 0x34 &&
+                    t.bTileHeader3 == 0x12);
+
+            Terraria.Main.tile[0, 1] = tile;
+
+            Assert.Equal(BlockId.Stone, world[0, 1].BlockId);
+            Assert.Equal(WallId.Dirt, world[0, 1].WallId);
+            Assert.Equal(3, world[0, 1].Liquid.Amount);
+            Assert.Equal(4, world[0, 1].BlockFrameX);
+            Assert.Equal(5, world[0, 1].BlockFrameY);
+            Assert.Equal(0x12345678u, world[0, 1].Header);
         }
     }
 }

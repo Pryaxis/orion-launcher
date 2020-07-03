@@ -85,6 +85,16 @@ namespace Orion.Launcher.Players
 
             Assert.Same(player2, player);
         }
+        
+        [Fact]
+        public void Count_Get()
+        {
+            var events = Mock.Of<IEventManager>();
+            var log = Mock.Of<ILogger>();
+            using var playerService = new OrionPlayerService(events, log);
+
+            Assert.Equal(Terraria.Main.maxPlayers, playerService.Count);
+        }
 
         [Fact]
         public void GetEnumerator()
@@ -765,14 +775,18 @@ namespace Orion.Launcher.Players
                 Id = 5,
                 Socket = Mock.Of<Terraria.Net.Sockets.ISocket>(s => s.IsConnected())
             };
-
+            
             byte[]? sendData = null;
             Mock.Get(Terraria.Netplay.Clients[5].Socket)
                 .Setup(s => s.AsyncSend(
                     It.IsAny<byte[]>(), It.IsAny<int>(), It.IsAny<int>(),
                     It.IsAny<Terraria.Net.Sockets.SocketSendCallback>(), It.IsAny<object>()))
                 .Callback<byte[], int, int, Terraria.Net.Sockets.SocketSendCallback, object>(
-                    (data, offset, size, callback, state) => sendData = data[offset..size]);
+                    (data, offset, size, callback, state) =>
+                    {
+                        sendData = data[offset..size];
+                        callback(state);
+                    });
 
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -812,7 +826,11 @@ namespace Orion.Launcher.Players
                     It.IsAny<byte[]>(), It.IsAny<int>(), It.IsAny<int>(),
                     It.IsAny<Terraria.Net.Sockets.SocketSendCallback>(), It.IsAny<object>()))
                 .Callback<byte[], int, int, Terraria.Net.Sockets.SocketSendCallback, object>(
-                    (data, offset, size, callback, state) => sendData = data[offset..size]);
+                    (data, offset, size, callback, state) =>
+                    {
+                        sendData = data[offset..size];
+                        callback(state);
+                    });
 
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -853,7 +871,11 @@ namespace Orion.Launcher.Players
                     It.IsAny<byte[]>(), It.IsAny<int>(), It.IsAny<int>(),
                     It.IsAny<Terraria.Net.Sockets.SocketSendCallback>(), It.IsAny<object>()))
                 .Callback<byte[], int, int, Terraria.Net.Sockets.SocketSendCallback, object>(
-                    (data, offset, size, callback, state) => sendData = data[offset..size]);
+                    (data, offset, size, callback, state) =>
+                    {
+                        sendData = data[offset..size];
+                        callback(state);
+                    });
 
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -943,7 +965,11 @@ namespace Orion.Launcher.Players
                     It.IsAny<byte[]>(), It.IsAny<int>(), It.IsAny<int>(),
                     It.IsAny<Terraria.Net.Sockets.SocketSendCallback>(), It.IsAny<object>()))
                 .Callback<byte[], int, int, Terraria.Net.Sockets.SocketSendCallback, object>(
-                    (data, offset, size, callback, state) => sendData = data[offset..size]);
+                    (data, offset, size, callback, state) =>
+                    {
+                        sendData = data[offset..size];
+                        callback(state);
+                    });
 
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -989,7 +1015,11 @@ namespace Orion.Launcher.Players
                     It.IsAny<byte[]>(), It.IsAny<int>(), It.IsAny<int>(),
                     It.IsAny<Terraria.Net.Sockets.SocketSendCallback>(), It.IsAny<object>()))
                 .Callback<byte[], int, int, Terraria.Net.Sockets.SocketSendCallback, object>(
-                    (data, offset, size, callback, state) => sendData = data[offset..size]);
+                    (data, offset, size, callback, state) =>
+                    {
+                        sendData = data[offset..size];
+                        callback(state);
+                    });
 
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -1032,7 +1062,11 @@ namespace Orion.Launcher.Players
                     It.IsAny<byte[]>(), It.IsAny<int>(), It.IsAny<int>(),
                     It.IsAny<Terraria.Net.Sockets.SocketSendCallback>(), It.IsAny<object>()))
                 .Callback<byte[], int, int, Terraria.Net.Sockets.SocketSendCallback, object>(
-                    (data, offset, size, callback, state) => sendData = data[offset..size]);
+                    (data, offset, size, callback, state) =>
+                    {
+                        sendData = data[offset..size];
+                        callback(state);
+                    });
 
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();

@@ -78,6 +78,16 @@ namespace Orion.Launcher.World.Chests
         }
 
         [Fact]
+        public void Count_Get()
+        {
+            var events = Mock.Of<IEventManager>();
+            var log = Mock.Of<ILogger>();
+            using var chestService = new OrionChestService(events, log);
+
+            Assert.Equal(Terraria.Main.maxChests, chestService.Count);
+        }
+
+        [Fact]
         public void GetEnumerator()
         {
             for (var i = 0; i < Terraria.Main.maxChests; ++i)

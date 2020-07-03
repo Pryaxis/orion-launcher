@@ -318,6 +318,17 @@ namespace Orion.Launcher.Players
         }
 
         [Fact]
+        public void ReceivePacket_NullPacket_ThrowsArgumentNullException()
+        {
+            var events = Mock.Of<IEventManager>();
+            var log = Mock.Of<ILogger>();
+            var terrariaPlayer = new Terraria.Player();
+            var player = new OrionPlayer(terrariaPlayer, events, log);
+
+            Assert.Throws<ArgumentNullException>(() => player.ReceivePacket<IPacket>(null!));
+        }
+
+        [Fact]
         public void ReceivePacket_EventTriggered()
         {
             // Clear out the password so we know it's empty.
@@ -392,6 +403,17 @@ namespace Orion.Launcher.Players
         }
 
         [Fact]
+        public void SendPacket_NullPacket_ThrowsArgumentNullException()
+        {
+            var events = Mock.Of<IEventManager>();
+            var log = Mock.Of<ILogger>();
+            var terrariaPlayer = new Terraria.Player();
+            var player = new OrionPlayer(terrariaPlayer, events, log);
+
+            Assert.Throws<ArgumentNullException>(() => player.SendPacket<IPacket>(null!));
+        }
+
+        [Fact]
         public void SendPacket_NotConnected()
         {
             Terraria.Netplay.Clients[5] = new Terraria.RemoteClient
@@ -429,7 +451,11 @@ namespace Orion.Launcher.Players
                     It.IsAny<byte[]>(), It.IsAny<int>(), It.IsAny<int>(),
                     It.IsAny<Terraria.Net.Sockets.SocketSendCallback>(), It.IsAny<object>()))
                 .Callback<byte[], int, int, Terraria.Net.Sockets.SocketSendCallback, object>(
-                    (data, offset, size, callback, state) => sendData = data[offset..size]);
+                    (data, offset, size, callback, state) =>
+                    {
+                        sendData = data[offset..size];
+                        callback(state);
+                    });
 
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
@@ -469,7 +495,11 @@ namespace Orion.Launcher.Players
                     It.IsAny<byte[]>(), It.IsAny<int>(), It.IsAny<int>(),
                     It.IsAny<Terraria.Net.Sockets.SocketSendCallback>(), It.IsAny<object>()))
                 .Callback<byte[], int, int, Terraria.Net.Sockets.SocketSendCallback, object>(
-                    (data, offset, size, callback, state) => sendData = data[offset..size]);
+                    (data, offset, size, callback, state) =>
+                    {
+                        sendData = data[offset..size];
+                        callback(state);
+                    });
 
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();

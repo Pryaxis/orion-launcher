@@ -147,15 +147,22 @@ namespace Orion.Launcher.Events
                             continue;
                         }
 
-                        // Launch the task, but don't bother tracking it.
-                        var task = registration.Handler(evt).ContinueWith(t =>
+                        try
                         {
-                            var ex = t.Exception;
-                            if (ex != null)
+                            // Launch the task, but don't bother tracking it.
+                            var task = registration.Handler(evt).ContinueWith(t =>
                             {
-                                log.Error(ex, "Unhandled exception in {@AsyncRegistration}", registration);
-                            }
-                        });
+                                var ex = t.Exception;
+                                if (ex != null)
+                                {
+                                    log.Error(ex, "Unhandled exception in {@AsyncRegistration}", registration);
+                                }
+                            });
+                        }
+                        catch (Exception ex)
+                        {
+                            log.Error(ex, "Unhandled exception in {@AsyncRegistration}", registration);
+                        }
                     }
                 }
             }

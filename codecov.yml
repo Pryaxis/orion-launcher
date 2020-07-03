@@ -21,6 +21,7 @@ comment:
 
 ignore:
   - orion-core
+  - orion-launcher/src/Orion.Launcher/Program.cs
 
 fixes:
   - "orion-launcher/::"

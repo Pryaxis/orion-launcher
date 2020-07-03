@@ -70,6 +70,16 @@ namespace Orion.Launcher.Items
         }
 
         [Fact]
+        public void Count_Get()
+        {
+            var events = Mock.Of<IEventManager>();
+            var log = Mock.Of<ILogger>();
+            using var itemService = new OrionItemService(events, log);
+
+            Assert.Equal(Terraria.Main.maxItems, itemService.Count);
+        }
+
+        [Fact]
         public void GetEnumerator()
         {
             var events = Mock.Of<IEventManager>();

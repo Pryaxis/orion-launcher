@@ -70,6 +70,16 @@ namespace Orion.Launcher.Projectiles
         }
 
         [Fact]
+        public void Count_Get()
+        {
+            var events = Mock.Of<IEventManager>();
+            var log = Mock.Of<ILogger>();
+            using var projectileService = new OrionProjectileService(events, log);
+
+            Assert.Equal(Terraria.Main.maxProjectiles, projectileService.Count);
+        }
+
+        [Fact]
         public void GetEnumerator()
         {
             var events = Mock.Of<IEventManager>();

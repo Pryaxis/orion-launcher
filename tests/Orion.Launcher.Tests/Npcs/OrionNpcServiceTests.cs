@@ -77,6 +77,16 @@ namespace Orion.Launcher.Npcs
         }
 
         [Fact]
+        public void Count_Get()
+        {
+            var events = Mock.Of<IEventManager>();
+            var log = Mock.Of<ILogger>();
+            using var npcService = new OrionNpcService(events, log);
+
+            Assert.Equal(Terraria.Main.maxNPCs, npcService.Count);
+        }
+
+        [Fact]
         public void GetEnumerator()
         {
             var events = Mock.Of<IEventManager>();
@@ -108,6 +118,29 @@ namespace Orion.Launcher.Npcs
             Terraria.Main.npc[0].SetDefaults((int)id);
 
             Assert.Equal(id, (NpcId)Terraria.Main.npc[0].netID);
+
+            Mock.Get(events).VerifyAll();
+        }
+
+        [Theory]
+        [InlineData(NpcId.BlueSlime)]
+        [InlineData(NpcId.GreenSlime)]
+        public void NpcSetDefaults_AbstractItem_EventTriggered(NpcId id)
+        {
+            var terrariaNpc = new Terraria.NPC();
+
+            var events = Mock.Of<IEventManager>();
+            var log = Mock.Of<ILogger>();
+            using var npcService = new OrionNpcService(events, log);
+
+            Mock.Get(events)
+                .Setup(em => em.Raise(
+                    It.Is<NpcDefaultsEvent>(evt => ((OrionNpc)evt.Npc).Wrapped == terrariaNpc && evt.Id == id),
+                    log));
+
+            terrariaNpc.SetDefaults((int)id);
+
+            Assert.Equal(id, (NpcId)terrariaNpc.netID);
 
             Mock.Get(events).VerifyAll();
         }

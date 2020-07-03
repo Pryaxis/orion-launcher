@@ -16,7 +16,6 @@
 // along with Orion.  If not, see <https://www.gnu.org/licenses/>.
 
 using System;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reflection;
 using System.Text;
@@ -38,7 +37,6 @@ namespace Orion.Launcher
         private const LogEventLevel MinimumLogLevel = LogEventLevel.Information;
 #endif
 
-        [ExcludeFromCodeCoverage]
         internal static void Main(string[] args)
         {
             SetUpTerrariaLanguage();
