@@ -16,6 +16,7 @@
 // along with Orion.  If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reflection;
 using System.Text;
@@ -29,6 +30,7 @@ using Serilog.Sinks.SystemConsole.Themes;
 
 namespace Orion.Launcher
 {
+    [ExcludeFromCodeCoverage]
     internal static class Program
     {
 #if DEBUG
