@@ -49,10 +49,10 @@ namespace Orion.Launcher
         private readonly Lazy<ISignService> _signs;
         private readonly Lazy<IWorld> _world;
 
-        private readonly IKernel _kernel = new StandardKernel();
-        private readonly ISet<Type> _serviceInterfaceTypes = new HashSet<Type>();
-        private readonly IDictionary<Type, ISet<Type>> _serviceBindingTypes = new Dictionary<Type, ISet<Type>>();
-        private readonly ISet<Type> _pluginTypes = new HashSet<Type>();
+        private readonly StandardKernel _kernel = new StandardKernel();
+        private readonly HashSet<Type> _serviceInterfaceTypes = new HashSet<Type>();
+        private readonly Dictionary<Type, HashSet<Type>> _serviceBindingTypes = new Dictionary<Type, HashSet<Type>>();
+        private readonly HashSet<Type> _pluginTypes = new HashSet<Type>();
 
         private readonly Dictionary<string, OrionPlugin> _plugins = new Dictionary<string, OrionPlugin>();
 

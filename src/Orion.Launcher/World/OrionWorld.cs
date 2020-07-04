@@ -72,8 +72,8 @@ namespace Orion.Launcher.World
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
-                Debug.Assert(x >= 0 && x <= Width);
-                Debug.Assert(y >= 0 && y <= Height);
+                Debug.Assert(0 <= x && x <= Width);
+                Debug.Assert(0 <= y && y <= Height);
 
                 AllocateUnmanaged();
 
@@ -87,16 +87,22 @@ namespace Orion.Launcher.World
 
         public string Name => Terraria.Main.worldName ?? string.Empty;
 
+        public WorldDifficulty Difficulty
+        {
+            get => (WorldDifficulty)Terraria.Main.GameMode;
+            set => Terraria.Main.GameMode = (int)value;
+        }
+
         public WorldEvil Evil
         {
             get => Terraria.WorldGen.crimson ? WorldEvil.Crimson : WorldEvil.Corruption;
             set => Terraria.WorldGen.crimson = value == WorldEvil.Crimson;
         }
 
-        public WorldDifficulty Difficulty
+        public AnglerQuest AnglerQuest
         {
-            get => (WorldDifficulty)Terraria.Main.GameMode;
-            set => Terraria.Main.GameMode = (int)value;
+            get => (AnglerQuest)Terraria.Main.anglerQuest;
+            set => Terraria.Main.anglerQuest = (int)value;
         }
 
         public int BaseNpcSpawnRate

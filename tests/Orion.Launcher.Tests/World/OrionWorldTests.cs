@@ -101,6 +101,30 @@ namespace Orion.Launcher
         }
 
         [Fact]
+        public void Difficulty_Get()
+        {
+            Terraria.Main.GameMode = (int)WorldDifficulty.Master;
+
+            var events = Mock.Of<IEventManager>();
+            var log = Mock.Of<ILogger>();
+            using var world = new OrionWorld(events, log);
+
+            Assert.Equal(WorldDifficulty.Master, world.Difficulty);
+        }
+
+        [Fact]
+        public void Difficulty_Set()
+        {
+            var events = Mock.Of<IEventManager>();
+            var log = Mock.Of<ILogger>();
+            using var world = new OrionWorld(events, log);
+
+            world.Difficulty = WorldDifficulty.Master;
+
+            Assert.Equal(WorldDifficulty.Master, (WorldDifficulty)Terraria.Main.GameMode);
+        }
+
+        [Fact]
         public void Evil_Get_ReturnsCorruption()
         {
             Terraria.WorldGen.crimson = false;
@@ -149,29 +173,29 @@ namespace Orion.Launcher
         }
 
         [Fact]
-        public void Difficulty_Get()
+        public void AnglerQuest_Get()
         {
-            Terraria.Main.GameMode = (int)WorldDifficulty.Master;
+            Terraria.Main.anglerQuest = (int)AnglerQuest.Bunnyfish;
 
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             using var world = new OrionWorld(events, log);
 
-            Assert.Equal(WorldDifficulty.Master, world.Difficulty);
+            Assert.Equal(AnglerQuest.Bunnyfish, world.AnglerQuest);
         }
 
         [Fact]
-        public void Difficulty_Set()
+        public void AnglerQuest_Set()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             using var world = new OrionWorld(events, log);
 
-            world.Difficulty = WorldDifficulty.Master;
+            world.AnglerQuest = AnglerQuest.Bunnyfish;
 
-            Assert.Equal(WorldDifficulty.Master, (WorldDifficulty)Terraria.Main.GameMode);
+            Assert.Equal(AnglerQuest.Bunnyfish, (AnglerQuest)Terraria.Main.anglerQuest);
         }
-        
+
         [Fact]
         public void BaseNpcSpawnRate_Get()
         {
