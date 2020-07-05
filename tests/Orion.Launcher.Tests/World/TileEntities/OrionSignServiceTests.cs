@@ -21,19 +21,18 @@ using System.Linq.Expressions;
 using Moq;
 using Orion.Core.Events;
 using Orion.Core.Events.Packets;
-using Orion.Core.Events.World.Chests;
-using Orion.Core.Items;
+using Orion.Core.Events.World.TileEntities;
 using Orion.Core.Packets;
-using Orion.Core.Packets.World.Chests;
+using Orion.Core.Packets.World.TileEntities;
 using Orion.Core.Players;
 using Serilog;
 using Xunit;
 
-namespace Orion.Launcher.World.Chests
+namespace Orion.Launcher.World.TileEntities
 {
     // These tests depend on Terraria state.
     [Collection("TerrariaTestsCollection")]
-    public class OrionChestServiceTests
+    public class OrionSignServiceTests
     {
         [Theory]
         [InlineData(-1)]
@@ -42,39 +41,39 @@ namespace Orion.Launcher.World.Chests
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var chestService = new OrionChestService(events, log);
+            using var signService = new OrionSignService(events, log);
 
-            Assert.Throws<IndexOutOfRangeException>(() => chestService[index]);
+            Assert.Throws<IndexOutOfRangeException>(() => signService[index]);
         }
 
         [Fact]
         public void Item_Get()
         {
-            Terraria.Main.chest[1] = new Terraria.Chest();
+            Terraria.Main.sign[1] = new Terraria.Sign();
 
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var chestService = new OrionChestService(events, log);
+            using var signService = new OrionSignService(events, log);
 
-            var chest = chestService[1];
+            var sign = signService[1];
 
-            Assert.Equal(1, chest.Index);
-            Assert.Same(Terraria.Main.chest[1], ((OrionChest)chest).Wrapped);
+            Assert.Equal(1, sign.Index);
+            Assert.Same(Terraria.Main.sign[1], ((OrionSign)sign).Wrapped);
         }
 
         [Fact]
         public void Item_GetMultipleTimes_ReturnsSameInstance()
         {
-            Terraria.Main.chest[0] = new Terraria.Chest();
+            Terraria.Main.sign[0] = new Terraria.Sign();
 
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var chestService = new OrionChestService(events, log);
+            using var signService = new OrionSignService(events, log);
 
-            var chest = chestService[0];
-            var chest2 = chestService[0];
+            var sign = signService[0];
+            var sign2 = signService[0];
 
-            Assert.Same(chest, chest2);
+            Assert.Same(sign, sign2);
         }
 
         [Fact]
@@ -82,100 +81,66 @@ namespace Orion.Launcher.World.Chests
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var chestService = new OrionChestService(events, log);
+            using var signService = new OrionSignService(events, log);
 
-            Assert.Equal(Terraria.Main.maxChests, chestService.Count);
+            Assert.Equal(Terraria.Sign.maxSigns, signService.Count);
         }
 
         [Fact]
         public void GetEnumerator()
         {
-            for (var i = 0; i < Terraria.Main.maxChests; ++i)
+            for (var i = 0; i < Terraria.Sign.maxSigns; ++i)
             {
-                Terraria.Main.chest[i] = new Terraria.Chest();
+                Terraria.Main.sign[i] = new Terraria.Sign();
             }
 
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
-            using var chestService = new OrionChestService(events, log);
+            using var signService = new OrionSignService(events, log);
 
-            var chests = chestService.ToList();
+            var signs = signService.ToList();
 
-            for (var i = 0; i < chests.Count; ++i)
+            for (var i = 0; i < signs.Count; ++i)
             {
-                Assert.Same(Terraria.Main.chest[i], ((OrionChest)chests[i]).Wrapped);
+                Assert.Same(Terraria.Main.sign[i], ((OrionSign)signs[i]).Wrapped);
             }
         }
 
         [Fact]
-        public void PacketReceive_ChestOpen_EventTriggered()
+        public void PacketReceive_SignReadPacket_EventTriggered()
         {
-            Terraria.Main.chest[0] = new Terraria.Chest { x = 256, y = 100, name = "test" };
+            Terraria.Main.sign[0] = new Terraria.Sign { x = 256, y = 100, text = "test" };
 
-            var packet = new ChestOpen { X = 256, Y = 100 };
+            var packet = new SignRead { X = 256, Y = 100 };
             var sender = Mock.Of<IPlayer>();
 
-            PacketReceive_EventTriggered<ChestOpen, ChestOpenEvent>(packet, sender,
-                evt => evt.Player == sender && ((OrionChest)evt.Chest).Wrapped == Terraria.Main.chest[0]);
+            PacketReceive_EventTriggered<SignRead, SignReadEvent>(packet, sender,
+                evt => ((OrionSign)evt.Sign).Wrapped == Terraria.Main.sign[0] && evt.Player == sender);
         }
 
         [Fact]
-        public void PacketReceive_ChestOpen_EventCanceled()
+        public void PacketReceive_SignReadPacket_EventCanceled()
         {
-            Terraria.Main.chest[0] = new Terraria.Chest { x = 256, y = 100, name = "test" };
+            Terraria.Main.sign[0] = new Terraria.Sign { x = 256, y = 100, text = "test" };
 
-            var packet = new ChestOpen { X = 256, Y = 100 };
+            var packet = new SignRead { X = 256, Y = 100 };
             var sender = Mock.Of<IPlayer>();
 
-            PacketReceive_EventCanceled<ChestOpen, ChestOpenEvent>(packet, sender);
+            PacketReceive_EventCanceled<SignRead, SignReadEvent>(packet, sender);
         }
 
         [Fact]
-        public void PacketReceive_ChestOpen_EventNotTriggered()
+        public void PacketReceive_SignReadPacket_EventNotTriggered()
         {
-            for (var i = 0; i < Terraria.Main.maxChests; ++i)
+            for (var i = 0; i < Terraria.Sign.maxSigns; ++i)
             {
-                Terraria.Main.chest[i] = new Terraria.Chest();
+                Terraria.Main.sign[i] = new Terraria.Sign();
             }
 
-            var packet = new ChestOpen { X = 256, Y = 100 };
+            var packet = new SignRead { X = 256, Y = 100 };
             var sender = Mock.Of<IPlayer>();
 
-            PacketReceive_EventNotTriggered<ChestOpen, ChestOpenEvent>(packet, sender);
-        }
-
-        [Fact]
-        public void PacketReceive_ChestInventory_EventTriggered()
-        {
-            Terraria.Main.chest[5] = new Terraria.Chest();
-
-            var packet = new ChestInventory
-            {
-                ChestIndex = 5,
-                Id = ItemId.Sdmg,
-                StackSize = 1,
-                Prefix = ItemPrefix.Unreal
-            };
-            var sender = Mock.Of<IPlayer>();
-
-            PacketReceive_EventTriggered<ChestInventory, ChestInventoryEvent>(packet, sender,
-                evt => evt.Player == sender && ((OrionChest)evt.Chest).Wrapped == Terraria.Main.chest[5] &&
-                    evt.Item == new ItemStack(ItemId.Sdmg, ItemPrefix.Unreal, 1));
-        }
-
-        [Fact]
-        public void PacketReceive_ChestInventory_EventCanceled()
-        {
-            var packet = new ChestInventory
-            {
-                ChestIndex = 5,
-                Id = ItemId.Sdmg,
-                StackSize = 1,
-                Prefix = ItemPrefix.Unreal
-            };
-            var sender = Mock.Of<IPlayer>();
-
-            PacketReceive_EventCanceled<ChestInventory, ChestInventoryEvent>(packet, sender);
+            PacketReceive_EventNotTriggered<SignRead, SignReadEvent>(packet, sender);
         }
 
         private void PacketReceive_EventTriggered<TPacket, TEvent>(
@@ -192,7 +157,7 @@ namespace Orion.Launcher.World.Chests
                 .Callback<Action<PacketReceiveEvent<TPacket>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
-            using var chestService = new OrionChestService(events, log);
+            using var signService = new OrionSignService(events, log);
 
             var evt = new PacketReceiveEvent<TPacket>(packet, sender);
 
@@ -218,7 +183,7 @@ namespace Orion.Launcher.World.Chests
                 .Callback<Action<PacketReceiveEvent<TPacket>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
-            using var chestService = new OrionChestService(events, log);
+            using var signService = new OrionSignService(events, log);
 
             var evt = new PacketReceiveEvent<TPacket>(packet, sender);
 
@@ -247,7 +212,7 @@ namespace Orion.Launcher.World.Chests
                 .Callback<Action<PacketReceiveEvent<TPacket>>, ILogger>(
                     (handler, log) => registeredHandler = handler);
 
-            using var chestService = new OrionChestService(events, log);
+            using var signService = new OrionSignService(events, log);
 
             var evt = new PacketReceiveEvent<TPacket>(packet, sender);
 

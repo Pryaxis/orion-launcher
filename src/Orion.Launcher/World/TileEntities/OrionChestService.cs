@@ -24,14 +24,14 @@ using System.Linq;
 using Orion.Core;
 using Orion.Core.Events;
 using Orion.Core.Events.Packets;
-using Orion.Core.Events.World.Chests;
+using Orion.Core.Events.World.TileEntities;
 using Orion.Core.Items;
-using Orion.Core.Packets.World.Chests;
-using Orion.Core.World.Chests;
+using Orion.Core.Packets.World.TileEntities;
+using Orion.Core.World.TileEntities;
 using Orion.Launcher.Utils;
 using Serilog;
 
-namespace Orion.Launcher.World.Chests
+namespace Orion.Launcher.World.TileEntities
 {
     [Binding("orion-chests", Author = "Pryaxis", Priority = BindingPriority.Lowest)]
     internal sealed class OrionChestService : IChestService, IDisposable

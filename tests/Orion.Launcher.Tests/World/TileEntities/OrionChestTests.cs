@@ -21,7 +21,7 @@ using System.Linq;
 using Orion.Core.Items;
 using Xunit;
 
-namespace Orion.Launcher.World.Chests
+namespace Orion.Launcher.World.TileEntities
 {
     [SuppressMessage("Style", "IDE0017:Simplify object initialization", Justification = "Testing")]
     public class OrionChestTests

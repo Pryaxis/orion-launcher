@@ -20,11 +20,10 @@ using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Contracts;
 using Destructurama.Attributed;
 using Orion.Core.Entities;
-using Orion.Core.World.Signs;
 using Orion.Core.World.TileEntities;
 using Orion.Launcher.Utils;
 
-namespace Orion.Launcher.World.Signs
+namespace Orion.Launcher.World.TileEntities
 {
     [LogAsScalar]
     internal sealed class OrionSign : AnnotatableObject, ISign, IWrapping<Terraria.Sign>

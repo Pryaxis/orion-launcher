@@ -25,11 +25,10 @@ using Destructurama.Attributed;
 using Orion.Core.Entities;
 using Orion.Core.Items;
 using Orion.Core.Utils;
-using Orion.Core.World.Chests;
 using Orion.Core.World.TileEntities;
 using Orion.Launcher.Utils;
 
-namespace Orion.Launcher.World.Chests
+namespace Orion.Launcher.World.TileEntities
 {
     [LogAsScalar]
     internal sealed class OrionChest : AnnotatableObject, IChest, IWrapping<Terraria.Chest>
