@@ -309,7 +309,7 @@ namespace Orion.Launcher
                 X = 100,
                 Y = 256,
                 Modification = TileModify.TileModification.BreakBlock,
-                IsFailure = true
+                Data = 1
             };
             var sender = Mock.Of<IPlayer>();
 
@@ -324,8 +324,8 @@ namespace Orion.Launcher
                 X = 100,
                 Y = 256,
                 Modification = TileModify.TileModification.PlaceBlock,
-                BlockId = BlockId.Torches,
-                BlockStyle = 1
+                Data = (ushort)BlockId.Torches,
+                Data2 = 1
             };
             var sender = Mock.Of<IPlayer>();
 
@@ -342,8 +342,8 @@ namespace Orion.Launcher
                 X = 100,
                 Y = 256,
                 Modification = TileModify.TileModification.PlaceBlock,
-                BlockId = BlockId.Torches,
-                BlockStyle = 1
+                Data = (ushort)BlockId.Torches,
+                Data2 = 1
             };
             var sender = Mock.Of<IPlayer>();
 
@@ -377,7 +377,7 @@ namespace Orion.Launcher
                 X = 100,
                 Y = 256,
                 Modification = TileModify.TileModification.BreakWall,
-                IsFailure = true
+                Data = 1
             };
             var sender = Mock.Of<IPlayer>();
 
@@ -392,7 +392,7 @@ namespace Orion.Launcher
                 X = 100,
                 Y = 256,
                 Modification = TileModify.TileModification.PlaceWall,
-                WallId = WallId.Stone
+                Data = (ushort)WallId.Stone
             };
             var sender = Mock.Of<IPlayer>();
 
@@ -409,7 +409,7 @@ namespace Orion.Launcher
                 X = 100,
                 Y = 256,
                 Modification = TileModify.TileModification.PlaceWall,
-                WallId = WallId.Stone
+                Data = (ushort)WallId.Stone
             };
             var sender = Mock.Of<IPlayer>();
 
@@ -453,7 +453,7 @@ namespace Orion.Launcher
                 X = 100,
                 Y = 256,
                 Modification = TileModify.TileModification.BreakBlockItemless,
-                IsFailure = true
+                Data = 1
             };
             var sender = Mock.Of<IPlayer>();
 
@@ -468,7 +468,7 @@ namespace Orion.Launcher
                 X = 100,
                 Y = 256,
                 Modification = TileModify.TileModification.ReplaceBlock,
-                BlockId = BlockId.Stone
+                Data = (ushort)BlockId.Stone
             };
             var sender = Mock.Of<IPlayer>();
 
@@ -485,7 +485,7 @@ namespace Orion.Launcher
                 X = 100,
                 Y = 256,
                 Modification = TileModify.TileModification.ReplaceBlock,
-                BlockId = BlockId.Stone
+                Data = (ushort)BlockId.Stone
             };
             var sender = Mock.Of<IPlayer>();
 
@@ -500,7 +500,7 @@ namespace Orion.Launcher
                 X = 100,
                 Y = 256,
                 Modification = TileModify.TileModification.ReplaceWall,
-                WallId = WallId.Stone
+                Data = (ushort)WallId.Stone
             };
             var sender = Mock.Of<IPlayer>();
 
@@ -517,7 +517,7 @@ namespace Orion.Launcher
                 X = 100,
                 Y = 256,
                 Modification = TileModify.TileModification.ReplaceWall,
-                WallId = WallId.Stone
+                Data = (ushort)WallId.Stone
             };
             var sender = Mock.Of<IPlayer>();
 
@@ -564,7 +564,7 @@ namespace Orion.Launcher
         [Fact]
         public void PacketReceive_TileLiquidPacket_EventTriggered()
         {
-            var packet = new TileLiquid { X = 100, Y = 256, LiquidAmount = 255, LiquidType = LiquidType.Honey };
+            var packet = new TileLiquid { X = 100, Y = 256, Amount = 255, Type = LiquidType.Honey };
             var sender = Mock.Of<IPlayer>();
 
             PacketReceive_EventTriggered<TileLiquid, TileLiquidEvent>(packet, sender,
@@ -575,7 +575,7 @@ namespace Orion.Launcher
         [Fact]
         public void PacketReceive_TileLiquidPacket_EventCanceled()
         {
-            var packet = new TileLiquid { X = 100, Y = 256, LiquidAmount = 255, LiquidType = LiquidType.Honey };
+            var packet = new TileLiquid { X = 100, Y = 256, Amount = 255, Type = LiquidType.Honey };
             var sender = Mock.Of<IPlayer>();
 
             PacketReceive_EventCanceled<TileLiquid, TileLiquidEvent>(packet, sender);

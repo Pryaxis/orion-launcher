@@ -16,6 +16,7 @@
 // along with Orion.  If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
@@ -37,8 +38,12 @@ namespace Orion.Launcher.World
     [LogAsScalar]
     internal sealed partial class OrionWorld : IWorld, IDisposable
     {
+        private delegate void TileModifyHandler(PacketReceiveEvent<TileModify> evt);
+
         private readonly IEventManager _events;
         private readonly ILogger _log;
+
+        private readonly Dictionary<TileModify.TileModification, TileModifyHandler> _tileModifyHandlers;
 
         private unsafe Tile* _tiles;
 
@@ -49,6 +54,17 @@ namespace Orion.Launcher.World
 
             _events = events;
             _log = log;
+
+            _tileModifyHandlers = new Dictionary<TileModify.TileModification, TileModifyHandler>
+            {
+                [TileModify.TileModification.BreakBlock] = OnTileModifyBreakBlock,
+                [TileModify.TileModification.PlaceBlock] = OnTileModifyPlaceBlock,
+                [TileModify.TileModification.BreakWall] = OnTileModifyBreakWall,
+                [TileModify.TileModification.PlaceWall] = OnTileModifyPlaceWall,
+                [TileModify.TileModification.BreakBlockItemless] = OnTileModifyBreakBlockItemless,
+                [TileModify.TileModification.ReplaceBlock] = OnTileModifyReplaceBlock,
+                [TileModify.TileModification.ReplaceWall] = OnTileModifyReplaceWall
+            };
 
             // Replace `Terraria.Main.tile` with our own implementation which involves using the `OrionWorld` class
             // along with an adapter for the `OTAPI.Tile.ITile` interface. This cuts down on the memory usage
@@ -186,41 +202,77 @@ namespace Orion.Launcher.World
         {
             var packet = evt.Packet;
 
-            var newEvt = packet.Modification switch
+            if (_tileModifyHandlers.TryGetValue(packet.Modification, out var handler))
             {
-                TileModify.TileModification.BreakBlock => RaiseBlockBreak(packet, false),
-                TileModify.TileModification.PlaceBlock => RaiseBlockPlace(packet, false),
-                TileModify.TileModification.BreakWall => RaiseWallBreak(packet),
-                TileModify.TileModification.PlaceWall => RaiseWallPlace(packet, false),
-                TileModify.TileModification.BreakBlockItemless => RaiseBlockBreak(packet, true),
-                TileModify.TileModification.ReplaceBlock => RaiseBlockPlace(packet, true),
-                TileModify.TileModification.ReplaceWall => RaiseWallPlace(packet, true),
+                handler(evt);
+            }
+        }
 
-                _ => null
-            };
-            if (newEvt?.IsCanceled == true)
+        private void OnTileModifyBreakBlock(PacketReceiveEvent<TileModify> evt)
+        {
+            var packet = evt.Packet;
+            if (packet.Data != 0)
             {
-                evt.Cancel(newEvt.CancellationReason);
+                return;
             }
 
-            Event Raise<TEvent>(TEvent newEvt) where TEvent : Event
+            _events.Forward(evt, new BlockBreakEvent(this, evt.Sender, packet.X, packet.Y, false), _log);
+        }
+
+        private void OnTileModifyPlaceBlock(PacketReceiveEvent<TileModify> evt)
+        {
+            var packet = evt.Packet;
+
+            _events.Forward(evt,
+                new BlockPlaceEvent(this, evt.Sender, packet.X, packet.Y, (BlockId)packet.Data, packet.Data2, false),
+                _log);
+        }
+
+        private void OnTileModifyBreakWall(PacketReceiveEvent<TileModify> evt)
+        {
+            var packet = evt.Packet;
+            if (packet.Data != 0)
             {
-                _events.Raise(newEvt, _log);
-                return newEvt;
+                return;
             }
 
-            Event? RaiseBlockBreak(TileModify packet, bool isItemless) =>
-                packet.IsFailure ? null : Raise(new BlockBreakEvent(this, evt.Sender, packet.X, packet.Y, isItemless));
+            _events.Forward(evt, new WallBreakEvent(this, evt.Sender, packet.X, packet.Y), _log);
+        }
 
-            Event RaiseBlockPlace(TileModify packet, bool isReplacement) =>
-                Raise(new BlockPlaceEvent(
-                    this, evt.Sender, packet.X, packet.Y, packet.BlockId, packet.BlockStyle, isReplacement));
+        private void OnTileModifyPlaceWall(PacketReceiveEvent<TileModify> evt)
+        {
+            var packet = evt.Packet;
 
-            Event? RaiseWallBreak(TileModify packet) =>
-                packet.IsFailure ? null : Raise(new WallBreakEvent(this, evt.Sender, packet.X, packet.Y));
+            _events.Forward(evt, new WallPlaceEvent(this, evt.Sender, packet.X, packet.Y, (WallId)packet.Data, false),
+                _log);
+        }
 
-            Event RaiseWallPlace(TileModify packet, bool isReplacement) =>
-                Raise(new WallPlaceEvent(this, evt.Sender, packet.X, packet.Y, packet.WallId, isReplacement));
+        private void OnTileModifyBreakBlockItemless(PacketReceiveEvent<TileModify> evt)
+        {
+            var packet = evt.Packet;
+            if (packet.Data != 0)
+            {
+                return;
+            }
+
+            _events.Forward(evt, new BlockBreakEvent(this, evt.Sender, packet.X, packet.Y, true), _log);
+        }
+
+        private void OnTileModifyReplaceBlock(PacketReceiveEvent<TileModify> evt)
+        {
+            var packet = evt.Packet;
+
+            _events.Forward(evt,
+                new BlockPlaceEvent(this, evt.Sender, packet.X, packet.Y, (BlockId)packet.Data, packet.Data2, true),
+                _log);
+        }
+
+        private void OnTileModifyReplaceWall(PacketReceiveEvent<TileModify> evt)
+        {
+            var packet = evt.Packet;
+
+            _events.Forward(evt, new WallPlaceEvent(this, evt.Sender, packet.X, packet.Y, (WallId)packet.Data, true),
+                _log);
         }
 
         [EventHandler("orion-world", Priority = EventPriority.Lowest)]
@@ -237,7 +289,7 @@ namespace Orion.Launcher.World
         private void OnTileLiquid(PacketReceiveEvent<TileLiquid> evt)
         {
             var packet = evt.Packet;
-            var liquid = new Liquid(packet.LiquidType, packet.LiquidAmount);
+            var liquid = new Liquid(packet.Type, packet.Amount);
 
             _events.Forward(evt, new TileLiquidEvent(this, evt.Sender, packet.X, packet.Y, liquid), _log);
         }
