@@ -4,7 +4,10 @@ on: [push, pull_request]
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ ubuntu-latest, windows-latest, macos-latest ]
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Check out orion-launcher repository
         uses: actions/checkout@v2
@@ -26,21 +29,53 @@ jobs:
           /p:CoverletOutputFormat=opencover
           /p:ExcludeByAttribute=GeneratedCodeAttribute
       - name: Upload code coverage
+        if: matrix.os == 'ubuntu-latest'
         uses: codecov/codecov-action@v1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           file: orion-launcher/tests/Orion.Launcher.Tests/coverage.opencover.xml
       - name: Build artifacts
+        if: matrix.os == 'ubuntu-latest'
         run: |
-          dotnet publish -c Debug orion-launcher/src/Orion.Launcher/Orion.Launcher.csproj
-          dotnet publish -c Release orion-launcher/src/Orion.Launcher/Orion.Launcher.csproj
-      - name: Publish artifacts (Debug)
+          dotnet publish -r win-x64 -c Debug orion-launcher/src/Orion.Launcher/Orion.Launcher.csproj --no-self-contained -p:PublishSingleFile=true
+          dotnet publish -r win-x64 -c Release orion-launcher/src/Orion.Launcher/Orion.Launcher.csproj --no-self-contained -p:PublishSingleFile=true
+          dotnet publish -r osx-x64 -c Debug orion-launcher/src/Orion.Launcher/Orion.Launcher.csproj --no-self-contained -p:PublishSingleFile=true
+          dotnet publish -r osx-x64 -c Release orion-launcher/src/Orion.Launcher/Orion.Launcher.csproj --no-self-contained -p:PublishSingleFile=true
+          dotnet publish -r linux-x64 -c Debug orion-launcher/src/Orion.Launcher/Orion.Launcher.csproj --no-self-contained -p:PublishSingleFile=true
+          dotnet publish -r linux-x64 -c Release orion-launcher/src/Orion.Launcher/Orion.Launcher.csproj --no-self-contained -p:PublishSingleFile=true
+      - name: Publish artifacts (Windows Debug)
+        if: matrix.os == 'ubuntu-latest'
         uses: actions/upload-artifact@v2
         with:
-          name: Orion.Launcher (Debug)
-          path: orion-launcher/src/Orion.Launcher/bin/Debug/netcoreapp3.1/publish
-      - name: Publish artifacts (Release)
+          name: Orion.Launcher (Windows Debug)
+          path: orion-launcher/src/Orion.Launcher/bin/Debug/netcoreapp3.1/win-x64/publish
+      - name: Publish artifacts (Windows Release)
+        if: matrix.os == 'ubuntu-latest'
         uses: actions/upload-artifact@v2
         with:
-          name: Orion.Launcher (Release)
-          path: orion-launcher/src/Orion.Launcher/bin/Release/netcoreapp3.1/publish
+          name: Orion.Launcher (Windows Release)
+          path: orion-launcher/src/Orion.Launcher/bin/Release/netcoreapp3.1/win-x64/publish
+      - name: Publish artifacts (OS X Debug)
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v2
+        with:
+          name: Orion.Launcher (OS X Debug)
+          path: orion-launcher/src/Orion.Launcher/bin/Debug/netcoreapp3.1/osx-x64/publish
+      - name: Publish artifacts (OS X Release)
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v2
+        with:
+          name: Orion.Launcher (OS X Release)
+          path: orion-launcher/src/Orion.Launcher/bin/Release/netcoreapp3.1/osx-x64/publish
+      - name: Publish artifacts (Linux Debug)
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v2
+        with:
+          name: Orion.Launcher (Linux Debug)
+          path: orion-launcher/src/Orion.Launcher/bin/Debug/netcoreapp3.1/linux-x64/publish
+      - name: Publish artifacts (Linux Release)
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v2
+        with:
+          name: Orion.Launcher (Linux Release)
+          path: orion-launcher/src/Orion.Launcher/bin/Release/netcoreapp3.1/linux-x64/publish
