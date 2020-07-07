@@ -324,7 +324,7 @@ namespace Orion.Launcher
                 X = 100,
                 Y = 256,
                 Modification = TileModify.TileModification.PlaceBlock,
-                Data = (ushort)BlockId.Torches,
+                Data = (ushort)(BlockId.Torches - 1),
                 Data2 = 1
             };
             var sender = Mock.Of<IPlayer>();
@@ -342,7 +342,7 @@ namespace Orion.Launcher
                 X = 100,
                 Y = 256,
                 Modification = TileModify.TileModification.PlaceBlock,
-                Data = (ushort)BlockId.Torches,
+                Data = (ushort)(BlockId.Torches - 1),
                 Data2 = 1
             };
             var sender = Mock.Of<IPlayer>();
@@ -468,7 +468,7 @@ namespace Orion.Launcher
                 X = 100,
                 Y = 256,
                 Modification = TileModify.TileModification.ReplaceBlock,
-                Data = (ushort)BlockId.Stone
+                Data = (ushort)(BlockId.Stone - 1)
             };
             var sender = Mock.Of<IPlayer>();
 
@@ -485,7 +485,7 @@ namespace Orion.Launcher
                 X = 100,
                 Y = 256,
                 Modification = TileModify.TileModification.ReplaceBlock,
-                Data = (ushort)BlockId.Stone
+                Data = (ushort)(BlockId.Stone - 1)
             };
             var sender = Mock.Of<IPlayer>();
 

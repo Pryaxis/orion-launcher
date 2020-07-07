@@ -16,6 +16,7 @@
 // along with Orion.  If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using Orion.Core.World;
@@ -40,10 +41,10 @@ namespace Orion.Launcher.World
             public ushort type
             {
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                get => (ushort)_tile->BlockId;
+                get => _tile->BlockId == BlockId.None ? (ushort)0 : (ushort)(_tile->BlockId - 1);
 
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                set => _tile->BlockId = (BlockId)value;
+                set => _tile->BlockId = (BlockId)(value + 1);
             }
 
             public ushort wall
@@ -82,36 +83,27 @@ namespace Orion.Launcher.World
                 set => _tile->BlockFrameY = value;
             }
 
+            // No-ops since these are never used.
+            [ExcludeFromCodeCoverage]
+            public int collisionType => 0;
+
             public short sTileHeader
             {
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                get => Unsafe.ReadUnaligned<short>(((byte*)_tile) + 9);
+                [ExcludeFromCodeCoverage]
+                get => 0;
 
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                set => Unsafe.WriteUnaligned(((byte*)_tile) + 9, value);
+                [ExcludeFromCodeCoverage]
+                set { }
             }
 
             public byte bTileHeader
             {
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                get => *((byte*)_tile + 11);
+                [ExcludeFromCodeCoverage]
+                get => 0;
 
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                set => *((byte*)_tile + 11) = value;
+                [ExcludeFromCodeCoverage]
+                set { }
             }
-
-            public byte bTileHeader3
-            {
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                get => *((byte*)_tile + 12);
-
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                set => *((byte*)_tile + 12) = value;
-            }
-
-            // No-ops since these are never used.
-            [ExcludeFromCodeCoverage]
-            public int collisionType => 0;
 
             public byte bTileHeader2
             {
@@ -122,6 +114,38 @@ namespace Orion.Launcher.World
                 set { }
             }
 
+            public byte bTileHeader3
+            {
+                [ExcludeFromCodeCoverage]
+                get => 0;
+
+                [ExcludeFromCodeCoverage]
+                set { }
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool active() => _tile->BlockId != BlockId.None;
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void active(bool active)
+            {
+                // Because Terraria originally stored active and block ID information separately, we need to be careful
+                // about replacing block ID information if Terraria calls `active(true)`.
+                //
+                // We allow the following transitions:
+                // - active -> not active
+                // - no block -> active (as dirt)
+
+                if (!active)
+                {
+                    _tile->BlockId = BlockId.None;
+                }
+                else if (_tile->BlockId == BlockId.None)
+                {
+                    _tile->BlockId = BlockId.Dirt;
+                }
+            }
+
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public byte color() => (byte)_tile->BlockColor;
 
@@ -129,19 +153,70 @@ namespace Orion.Launcher.World
             public void color(byte color) => _tile->BlockColor = (PaintColor)color;
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public bool active() => _tile->IsBlockActive;
+            public int blockType() => (int)_tile->BlockShape;
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public void active(bool active) => _tile->IsBlockActive = active;
+            public bool halfBrick() => _tile->BlockShape == BlockShape.Halved;
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public bool inActive() => _tile->IsBlockActuated;
+            public void halfBrick(bool halfBrick)
+            {
+                // Because Terraria originally stored halved and slope information separately, we need to be careful
+                // about replacing slope information if Terraria calls `halfBrick(false)`.
+                //
+                // We allow the following transitions:
+                // - <anything> -> halved
+                // - halved -> not halved
+
+                if (halfBrick)
+                {
+                    _tile->BlockShape = BlockShape.Halved;
+                }
+                else if (_tile->BlockShape == BlockShape.Halved)
+                {
+                    _tile->BlockShape = BlockShape.Normal;
+                }
+            }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public void inActive(bool inActive) => _tile->IsBlockActuated = inActive;
+            public byte slope() => (byte)(_tile->BlockShape == BlockShape.Normal ? 0 : (_tile->BlockShape - 1));
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public bool nactive() => (sTileHeader & 0x0060) == 0x0020;
+            public void slope(byte slope)
+            {
+                Debug.Assert(slope <= 0x06);
+
+                // Because Terraria originally stored halved and slope information separately, we need to be careful
+                // about replacing halved information if Terraria calls `slope(0)`.
+                //
+                // We allow the following transitions:
+                // - <anything> -> slope
+                // - slope -> no slope
+
+                if (slope > 0)
+                {
+                    _tile->BlockShape = (BlockShape)(slope + 1);
+                }
+                else if (_tile->BlockShape > BlockShape.Halved)
+                {
+                    _tile->BlockShape = BlockShape.Normal;
+                }
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool topSlope() => IsSlope(1, 2);
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool bottomSlope() => IsSlope(3, 4);
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool leftSlope() => IsSlope(2, 4);
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool rightSlope() => IsSlope(1, 3);
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool HasSameSlope(OTAPI.Tile.ITile tile) => slope() == tile.slope();
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public bool wire() => _tile->HasRedWire;
@@ -162,20 +237,10 @@ namespace Orion.Launcher.World
             public void wire3(bool wire3) => _tile->HasGreenWire = wire3;
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public bool halfBrick() => (sTileHeader & 0x0400) != 0;
+            public bool wire4() => _tile->HasYellowWire;
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public void halfBrick(bool halfBrick)
-            {
-                if (halfBrick)
-                {
-                    sTileHeader |= 0x0400;
-                }
-                else
-                {
-                    sTileHeader = (short)(sTileHeader & 0xFBFF);
-                }
-            }
+            public void wire4(bool wire4) => _tile->HasYellowWire = wire4;
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public bool actuator() => _tile->HasActuator;
@@ -184,10 +249,56 @@ namespace Orion.Launcher.World
             public void actuator(bool actuator) => _tile->HasActuator = actuator;
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public byte slope() => (byte)((sTileHeader & 0x7000) >> 12);
+            public bool inActive() => _tile->IsBlockActuated;
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public void slope(byte slope) => sTileHeader = (short)((sTileHeader & 0x8FFF) | ((slope & 7) << 12));
+            public void inActive(bool inActive) => _tile->IsBlockActuated = inActive;
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool nactive() => active() && !inActive();
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public byte liquidType() => (byte)((_tile->Header2 & 0xc0) >> 6);
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void liquidType(int liquidType)
+            {
+                Debug.Assert(liquidType <= 0x03);
+
+                _tile->Header2 = (byte)((_tile->Header2 & 0x3f) | (liquidType << 6));
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool lava() => (_tile->Header2 & 0x40) != 0;
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void lava(bool lava)
+            {
+                if (lava)
+                {
+                    _tile->Header2 = (byte)((_tile->Header2 & 0x3f) | 0x40);
+                }
+                else
+                {
+                    _tile->Header2 &= 0xbf;
+                }
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool honey() => (_tile->Header2 & 0x80) != 0;
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void honey(bool honey)
+            {
+                if (honey)
+                {
+                    _tile->Header2 = (byte)((_tile->Header2 & 0x3f) | 0x80);
+                }
+                else
+                {
+                    _tile->Header2 &= 0x7f;
+                }
+            }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public byte wallColor() => (byte)_tile->WallColor;
@@ -195,86 +306,56 @@ namespace Orion.Launcher.World
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void wallColor(byte wallColor) => _tile->WallColor = (PaintColor)wallColor;
 
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public bool lava() => (bTileHeader & 0x20) != 0;
+            // The checking liquid flag is implemented using the top bit of the third header. This is done to cut down
+            // on the size of a tile.
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public void lava(bool lava)
-            {
-                if (lava)
-                {
-                    bTileHeader = (byte)((bTileHeader & 0x9F) | 0x20);
-                }
-                else
-                {
-                    bTileHeader &= 0xdf;
-                }
-            }
-
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public bool honey() => (bTileHeader & 0x40) != 0;
-
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public void honey(bool honey)
-            {
-                if (honey)
-                {
-                    bTileHeader = (byte)((bTileHeader & 0x9F) | 0x40);
-                }
-                else
-                {
-                    bTileHeader &= 0xbf;
-                }
-            }
-
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public byte liquidType() => (byte)((bTileHeader & 0x60) >> 5);
-
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public void liquidType(int liquidType) => bTileHeader = (byte)((bTileHeader & 0x9f) | (liquidType << 5));
-
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public bool wire4() => _tile->HasYellowWire;
-
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public void wire4(bool wire4) => _tile->HasYellowWire = wire4;
-
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public byte frameNumber() => (byte)(bTileHeader3 & 0x03);
-
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public void frameNumber(byte frameNumber) => bTileHeader3 = (byte)((bTileHeader3 & 0xfc) | frameNumber);
-
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public bool checkingLiquid() => (bTileHeader3 & 0x04) != 0;
+            public bool checkingLiquid() => (_tile->Header3 & 0x80) != 0;
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void checkingLiquid(bool checkingLiquid)
             {
                 if (checkingLiquid)
                 {
-                    bTileHeader3 |= 0x04;
+                    _tile->Header3 |= 0x80;
                 }
                 else
                 {
-                    bTileHeader3 &= 0xfb;
+                    _tile->Header3 &= 0x7f;
                 }
             }
 
+            // The skip liquid flag is implemented using the top bit of the wall ID. This is to cut down on the size of
+            // size of a tile.
+
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public bool skipLiquid() => (bTileHeader3 & 0x08) != 0;
+            public bool skipLiquid() => (*((ushort*)_tile + 1) & 0x8000) != 0;
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void skipLiquid(bool skipLiquid)
             {
                 if (skipLiquid)
                 {
-                    bTileHeader3 |= 0x08;
+                    *((ushort*)_tile + 1) |= 0x8000;
                 }
                 else
                 {
-                    bTileHeader3 &= 0xf7;
+                    *((ushort*)_tile + 1) &= 0x7fff;
                 }
+            }
+
+            // The frame number is implemented using bits 5-6 of the third header. This is done to cut down on the size
+            // of a tile.
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public byte frameNumber() => (byte)((_tile->Header3 & 0x60) >> 5);
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void frameNumber(byte frameNumber)
+            {
+                Debug.Assert(frameNumber <= 0x03);
+
+                _tile->Header3 = (byte)((_tile->Header3 & 0x9f) | (frameNumber << 5));
             }
 
             public void CopyFrom(OTAPI.Tile.ITile from)
@@ -285,21 +366,10 @@ namespace Orion.Launcher.World
                     return;
                 }
 
-                if (from is TileAdapter adapter)
-                {
-                    Unsafe.CopyBlockUnaligned(_tile, adapter._tile, 13);
-                }
-                else
-                {
-                    type = from.type;
-                    wall = from.wall;
-                    liquid = from.liquid;
-                    sTileHeader = from.sTileHeader;
-                    bTileHeader = from.bTileHeader;
-                    bTileHeader3 = from.bTileHeader3;
-                    frameX = from.frameX;
-                    frameY = from.frameY;
-                }
+                Debug.Assert(from is TileAdapter);
+
+                var adapter = (TileAdapter)from;
+                *_tile = *adapter._tile;
             }
 
             public bool isTheSameAs(OTAPI.Tile.ITile compTile)
@@ -309,93 +379,24 @@ namespace Orion.Launcher.World
                     return false;
                 }
 
-                if (compTile is TileAdapter adapter)
-                {
-                    var mask = liquid == 0
-                        ? 0b_00000000_11111111_11111111_11111111
-                        : 0b_00000000_10011111_11111111_11111111;
-                    if ((_tile->Header & mask) != (adapter._tile->Header & mask))
-                    {
-                        return false;
-                    }
+                Debug.Assert(compTile is TileAdapter);
 
-                    if (active())
-                    {
-                        if (type != adapter.type)
-                        {
-                            return false;
-                        }
-
-                        if (_tile->BlockId.HasFrames() && (frameX != adapter.frameX || frameY != adapter.frameY))
-                        {
-                            return false;
-                        }
-                    }
-
-                    if (wall != adapter.wall || liquid != adapter.liquid)
-                    {
-                        return false;
-                    }
-                }
-                else
-                {
-                    if (sTileHeader != compTile.sTileHeader)
-                    {
-                        return false;
-                    }
-
-                    if (active())
-                    {
-                        if (type != compTile.type)
-                        {
-                            return false;
-                        }
-
-                        if (_tile->BlockId.HasFrames() && (frameX != compTile.frameX || frameY != compTile.frameY))
-                        {
-                            return false;
-                        }
-                    }
-
-                    if (wall != compTile.wall || liquid != compTile.liquid)
-                    {
-                        return false;
-                    }
-
-                    if (liquid == 0)
-                    {
-                        if (wallColor() != compTile.wallColor())
-                        {
-                            return false;
-                        }
-
-                        if (wire4() != compTile.wire4())
-                        {
-                            return false;
-                        }
-                    }
-                    else if (bTileHeader != compTile.bTileHeader)
-                    {
-                        return false;
-                    }
-                }
-
-                return true;
+                var adapter = (TileAdapter)compTile;
+                return _tile->Equals(*adapter._tile);
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public void ClearEverything() => Unsafe.InitBlockUnaligned(_tile, 0, 13);
+            public void ClearEverything() => Unsafe.InitBlockUnaligned((byte*)_tile, 0, 12);
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public void ClearMetadata() => Unsafe.InitBlockUnaligned(((byte*)_tile) + 4, 0, 9);
+            public void ClearMetadata() => Unsafe.InitBlockUnaligned(((byte*)_tile) + 4, 0, 8);
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void ClearTile()
             {
-                active(false);
-                inActive(false);
-                slope(0);
-                halfBrick(false);
+                _tile->BlockId = BlockId.None;
+                _tile->BlockShape = BlockShape.Normal;
+                _tile->IsBlockActuated = false;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -403,31 +404,28 @@ namespace Orion.Launcher.World
             {
                 if ((types & Terraria.DataStructures.TileDataType.Tile) != 0)
                 {
-                    type = 0;
-                    active(false);
-                    frameX = 0;
-                    frameY = 0;
+                    _tile->BlockId = BlockId.None;
+                    Unsafe.InitBlockUnaligned(((byte*)_tile) + 5, 0, 4);
                 }
 
                 if ((types & Terraria.DataStructures.TileDataType.TilePaint) != 0)
                 {
-                    color(0);
+                    _tile->BlockColor = PaintColor.None;
                 }
 
                 if ((types & Terraria.DataStructures.TileDataType.Wall) != 0)
                 {
-                    wall = 0;
+                    _tile->WallId = WallId.None;
                 }
 
                 if ((types & Terraria.DataStructures.TileDataType.WallPaint) != 0)
                 {
-                    wallColor(0);
+                    _tile->WallColor = PaintColor.None;
                 }
 
                 if ((types & Terraria.DataStructures.TileDataType.Liquid) != 0)
                 {
-                    liquid = 0;
-                    liquidType(0);
+                    _tile->Liquid = default;
                     checkingLiquid(false);
                 }
 
@@ -447,8 +445,7 @@ namespace Orion.Launcher.World
 
                 if ((types & Terraria.DataStructures.TileDataType.Slope) != 0)
                 {
-                    slope(0);
-                    halfBrick(false);
+                    _tile->BlockShape = BlockShape.Normal;
                 }
             }
 
@@ -457,34 +454,6 @@ namespace Orion.Launcher.World
             {
                 ClearMetadata();
                 this.type = type;
-                active(true);
-            }
-
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public bool topSlope() => IsSlope(1, 2);
-
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public bool bottomSlope() => IsSlope(3, 4);
-
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public bool leftSlope() => IsSlope(2, 4);
-
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public bool rightSlope() => IsSlope(1, 3);
-
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public bool HasSameSlope(OTAPI.Tile.ITile tile) => (sTileHeader & 29696) == (tile.sTileHeader & 29696);
-
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public int blockType()
-            {
-                if (halfBrick())
-                {
-                    return 1;
-                }
-
-                var slope = this.slope();
-                return slope > 0 ? slope + 1 : 0;
             }
 
             // No-ops since these are never used.
@@ -497,12 +466,23 @@ namespace Orion.Launcher.World
             [ExcludeFromCodeCoverage]
             public void actColor(ref Microsoft.Xna.Framework.Vector3 oldColor) { }
 
-            [ExcludeFromCodeCoverage] public byte wallFrameNumber() => 0;
-            [ExcludeFromCodeCoverage] public void wallFrameNumber(byte wallFrameNumber) { }
-            [ExcludeFromCodeCoverage] public int wallFrameX() => 0;
-            [ExcludeFromCodeCoverage] public void wallFrameX(int wallFrameX) { }
-            [ExcludeFromCodeCoverage] public int wallFrameY() => 0;
-            [ExcludeFromCodeCoverage] public void wallFrameY(int wallFrameY) { }
+            [ExcludeFromCodeCoverage]
+            public byte wallFrameNumber() => 0;
+
+            [ExcludeFromCodeCoverage]
+            public void wallFrameNumber(byte wallFrameNumber) { }
+
+            [ExcludeFromCodeCoverage]
+            public int wallFrameX() => 0;
+
+            [ExcludeFromCodeCoverage]
+            public void wallFrameX(int wallFrameX) { }
+
+            [ExcludeFromCodeCoverage]
+            public int wallFrameY() => 0;
+
+            [ExcludeFromCodeCoverage]
+            public void wallFrameY(int wallFrameY) { }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             private bool IsSlope(byte slope1, byte slope2)

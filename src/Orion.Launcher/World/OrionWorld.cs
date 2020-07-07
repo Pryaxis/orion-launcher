@@ -224,7 +224,8 @@ namespace Orion.Launcher.World
             var packet = evt.Packet;
 
             _events.Forward(evt,
-                new BlockPlaceEvent(this, evt.Sender, packet.X, packet.Y, (BlockId)packet.Data, packet.Data2, false),
+                new BlockPlaceEvent(
+                    this, evt.Sender, packet.X, packet.Y, (BlockId)(packet.Data + 1), packet.Data2, false),
                 _log);
         }
 
@@ -263,7 +264,8 @@ namespace Orion.Launcher.World
             var packet = evt.Packet;
 
             _events.Forward(evt,
-                new BlockPlaceEvent(this, evt.Sender, packet.X, packet.Y, (BlockId)packet.Data, packet.Data2, true),
+                new BlockPlaceEvent(
+                    this, evt.Sender, packet.X, packet.Y, (BlockId)(packet.Data + 1), packet.Data2, true),
                 _log);
         }
 

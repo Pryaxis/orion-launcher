@@ -58,7 +58,7 @@ namespace Orion.Launcher.World
 
             world[0, 0] = new Tile { BlockId = BlockId.Stone };
 
-            Assert.Equal(BlockId.Stone, (BlockId)Terraria.Main.tile[0, 0].type);
+            Assert.Equal(BlockId.Stone, (BlockId)(Terraria.Main.tile[0, 0].type + 1));
         }
 
         [Fact]
@@ -68,7 +68,7 @@ namespace Orion.Launcher.World
             var log = Mock.Of<ILogger>();
             using var world = new OrionWorld(events, log);
 
-            Terraria.Main.tile[0, 0].type = (ushort)BlockId.Stone;
+            Terraria.Main.tile[0, 0].type = (ushort)(BlockId.Stone - 1);
 
             Assert.Equal(BlockId.Stone, world[0, 0].BlockId);
         }
@@ -122,78 +122,6 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
-        public void Main_tile_Get_sTileHeader_Get()
-        {
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            using var world = new OrionWorld(events, log);
-
-            world[0, 0] = new Tile { Header = 0x00001234u };
-
-            Assert.Equal(0x1234, Terraria.Main.tile[0, 0].sTileHeader);
-        }
-
-        [Fact]
-        public void Main_tile_Get_sTileHeader_Set()
-        {
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            using var world = new OrionWorld(events, log);
-
-            Terraria.Main.tile[0, 0].sTileHeader = 0x1234;
-
-            Assert.Equal(0x00001234u, world[0, 0].Header & 0x0000ffffu);
-        }
-
-        [Fact]
-        public void Main_tile_Get_bTileHeader_Get()
-        {
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            using var world = new OrionWorld(events, log);
-
-            world[0, 0] = new Tile { Header = 0x00120000u };
-
-            Assert.Equal(0x12, Terraria.Main.tile[0, 0].bTileHeader);
-        }
-
-        [Fact]
-        public void Main_tile_Get_bTileHeader_Set()
-        {
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            using var world = new OrionWorld(events, log);
-
-            Terraria.Main.tile[0, 0].bTileHeader = 0x12;
-
-            Assert.Equal(0x00120000u, world[0, 0].Header & 0x00ff0000u);
-        }
-
-        [Fact]
-        public void Main_tile_Get_bTileHeader3_Get()
-        {
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            using var world = new OrionWorld(events, log);
-
-            world[0, 0] = new Tile { Header = 0x12000000u };
-
-            Assert.Equal(0x12, Terraria.Main.tile[0, 0].bTileHeader3);
-        }
-
-        [Fact]
-        public void Main_tile_Get_bTileHeader3_Set()
-        {
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            using var world = new OrionWorld(events, log);
-
-            Terraria.Main.tile[0, 0].bTileHeader3 = 0x12;
-
-            Assert.Equal(0x12000000u, world[0, 0].Header & 0xff000000u);
-        }
-
-        [Fact]
         public void Main_tile_Get_frameX_Get()
         {
             var events = Mock.Of<IEventManager>();
@@ -242,6 +170,56 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
+        public void Main_tile_Get_active_Get_ReturnsTrue()
+        {
+            var events = Mock.Of<IEventManager>();
+            var log = Mock.Of<ILogger>();
+            using var world = new OrionWorld(events, log);
+
+            world[0, 0] = new Tile { BlockId = BlockId.Dirt };
+
+            Assert.True(Terraria.Main.tile[0, 0].active());
+        }
+
+        [Fact]
+        public void Main_tile_Get_active_Get_ReturnsFalse()
+        {
+            var events = Mock.Of<IEventManager>();
+            var log = Mock.Of<ILogger>();
+            using var world = new OrionWorld(events, log);
+
+            world[0, 0] = new Tile { BlockId = BlockId.None };
+
+            Assert.False(Terraria.Main.tile[0, 0].active());
+        }
+
+        [Fact]
+        public void Main_tile_Get_active_SetTrue()
+        {
+            var events = Mock.Of<IEventManager>();
+            var log = Mock.Of<ILogger>();
+            using var world = new OrionWorld(events, log);
+
+            world[0, 0] = new Tile { BlockId = BlockId.None };
+
+            Terraria.Main.tile[0, 0].active(true);
+
+            Assert.Equal(BlockId.Dirt, world[0, 0].BlockId);
+        }
+
+        [Fact]
+        public void Main_tile_Get_active_SetFalse()
+        {
+            var events = Mock.Of<IEventManager>();
+            var log = Mock.Of<ILogger>();
+            using var world = new OrionWorld(events, log);
+
+            Terraria.Main.tile[0, 0].active(false);
+
+            Assert.Equal(BlockId.None, world[0, 0].BlockId);
+        }
+
+        [Fact]
         public void Main_tile_Get_color_Get()
         {
             var events = Mock.Of<IEventManager>();
@@ -266,87 +244,243 @@ namespace Orion.Launcher.World
         }
 
         [Theory]
-        [InlineData(true)]
-        [InlineData(false)]
-        public void Main_tile_Get_active_Get(bool value)
+        [InlineData(BlockShape.Normal)]
+        [InlineData(BlockShape.Halved)]
+        [InlineData(BlockShape.TopLeft)]
+        [InlineData(BlockShape.TopRight)]
+        [InlineData(BlockShape.BottomLeft)]
+        [InlineData(BlockShape.BottomRight)]
+        public void Main_tile_Get_blockType_Get(BlockShape value)
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             using var world = new OrionWorld(events, log);
 
-            world[0, 0] = new Tile { IsBlockActive = value };
+            world[0, 0] = new Tile { BlockShape = value };
 
-            Assert.Equal(value, Terraria.Main.tile[0, 0].active());
-        }
-
-        [Theory]
-        [InlineData(true)]
-        [InlineData(false)]
-        public void Main_tile_Get_active_Set(bool value)
-        {
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            using var world = new OrionWorld(events, log);
-
-            Terraria.Main.tile[0, 0].active(value);
-
-            Assert.Equal(value, world[0, 0].IsBlockActive);
-        }
-
-        [Theory]
-        [InlineData(true)]
-        [InlineData(false)]
-        public void Main_tile_Get_inActive_Get(bool value)
-        {
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            using var world = new OrionWorld(events, log);
-
-            world[0, 0] = new Tile { IsBlockActuated = value };
-
-            Assert.Equal(value, Terraria.Main.tile[0, 0].inActive());
-        }
-
-        [Theory]
-        [InlineData(true)]
-        [InlineData(false)]
-        public void Main_tile_Get_inActive_Set(bool value)
-        {
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            using var world = new OrionWorld(events, log);
-
-            Terraria.Main.tile[0, 0].inActive(value);
-
-            Assert.Equal(value, world[0, 0].IsBlockActuated);
+            Assert.Equal(value, (BlockShape)Terraria.Main.tile[0, 0].blockType());
         }
 
         [Fact]
-        public void Main_tile_Get_nactive_Get_ReturnsTrue()
+        public void Main_tile_Get_halfBrick_Get_ReturnsTrue()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             using var world = new OrionWorld(events, log);
 
-            world[0, 0] = new Tile { IsBlockActive = true };
+            world[0, 0] = new Tile { BlockShape = BlockShape.Halved };
 
-            Assert.True(Terraria.Main.tile[0, 0].nactive());
-
-            world[0, 0].IsBlockActuated = true;
-
-            Assert.False(Terraria.Main.tile[0, 0].nactive());
+            Assert.True(Terraria.Main.tile[0, 0].halfBrick());
         }
 
         [Fact]
-        public void Main_tile_Get_nactive_Get_ReturnsFalse()
+        public void Main_tile_Get_halfBrick_Get_ReturnsFalse()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             using var world = new OrionWorld(events, log);
 
-            world[0, 0] = new Tile { IsBlockActive = true, IsBlockActuated = true };
+            world[0, 0] = new Tile { BlockShape = BlockShape.TopRight };
 
-            Assert.False(Terraria.Main.tile[0, 0].nactive());
+            Assert.False(Terraria.Main.tile[0, 0].halfBrick());
+        }
+
+        [Fact]
+        public void Main_tile_Get_halfBrick_SetTrue()
+        {
+            var events = Mock.Of<IEventManager>();
+            var log = Mock.Of<ILogger>();
+            using var world = new OrionWorld(events, log);
+
+            Terraria.Main.tile[0, 0].halfBrick(true);
+
+            Assert.Equal(BlockShape.Halved, world[0, 0].BlockShape);
+        }
+
+        [Fact]
+        public void Main_tile_Get_halfBrick_SetFalse()
+        {
+            var events = Mock.Of<IEventManager>();
+            var log = Mock.Of<ILogger>();
+            using var world = new OrionWorld(events, log);
+
+            world[0, 0] = new Tile { BlockShape = BlockShape.Halved };
+
+            Terraria.Main.tile[0, 0].halfBrick(false);
+
+            Assert.Equal(BlockShape.Normal, world[0, 0].BlockShape);
+        }
+
+        [Fact]
+        public void Main_tile_Get_halfBrick_SetFalse_NoEffect()
+        {
+            var events = Mock.Of<IEventManager>();
+            var log = Mock.Of<ILogger>();
+            using var world = new OrionWorld(events, log);
+
+            world[0, 0] = new Tile { BlockShape = BlockShape.TopRight };
+
+            Terraria.Main.tile[0, 0].halfBrick(false);
+
+            Assert.Equal(BlockShape.TopRight, world[0, 0].BlockShape);
+        }
+
+        [Fact]
+        public void Main_tile_Get_slope_GetNormal()
+        {
+            var events = Mock.Of<IEventManager>();
+            var log = Mock.Of<ILogger>();
+            using var world = new OrionWorld(events, log);
+
+            world[0, 0] = new Tile { BlockShape = BlockShape.Normal };
+
+            Assert.Equal(0, Terraria.Main.tile[0, 0].slope());
+        }
+
+        [Fact]
+        public void Main_tile_Get_slope_GetNotNormal()
+        {
+            var events = Mock.Of<IEventManager>();
+            var log = Mock.Of<ILogger>();
+            using var world = new OrionWorld(events, log);
+
+            world[0, 0] = new Tile { BlockShape = BlockShape.TopRight };
+
+            Assert.Equal((int)(BlockShape.TopRight - 1), Terraria.Main.tile[0, 0].slope());
+        }
+
+        [Fact]
+        public void Main_tile_Get_slope_SetNonZero()
+        {
+            var events = Mock.Of<IEventManager>();
+            var log = Mock.Of<ILogger>();
+            using var world = new OrionWorld(events, log);
+
+            Terraria.Main.tile[0, 0].slope((byte)(BlockShape.TopRight - 1));
+
+            Assert.Equal(BlockShape.TopRight, world[0, 0].BlockShape);
+        }
+
+        [Fact]
+        public void Main_tile_Get_slope_SetZero()
+        {
+            var events = Mock.Of<IEventManager>();
+            var log = Mock.Of<ILogger>();
+            using var world = new OrionWorld(events, log);
+
+            world[0, 0] = new Tile { BlockShape = BlockShape.TopRight };
+
+            Terraria.Main.tile[0, 0].slope(0);
+
+            Assert.Equal(BlockShape.Normal, world[0, 0].BlockShape);
+        }
+
+        [Fact]
+        public void Main_tile_Get_slope_SetZero_NoEffect()
+        {
+            var events = Mock.Of<IEventManager>();
+            var log = Mock.Of<ILogger>();
+            using var world = new OrionWorld(events, log);
+
+            world[0, 0] = new Tile { BlockShape = BlockShape.Halved };
+
+            Terraria.Main.tile[0, 0].slope(0);
+
+            Assert.Equal(BlockShape.Halved, world[0, 0].BlockShape);
+        }
+
+        [Theory]
+        [InlineData(BlockShape.Normal, false)]
+        [InlineData(BlockShape.TopLeft, true)]
+        [InlineData(BlockShape.TopRight, true)]
+        [InlineData(BlockShape.BottomLeft, false)]
+        [InlineData(BlockShape.BottomRight, false)]
+        public void Main_tile_Get_topSlope(BlockShape shape, bool value)
+        {
+            var events = Mock.Of<IEventManager>();
+            var log = Mock.Of<ILogger>();
+            using var world = new OrionWorld(events, log);
+
+            world[0, 0] = new Tile { BlockShape = shape };
+
+            Assert.Equal(value, Terraria.Main.tile[0, 0].topSlope());
+        }
+
+        [Theory]
+        [InlineData(BlockShape.Normal, false)]
+        [InlineData(BlockShape.TopLeft, false)]
+        [InlineData(BlockShape.TopRight, false)]
+        [InlineData(BlockShape.BottomLeft, true)]
+        [InlineData(BlockShape.BottomRight, true)]
+        public void Main_tile_Get_bottomSlope(BlockShape shape, bool value)
+        {
+            var events = Mock.Of<IEventManager>();
+            var log = Mock.Of<ILogger>();
+            using var world = new OrionWorld(events, log);
+
+            world[0, 0] = new Tile { BlockShape = shape };
+
+            Assert.Equal(value, Terraria.Main.tile[0, 0].bottomSlope());
+        }
+
+        [Theory]
+        [InlineData(BlockShape.Normal, false)]
+        [InlineData(BlockShape.TopLeft, true)]
+        [InlineData(BlockShape.TopRight, false)]
+        [InlineData(BlockShape.BottomLeft, true)]
+        [InlineData(BlockShape.BottomRight, false)]
+        public void Main_tile_Get_leftSlope(BlockShape shape, bool value)
+        {
+            var events = Mock.Of<IEventManager>();
+            var log = Mock.Of<ILogger>();
+            using var world = new OrionWorld(events, log);
+
+            world[0, 0] = new Tile { BlockShape = shape };
+
+            Assert.Equal(value, Terraria.Main.tile[0, 0].leftSlope());
+        }
+
+        [Theory]
+        [InlineData(BlockShape.Normal, false)]
+        [InlineData(BlockShape.TopLeft, false)]
+        [InlineData(BlockShape.TopRight, true)]
+        [InlineData(BlockShape.BottomLeft, false)]
+        [InlineData(BlockShape.BottomRight, true)]
+        public void Main_tile_Get_rightSlope(BlockShape shape, bool value)
+        {
+            var events = Mock.Of<IEventManager>();
+            var log = Mock.Of<ILogger>();
+            using var world = new OrionWorld(events, log);
+
+            world[0, 0] = new Tile { BlockShape = shape };
+
+            Assert.Equal(value, Terraria.Main.tile[0, 0].rightSlope());
+        }
+
+        [Fact]
+        public void Main_tile_Get_HasSameSlope_SameSlopes()
+        {
+            var events = Mock.Of<IEventManager>();
+            var log = Mock.Of<ILogger>();
+            using var world = new OrionWorld(events, log);
+
+            world[0, 0] = new Tile { BlockShape = BlockShape.BottomRight };
+            world[0, 1] = new Tile { BlockShape = BlockShape.BottomRight };
+
+            Assert.True(Terraria.Main.tile[0, 0].HasSameSlope(Terraria.Main.tile[0, 1]));
+        }
+
+        [Fact]
+        public void Main_tile_Get_HasSameSlope_DifferentSlopes()
+        {
+            var events = Mock.Of<IEventManager>();
+            var log = Mock.Of<ILogger>();
+            using var world = new OrionWorld(events, log);
+
+            world[0, 0] = new Tile { BlockShape = BlockShape.BottomRight };
+            world[0, 1] = new Tile { BlockShape = BlockShape.BottomLeft };
+
+            Assert.False(Terraria.Main.tile[0, 0].HasSameSlope(Terraria.Main.tile[0, 1]));
         }
 
         [Theory]
@@ -436,15 +570,29 @@ namespace Orion.Launcher.World
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
-        public void Main_tile_Get_halfBrick_Set_Get(bool value)
+        public void Main_tile_Get_wire4_Get(bool value)
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             using var world = new OrionWorld(events, log);
 
-            Terraria.Main.tile[0, 0].halfBrick(value);
+            world[0, 0] = new Tile { HasYellowWire = value };
 
-            Assert.Equal(value, Terraria.Main.tile[0, 0].halfBrick());
+            Assert.Equal(value, Terraria.Main.tile[0, 0].wire4());
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void Main_tile_Get_wire4_Set(bool value)
+        {
+            var events = Mock.Of<IEventManager>();
+            var log = Mock.Of<ILogger>();
+            using var world = new OrionWorld(events, log);
+
+            Terraria.Main.tile[0, 0].wire4(value);
+
+            Assert.Equal(value, world[0, 0].HasYellowWire);
         }
 
         [Theory]
@@ -475,108 +623,32 @@ namespace Orion.Launcher.World
             Assert.Equal(value, world[0, 0].HasActuator);
         }
 
-        [Fact]
-        public void Main_tile_Get_slope_Set_Get()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void Main_tile_Get_inActive_Get(bool value)
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             using var world = new OrionWorld(events, log);
 
-            Terraria.Main.tile[0, 0].slope(2);
+            world[0, 0] = new Tile { IsBlockActuated = value };
 
-            Assert.Equal(2, Terraria.Main.tile[0, 0].slope());
+            Assert.Equal(value, Terraria.Main.tile[0, 0].inActive());
         }
 
-        [Fact]
-        public void Main_tile_Get_wallColor_Get()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void Main_tile_Get_inActive_Set(bool value)
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             using var world = new OrionWorld(events, log);
 
-            world[0, 0] = new Tile { WallColor = PaintColor.Red };
+            Terraria.Main.tile[0, 0].inActive(value);
 
-            Assert.Equal((byte)PaintColor.Red, Terraria.Main.tile[0, 0].wallColor());
-        }
-
-        [Fact]
-        public void Main_tile_Get_wallColor_Set()
-        {
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            using var world = new OrionWorld(events, log);
-
-            Terraria.Main.tile[0, 0].wallColor((byte)PaintColor.DeepRed);
-
-            Assert.Equal(PaintColor.DeepRed, world[0, 0].WallColor);
-        }
-
-        [Fact]
-        public void Main_tile_Get_lava_Get()
-        {
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            using var world = new OrionWorld(events, log);
-
-            world[0, 0] = new Tile { Liquid = new Liquid(LiquidType.Lava, 255) };
-
-            Assert.True(Terraria.Main.tile[0, 0].lava());
-
-            Terraria.Main.tile[0, 0].lava(false);
-
-            world[0, 0] = new Tile { Liquid = default };
-
-            Assert.False(Terraria.Main.tile[0, 0].lava());
-        }
-
-        [Fact]
-        public void Main_tile_Get_lava_Set()
-        {
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            using var world = new OrionWorld(events, log);
-
-            Terraria.Main.tile[0, 0].lava(false);
-
-            Assert.NotEqual(LiquidType.Lava, world[0, 0].Liquid.Type);
-
-            Terraria.Main.tile[0, 0].lava(true);
-
-            Assert.Equal(LiquidType.Lava, world[0, 0].Liquid.Type);
-        }
-
-        [Fact]
-        public void Main_tile_Get_honey_Get()
-        {
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            using var world = new OrionWorld(events, log);
-
-            world[0, 0] = new Tile { Liquid = new Liquid(LiquidType.Honey, 255) };
-
-            Assert.True(Terraria.Main.tile[0, 0].honey());
-
-            Terraria.Main.tile[0, 0].honey(false);
-
-            world[0, 0] = new Tile { Liquid = default };
-
-            Assert.False(Terraria.Main.tile[0, 0].honey());
-        }
-
-        [Fact]
-        public void Main_tile_Get_honey_Set()
-        {
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            using var world = new OrionWorld(events, log);
-
-            Terraria.Main.tile[0, 0].honey(false);
-
-            Assert.NotEqual(LiquidType.Honey, world[0, 0].Liquid.Type);
-
-            Terraria.Main.tile[0, 0].honey(true);
-
-            Assert.Equal(LiquidType.Honey, world[0, 0].Liquid.Type);
+            Assert.Equal(value, world[0, 0].IsBlockActuated);
         }
 
         [Theory]
@@ -609,32 +681,132 @@ namespace Orion.Launcher.World
             Assert.Equal(value, world[0, 0].Liquid.Type);
         }
 
-        [Theory]
-        [InlineData(true)]
-        [InlineData(false)]
-        public void Main_tile_Get_wire4_Get(bool value)
+        [Fact]
+        public void Main_tile_Get_lava_Get_ReturnsTrue()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             using var world = new OrionWorld(events, log);
 
-            world[0, 0] = new Tile { HasYellowWire = value };
+            world[0, 0] = new Tile { Liquid = new Liquid(LiquidType.Lava, 255) };
 
-            Assert.Equal(value, Terraria.Main.tile[0, 0].wire4());
+            Assert.True(Terraria.Main.tile[0, 0].lava());
         }
 
-        [Theory]
-        [InlineData(true)]
-        [InlineData(false)]
-        public void Main_tile_Get_wire4_Set(bool value)
+        [Fact]
+        public void Main_tile_Get_lava_Get_ReturnsFalse()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             using var world = new OrionWorld(events, log);
 
-            Terraria.Main.tile[0, 0].wire4(value);
+            world[0, 0] = new Tile { Liquid = default };
 
-            Assert.Equal(value, world[0, 0].HasYellowWire);
+            Assert.False(Terraria.Main.tile[0, 0].lava());
+        }
+
+        [Fact]
+        public void Main_tile_Get_lava_Set()
+        {
+            var events = Mock.Of<IEventManager>();
+            var log = Mock.Of<ILogger>();
+            using var world = new OrionWorld(events, log);
+
+            Terraria.Main.tile[0, 0].lava(false);
+
+            Assert.NotEqual(LiquidType.Lava, world[0, 0].Liquid.Type);
+
+            Terraria.Main.tile[0, 0].lava(true);
+
+            Assert.Equal(LiquidType.Lava, world[0, 0].Liquid.Type);
+        }
+
+        [Fact]
+        public void Main_tile_Get_honey_Get_ReturnsTrue()
+        {
+            var events = Mock.Of<IEventManager>();
+            var log = Mock.Of<ILogger>();
+            using var world = new OrionWorld(events, log);
+
+            world[0, 0] = new Tile { Liquid = new Liquid(LiquidType.Honey, 255) };
+
+            Assert.True(Terraria.Main.tile[0, 0].honey());
+        }
+
+        [Fact]
+        public void Main_tile_Get_honey_Get_ReturnsFalse()
+        {
+            var events = Mock.Of<IEventManager>();
+            var log = Mock.Of<ILogger>();
+            using var world = new OrionWorld(events, log);
+
+            world[0, 0] = new Tile { Liquid = default };
+
+            Assert.False(Terraria.Main.tile[0, 0].honey());
+        }
+
+        [Fact]
+        public void Main_tile_Get_honey_Set()
+        {
+            var events = Mock.Of<IEventManager>();
+            var log = Mock.Of<ILogger>();
+            using var world = new OrionWorld(events, log);
+
+            Terraria.Main.tile[0, 0].honey(false);
+
+            Assert.NotEqual(LiquidType.Honey, world[0, 0].Liquid.Type);
+
+            Terraria.Main.tile[0, 0].honey(true);
+
+            Assert.Equal(LiquidType.Honey, world[0, 0].Liquid.Type);
+        }
+
+        [Fact]
+        public void Main_tile_Get_nactive_Get_ReturnsTrue()
+        {
+            var events = Mock.Of<IEventManager>();
+            var log = Mock.Of<ILogger>();
+            using var world = new OrionWorld(events, log);
+
+            world[0, 0] = new Tile { BlockId = BlockId.Dirt };
+
+            Assert.True(Terraria.Main.tile[0, 0].nactive());
+        }
+
+        [Fact]
+        public void Main_tile_Get_nactive_Get_ReturnsFalse()
+        {
+            var events = Mock.Of<IEventManager>();
+            var log = Mock.Of<ILogger>();
+            using var world = new OrionWorld(events, log);
+
+            world[0, 0] = new Tile { BlockId = BlockId.Dirt, IsBlockActuated = true };
+
+            Assert.False(Terraria.Main.tile[0, 0].nactive());
+        }
+
+        [Fact]
+        public void Main_tile_Get_wallColor_Get()
+        {
+            var events = Mock.Of<IEventManager>();
+            var log = Mock.Of<ILogger>();
+            using var world = new OrionWorld(events, log);
+
+            world[0, 0] = new Tile { WallColor = PaintColor.Red };
+
+            Assert.Equal((byte)PaintColor.Red, Terraria.Main.tile[0, 0].wallColor());
+        }
+
+        [Fact]
+        public void Main_tile_Get_wallColor_Set()
+        {
+            var events = Mock.Of<IEventManager>();
+            var log = Mock.Of<ILogger>();
+            using var world = new OrionWorld(events, log);
+
+            Terraria.Main.tile[0, 0].wallColor((byte)PaintColor.DeepRed);
+
+            Assert.Equal(PaintColor.DeepRed, world[0, 0].WallColor);
         }
 
         [Fact]
@@ -691,17 +863,21 @@ namespace Orion.Launcher.World
                 Liquid = new Liquid(LiquidType.Water, 3),
                 BlockFrameX = 4,
                 BlockFrameY = 5,
-                Header = 0x12345678u
+                Header = 6,
+                Header2 = 7,
+                Header3 = 8
             };
 
             Terraria.Main.tile[0, 0].CopyFrom(null);
 
-            Assert.Equal(BlockId.Dirt, world[0, 0].BlockId);
+            Assert.Equal(BlockId.None, world[0, 0].BlockId);
             Assert.Equal(WallId.None, world[0, 0].WallId);
             Assert.Equal(default, world[0, 0].Liquid);
             Assert.Equal(0, world[0, 0].BlockFrameX);
             Assert.Equal(0, world[0, 0].BlockFrameY);
-            Assert.Equal(0u, world[0, 0].Header);
+            Assert.Equal(0, world[0, 0].Header);
+            Assert.Equal(0, world[0, 0].Header2);
+            Assert.Equal(0, world[0, 0].Header3);
         }
 
         [Fact]
@@ -718,7 +894,9 @@ namespace Orion.Launcher.World
                 Liquid = new Liquid(LiquidType.Water, 3),
                 BlockFrameX = 4,
                 BlockFrameY = 5,
-                Header = 0x12345678u
+                Header = 6,
+                Header2 = 7,
+                Header3 = 8
             };
 
             Terraria.Main.tile[0, 1].CopyFrom(Terraria.Main.tile[0, 0]);
@@ -728,29 +906,9 @@ namespace Orion.Launcher.World
             Assert.Equal(3, world[0, 1].Liquid.Amount);
             Assert.Equal(4, world[0, 1].BlockFrameX);
             Assert.Equal(5, world[0, 1].BlockFrameY);
-            Assert.Equal(0x12345678u, world[0, 1].Header);
-        }
-
-        [Fact]
-        public void Main_tile_Get_CopyFrom_ITile()
-        {
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            using var world = new OrionWorld(events, log);
-
-            var tile = Mock.Of<OTAPI.Tile.ITile>(
-                t => t.type == (ushort)BlockId.Stone && t.wall == (ushort)WallId.Dirt && t.liquid == 3 &&
-                    t.frameX == 4 && t.frameY == 5 && t.sTileHeader == 0x5678 && t.bTileHeader == 0x34 &&
-                    t.bTileHeader3 == 0x12);
-
-            Terraria.Main.tile[0, 1].CopyFrom(tile);
-
-            Assert.Equal(BlockId.Stone, world[0, 1].BlockId);
-            Assert.Equal(WallId.Dirt, world[0, 1].WallId);
-            Assert.Equal(3, world[0, 1].Liquid.Amount);
-            Assert.Equal(4, world[0, 1].BlockFrameX);
-            Assert.Equal(5, world[0, 1].BlockFrameY);
-            Assert.Equal(0x12345678u, world[0, 1].Header);
+            Assert.Equal(6, world[0, 1].Header);
+            Assert.Equal(7, world[0, 1].Header2);
+            Assert.Equal(8, world[0, 1].Header3);
         }
 
         [Fact]
@@ -764,311 +922,16 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
-        public void Main_tile_Get_isTheSameAs_TileAdapterDifferentHeader_ReturnsFalse()
+        public void Main_tile_Get_isTheSameAs_TileAdapter()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             using var world = new OrionWorld(events, log);
 
-            world[0, 0] = new Tile { IsBlockActive = true };
-            world[0, 1] = new Tile();
+            world[0, 0] = new Tile { BlockId = BlockId.Dirt };
+            world[0, 1] = new Tile { BlockId = BlockId.Stone };
 
             Assert.False(Terraria.Main.tile[0, 0].isTheSameAs(Terraria.Main.tile[0, 1]));
-        }
-
-        [Fact]
-        public void Main_tile_Get_isTheSameAs_TileAdapterDifferentHeader2_ReturnsFalse()
-        {
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            using var world = new OrionWorld(events, log);
-
-            world[0, 0] = new Tile { Liquid = new Liquid(LiquidType.Water, 1), Header = 0x00010000u };
-            world[0, 1] = new Tile { Liquid = new Liquid(LiquidType.Water, 1), Header = 0x00020000u };
-
-            Assert.False(Terraria.Main.tile[0, 0].isTheSameAs(Terraria.Main.tile[0, 1]));
-        }
-
-        [Fact]
-        public void Main_tile_Get_isTheSameAs_TileAdapterDifferentBlockIdAndBlockActive_ReturnsFalse()
-        {
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            using var world = new OrionWorld(events, log);
-
-            world[0, 0] = new Tile { IsBlockActive = true, BlockId = BlockId.Stone };
-            world[0, 1] = new Tile { IsBlockActive = true, BlockId = BlockId.Dirt };
-
-            Assert.False(Terraria.Main.tile[0, 0].isTheSameAs(Terraria.Main.tile[0, 1]));
-        }
-
-        [Fact]
-        public void Main_tile_Get_isTheSameAs_TileAdapterDifferentBlockIdButNotBlockActive_ReturnsTrue()
-        {
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            using var world = new OrionWorld(events, log);
-
-            world[0, 0] = new Tile { BlockId = BlockId.Stone };
-            world[0, 1] = new Tile { BlockId = BlockId.Dirt };
-
-            Assert.True(Terraria.Main.tile[0, 0].isTheSameAs(Terraria.Main.tile[0, 1]));
-        }
-
-        [Fact]
-        public void Main_tile_Get_isTheSameAs_TileAdapterDifferentBlockFrameXAndHasFrames_ReturnsFalse()
-        {
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            using var world = new OrionWorld(events, log);
-
-            world[0, 0] = new Tile { IsBlockActive = true, BlockId = BlockId.Torches, BlockFrameX = 1 };
-            world[0, 1] = new Tile { IsBlockActive = true, BlockId = BlockId.Torches, BlockFrameX = 2 };
-
-            Assert.False(Terraria.Main.tile[0, 0].isTheSameAs(Terraria.Main.tile[0, 1]));
-        }
-
-        [Fact]
-        public void Main_tile_Get_isTheSameAs_TileAdapterDifferentBlockFrameYAndHasFrames_ReturnsFalse()
-        {
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            using var world = new OrionWorld(events, log);
-
-            world[0, 0] = new Tile { IsBlockActive = true, BlockId = BlockId.Torches, BlockFrameY = 1 };
-            world[0, 1] = new Tile { IsBlockActive = true, BlockId = BlockId.Torches, BlockFrameY = 2 };
-
-            Assert.False(Terraria.Main.tile[0, 0].isTheSameAs(Terraria.Main.tile[0, 1]));
-        }
-
-        [Fact]
-        public void Main_tile_Get_isTheSameAs_TileAdapterDifferentBlockFramesButNotHasFrames_ReturnsTrue()
-        {
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            using var world = new OrionWorld(events, log);
-
-            world[0, 0] = new Tile
-            {
-                IsBlockActive = true,
-                BlockId = BlockId.Stone,
-                BlockFrameX = 1,
-                BlockFrameY = 1
-            };
-            world[0, 1] = new Tile
-            {
-                IsBlockActive = true,
-                BlockId = BlockId.Stone,
-                BlockFrameX = 2,
-                BlockFrameY = 2
-            };
-
-            Assert.True(Terraria.Main.tile[0, 0].isTheSameAs(Terraria.Main.tile[0, 1]));
-        }
-
-        [Fact]
-        public void Main_tile_Get_isTheSameAs_TileAdapterDifferentWallId_ReturnsFalse()
-        {
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            using var world = new OrionWorld(events, log);
-
-            world[0, 0] = new Tile { WallId = WallId.Stone };
-            world[0, 1] = new Tile { WallId = WallId.NaturalDirt };
-
-            Assert.False(Terraria.Main.tile[0, 0].isTheSameAs(Terraria.Main.tile[0, 1]));
-        }
-
-        [Fact]
-        public void Main_tile_Get_isTheSameAs_TileAdapterDifferentLiquidAmount_ReturnsFalse()
-        {
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            using var world = new OrionWorld(events, log);
-
-            world[0, 0] = new Tile { Liquid = new Liquid(LiquidType.Water, 1) };
-            world[0, 1] = new Tile { Liquid = new Liquid(LiquidType.Water, 2) };
-
-            Assert.False(Terraria.Main.tile[0, 0].isTheSameAs(Terraria.Main.tile[0, 1]));
-        }
-
-        [Fact]
-        public void Main_tile_Get_isTheSameAs_TileAdapterDifferentWallColor_ReturnsFalse()
-        {
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            using var world = new OrionWorld(events, log);
-
-            world[0, 0] = new Tile { WallColor = PaintColor.Red };
-            world[0, 1] = new Tile { WallColor = PaintColor.DeepRed };
-
-            Assert.False(Terraria.Main.tile[0, 0].isTheSameAs(Terraria.Main.tile[0, 1]));
-        }
-
-        [Fact]
-        public void Main_tile_Get_isTheSameAs_TileAdapterDifferentYellowWire_ReturnsFalse()
-        {
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            using var world = new OrionWorld(events, log);
-
-            world[0, 0] = new Tile { HasYellowWire = true };
-            world[0, 1] = new Tile();
-
-            Assert.False(Terraria.Main.tile[0, 0].isTheSameAs(Terraria.Main.tile[0, 1]));
-        }
-
-        [Fact]
-        public void Main_tile_Get_isTheSameAs_ITileDifferentSTileHeader_ReturnsFalse()
-        {
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            using var world = new OrionWorld(events, log);
-
-            world[0, 0] = new Tile { IsBlockActive = true };
-            var tile = Mock.Of<OTAPI.Tile.ITile>();
-
-            Assert.False(Terraria.Main.tile[0, 0].isTheSameAs(tile));
-        }
-
-        [Fact]
-        public void Main_tile_Get_isTheSameAs_ITileDifferentBTileHeader_ReturnsFalse()
-        {
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            using var world = new OrionWorld(events, log);
-
-            world[0, 0] = new Tile { Liquid = new Liquid(LiquidType.Water, 1), Header = 0x00010000u };
-
-            var tile = Mock.Of<OTAPI.Tile.ITile>(t => t.liquid == 1 && t.bTileHeader == 2);
-
-            Assert.False(Terraria.Main.tile[0, 0].isTheSameAs(tile));
-        }
-
-        [Fact]
-        public void Main_tile_Get_isTheSameAs_ITileDifferentBlockIdAndBlockActive_ReturnsFalse()
-        {
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            using var world = new OrionWorld(events, log);
-
-            world[0, 0] = new Tile { IsBlockActive = true, BlockId = BlockId.Stone };
-            var tile = Mock.Of<OTAPI.Tile.ITile>(t => t.sTileHeader == 32 && t.type == (ushort)BlockId.Dirt);
-
-            Assert.False(Terraria.Main.tile[0, 0].isTheSameAs(tile));
-        }
-
-        [Fact]
-        public void Main_tile_Get_isTheSameAs_ITileDifferentBlockIdButNotBlockActive_ReturnsTrue()
-        {
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            using var world = new OrionWorld(events, log);
-
-            world[0, 0] = new Tile { BlockId = BlockId.Stone };
-            var tile = Mock.Of<OTAPI.Tile.ITile>(t => t.type == (ushort)BlockId.Dirt);
-
-            Assert.True(Terraria.Main.tile[0, 0].isTheSameAs(tile));
-        }
-
-        [Fact]
-        public void Main_tile_Get_isTheSameAs_ITileDifferentBlockFrameXAndHasFrames_ReturnsFalse()
-        {
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            using var world = new OrionWorld(events, log);
-
-            world[0, 0] = new Tile { IsBlockActive = true, BlockId = BlockId.Torches, BlockFrameX = 1 };
-            var tile = Mock.Of<OTAPI.Tile.ITile>(
-                t => t.sTileHeader == 32 && t.type == (ushort)BlockId.Torches && t.frameX == 2);
-
-            Assert.False(Terraria.Main.tile[0, 0].isTheSameAs(tile));
-        }
-
-        [Fact]
-        public void Main_tile_Get_isTheSameAs_ITileDifferentBlockFrameYAndHasFrames_ReturnsFalse()
-        {
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            using var world = new OrionWorld(events, log);
-
-            world[0, 0] = new Tile { IsBlockActive = true, BlockId = BlockId.Torches, BlockFrameY = 1 };
-            var tile = Mock.Of<OTAPI.Tile.ITile>(
-                t => t.sTileHeader == 32 && t.type == (ushort)BlockId.Torches && t.frameY == 2);
-
-            Assert.False(Terraria.Main.tile[0, 0].isTheSameAs(tile));
-        }
-
-        [Fact]
-        public void Main_tile_Get_isTheSameAs_ITileDifferentBlockFramesButNotHasFrames_ReturnsTrue()
-        {
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            using var world = new OrionWorld(events, log);
-
-            world[0, 0] = new Tile
-            {
-                IsBlockActive = true,
-                BlockId = BlockId.Stone,
-                BlockFrameX = 1,
-                BlockFrameY = 1
-            };
-            var tile = Mock.Of<OTAPI.Tile.ITile>(
-                t => t.sTileHeader == 32 && t.type == (ushort)BlockId.Stone && t.frameX == 2 && t.frameY == 2);
-
-            Assert.True(Terraria.Main.tile[0, 0].isTheSameAs(tile));
-        }
-
-        [Fact]
-        public void Main_tile_Get_isTheSameAs_ITileDifferentWallId_ReturnsFalse()
-        {
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            using var world = new OrionWorld(events, log);
-
-            world[0, 0] = new Tile { WallId = WallId.Stone };
-            var tile = Mock.Of<OTAPI.Tile.ITile>(t => t.wall == (ushort)WallId.NaturalDirt);
-
-            Assert.False(Terraria.Main.tile[0, 0].isTheSameAs(tile));
-        }
-
-        [Fact]
-        public void Main_tile_Get_isTheSameAs_ITileDifferentLiquidAmount_ReturnsFalse()
-        {
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            using var world = new OrionWorld(events, log);
-
-            world[0, 0] = new Tile { Liquid = new Liquid(LiquidType.Water, 1) };
-            var tile = Mock.Of<OTAPI.Tile.ITile>(t => t.liquid == 2);
-
-            Assert.False(Terraria.Main.tile[0, 0].isTheSameAs(tile));
-        }
-
-        [Fact]
-        public void Main_tile_Get_isTheSameAs_ITileDifferentWallColor_ReturnsFalse()
-        {
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            using var world = new OrionWorld(events, log);
-
-            world[0, 0] = new Tile { WallColor = PaintColor.Red };
-            var tile = Mock.Of<OTAPI.Tile.ITile>(t => t.bTileHeader == 13);
-
-            Assert.False(Terraria.Main.tile[0, 0].isTheSameAs(tile));
-        }
-
-        [Fact]
-        public void Main_tile_Get_isTheSameAs_ITileDifferentYellowWire_ReturnsFalse()
-        {
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            using var world = new OrionWorld(events, log);
-
-            world[0, 0] = new Tile { HasYellowWire = true };
-            var tile = Mock.Of<OTAPI.Tile.ITile>();
-
-            Assert.False(Terraria.Main.tile[0, 0].isTheSameAs(tile));
         }
 
         [Fact]
@@ -1085,17 +948,21 @@ namespace Orion.Launcher.World
                 Liquid = new Liquid(LiquidType.Water, 3),
                 BlockFrameX = 4,
                 BlockFrameY = 5,
-                Header = 0x12345678u
+                Header = 6,
+                Header2 = 7,
+                Header3 = 8
             };
 
             Terraria.Main.tile[0, 0].ClearEverything();
 
-            Assert.Equal(BlockId.Dirt, world[0, 0].BlockId);
+            Assert.Equal(BlockId.None, world[0, 0].BlockId);
             Assert.Equal(WallId.None, world[0, 0].WallId);
             Assert.Equal(default, world[0, 0].Liquid);
             Assert.Equal(0, world[0, 0].BlockFrameX);
             Assert.Equal(0, world[0, 0].BlockFrameY);
-            Assert.Equal(0u, world[0, 0].Header);
+            Assert.Equal(0, world[0, 0].Header);
+            Assert.Equal(0, world[0, 0].Header2);
+            Assert.Equal(0, world[0, 0].Header3);
         }
 
         [Fact]
@@ -1112,7 +979,9 @@ namespace Orion.Launcher.World
                 Liquid = new Liquid(LiquidType.Water, 3),
                 BlockFrameX = 4,
                 BlockFrameY = 5,
-                Header = 0x12345678u
+                Header = 6,
+                Header2 = 7,
+                Header3 = 8
             };
 
             Terraria.Main.tile[0, 0].ClearMetadata();
@@ -1122,7 +991,9 @@ namespace Orion.Launcher.World
             Assert.Equal(default, world[0, 0].Liquid);
             Assert.Equal(0, world[0, 0].BlockFrameX);
             Assert.Equal(0, world[0, 0].BlockFrameY);
-            Assert.Equal(0u, world[0, 0].Header);
+            Assert.Equal(0, world[0, 0].Header);
+            Assert.Equal(0, world[0, 0].Header2);
+            Assert.Equal(0, world[0, 0].Header3);
         }
 
         [Fact]
@@ -1134,15 +1005,15 @@ namespace Orion.Launcher.World
 
             world[0, 0] = new Tile
             {
+                BlockId = BlockId.Stone,
                 BlockShape = BlockShape.BottomRight,
-                IsBlockActive = true,
                 IsBlockActuated = true
             };
 
             Terraria.Main.tile[0, 0].ClearTile();
 
+            Assert.Equal(BlockId.None, world[0, 0].BlockId);
             Assert.Equal(BlockShape.Normal, world[0, 0].BlockShape);
-            Assert.False(world[0, 0].IsBlockActive);
             Assert.False(world[0, 0].IsBlockActuated);
         }
 
@@ -1156,15 +1027,13 @@ namespace Orion.Launcher.World
             world[0, 0] = new Tile
             {
                 BlockId = BlockId.Stone,
-                IsBlockActive = true,
                 BlockFrameX = 1,
                 BlockFrameY = 2
             };
 
             Terraria.Main.tile[0, 0].Clear(Terraria.DataStructures.TileDataType.Tile);
 
-            Assert.Equal(BlockId.Dirt, world[0, 0].BlockId);
-            Assert.False(world[0, 0].IsBlockActive);
+            Assert.Equal(BlockId.None, world[0, 0].BlockId);
             Assert.Equal(0, world[0, 0].BlockFrameX);
             Assert.Equal(0, world[0, 0].BlockFrameX);
         }
@@ -1291,129 +1160,21 @@ namespace Orion.Launcher.World
                 Liquid = new Liquid(LiquidType.Water, 3),
                 BlockFrameX = 4,
                 BlockFrameY = 5,
-                Header = 0x12345678u
+                Header = 6,
+                Header2 = 7,
+                Header3 = 8
             };
 
-            Terraria.Main.tile[0, 0].ResetToType((ushort)BlockId.Stone);
+            Terraria.Main.tile[0, 0].ResetToType((ushort)(BlockId.Stone - 1));
 
             Assert.Equal(BlockId.Stone, world[0, 0].BlockId);
             Assert.Equal(WallId.Dirt, world[0, 0].WallId);
             Assert.Equal(default, world[0, 0].Liquid);
             Assert.Equal(0, world[0, 0].BlockFrameX);
             Assert.Equal(0, world[0, 0].BlockFrameY);
-            Assert.Equal(32u, world[0, 0].Header);
-        }
-
-        [Theory]
-        [InlineData(BlockShape.Normal, false)]
-        [InlineData(BlockShape.TopLeft, true)]
-        [InlineData(BlockShape.TopRight, true)]
-        [InlineData(BlockShape.BottomLeft, false)]
-        [InlineData(BlockShape.BottomRight, false)]
-        public void Main_tile_Get_topSlope(BlockShape shape, bool value)
-        {
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            using var world = new OrionWorld(events, log);
-
-            world[0, 0] = new Tile { BlockShape = shape };
-
-            Assert.Equal(value, Terraria.Main.tile[0, 0].topSlope());
-        }
-
-        [Theory]
-        [InlineData(BlockShape.Normal, false)]
-        [InlineData(BlockShape.TopLeft, false)]
-        [InlineData(BlockShape.TopRight, false)]
-        [InlineData(BlockShape.BottomLeft, true)]
-        [InlineData(BlockShape.BottomRight, true)]
-        public void Main_tile_Get_bottomSlope(BlockShape shape, bool value)
-        {
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            using var world = new OrionWorld(events, log);
-
-            world[0, 0] = new Tile { BlockShape = shape };
-
-            Assert.Equal(value, Terraria.Main.tile[0, 0].bottomSlope());
-        }
-
-        [Theory]
-        [InlineData(BlockShape.Normal, false)]
-        [InlineData(BlockShape.TopLeft, true)]
-        [InlineData(BlockShape.TopRight, false)]
-        [InlineData(BlockShape.BottomLeft, true)]
-        [InlineData(BlockShape.BottomRight, false)]
-        public void Main_tile_Get_leftSlope(BlockShape shape, bool value)
-        {
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            using var world = new OrionWorld(events, log);
-
-            world[0, 0] = new Tile { BlockShape = shape };
-
-            Assert.Equal(value, Terraria.Main.tile[0, 0].leftSlope());
-        }
-
-        [Theory]
-        [InlineData(BlockShape.Normal, false)]
-        [InlineData(BlockShape.TopLeft, false)]
-        [InlineData(BlockShape.TopRight, true)]
-        [InlineData(BlockShape.BottomLeft, false)]
-        [InlineData(BlockShape.BottomRight, true)]
-        public void Main_tile_Get_rightSlope(BlockShape shape, bool value)
-        {
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            using var world = new OrionWorld(events, log);
-
-            world[0, 0] = new Tile { BlockShape = shape };
-
-            Assert.Equal(value, Terraria.Main.tile[0, 0].rightSlope());
-        }
-
-        [Fact]
-        public void Main_tile_Get_HasSameSlope_SameSlopes()
-        {
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            using var world = new OrionWorld(events, log);
-
-            world[0, 0] = new Tile { BlockShape = BlockShape.BottomRight };
-            world[0, 1] = new Tile { BlockShape = BlockShape.BottomRight };
-
-            Assert.True(Terraria.Main.tile[0, 0].HasSameSlope(Terraria.Main.tile[0, 1]));
-        }
-
-        [Fact]
-        public void Main_tile_Get_HasSameSlope_DifferentSlopes()
-        {
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            using var world = new OrionWorld(events, log);
-
-            world[0, 0] = new Tile { BlockShape = BlockShape.BottomRight };
-            world[0, 1] = new Tile { BlockShape = BlockShape.BottomLeft };
-
-            Assert.False(Terraria.Main.tile[0, 0].HasSameSlope(Terraria.Main.tile[0, 1]));
-        }
-
-        [Theory]
-        [InlineData(BlockShape.Normal)]
-        [InlineData(BlockShape.Halved)]
-        [InlineData(BlockShape.TopLeft)]
-        [InlineData(BlockShape.TopRight)]
-        [InlineData(BlockShape.BottomLeft)]
-        [InlineData(BlockShape.BottomRight)]
-        public void Main_tile_Get_blockType_Get(BlockShape value)
-        {
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            using var world = new OrionWorld(events, log);
-
-            world[0, 0] = new Tile { BlockShape = value };
-
-            Assert.Equal(value, (BlockShape)Terraria.Main.tile[0, 0].blockType());
+            Assert.Equal(0, world[0, 0].Header);
+            Assert.Equal(0, world[0, 0].Header2);
+            Assert.Equal(0, world[0, 0].Header3);
         }
 
         [Fact]
@@ -1430,17 +1191,21 @@ namespace Orion.Launcher.World
                 Liquid = new Liquid(LiquidType.Water, 3),
                 BlockFrameX = 4,
                 BlockFrameY = 5,
-                Header = 0x12345678u
+                Header = 6,
+                Header2 = 7,
+                Header3 = 8
             };
 
             Terraria.Main.tile[0, 0] = null;
 
-            Assert.Equal(BlockId.Dirt, world[0, 0].BlockId);
+            Assert.Equal(BlockId.None, world[0, 0].BlockId);
             Assert.Equal(WallId.None, world[0, 0].WallId);
             Assert.Equal(default, world[0, 0].Liquid);
             Assert.Equal(0, world[0, 0].BlockFrameX);
             Assert.Equal(0, world[0, 0].BlockFrameY);
-            Assert.Equal(0u, world[0, 0].Header);
+            Assert.Equal(0, world[0, 0].Header);
+            Assert.Equal(0, world[0, 0].Header2);
+            Assert.Equal(0, world[0, 0].Header3);
         }
 
         [Fact]
@@ -1457,7 +1222,9 @@ namespace Orion.Launcher.World
                 Liquid = new Liquid(LiquidType.Water, 3),
                 BlockFrameX = 4,
                 BlockFrameY = 5,
-                Header = 0x12345678u
+                Header = 6,
+                Header2 = 7,
+                Header3 = 8
             };
 
             Terraria.Main.tile[0, 1] = Terraria.Main.tile[0, 0];
@@ -1467,29 +1234,9 @@ namespace Orion.Launcher.World
             Assert.Equal(3, world[0, 1].Liquid.Amount);
             Assert.Equal(4, world[0, 1].BlockFrameX);
             Assert.Equal(5, world[0, 1].BlockFrameY);
-            Assert.Equal(0x12345678u, world[0, 1].Header);
-        }
-
-        [Fact]
-        public void Main_tile_Set_ITile()
-        {
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            using var world = new OrionWorld(events, log);
-
-            var tile = Mock.Of<OTAPI.Tile.ITile>(
-                t => t.type == (ushort)BlockId.Stone && t.wall == (ushort)WallId.Dirt && t.liquid == 3 &&
-                    t.frameX == 4 && t.frameY == 5 && t.sTileHeader == 0x5678 && t.bTileHeader == 0x34 &&
-                    t.bTileHeader3 == 0x12);
-
-            Terraria.Main.tile[0, 1] = tile;
-
-            Assert.Equal(BlockId.Stone, world[0, 1].BlockId);
-            Assert.Equal(WallId.Dirt, world[0, 1].WallId);
-            Assert.Equal(3, world[0, 1].Liquid.Amount);
-            Assert.Equal(4, world[0, 1].BlockFrameX);
-            Assert.Equal(5, world[0, 1].BlockFrameY);
-            Assert.Equal(0x12345678u, world[0, 1].Header);
+            Assert.Equal(6, world[0, 0].Header);
+            Assert.Equal(7, world[0, 0].Header2);
+            Assert.Equal(8, world[0, 0].Header3);
         }
     }
 }
