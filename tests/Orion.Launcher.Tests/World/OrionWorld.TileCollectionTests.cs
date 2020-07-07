@@ -62,6 +62,18 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
+        public void Main_tile_Get_type_GetNone()
+        {
+            var events = Mock.Of<IEventManager>();
+            var log = Mock.Of<ILogger>();
+            using var world = new OrionWorld(events, log);
+
+            world[0, 0] = new Tile { BlockId = BlockId.None };
+
+            Assert.Equal(0, Terraria.Main.tile[0, 0].type);
+        }
+
+        [Fact]
         public void Main_tile_Get_type_Set()
         {
             var events = Mock.Of<IEventManager>();
@@ -779,6 +791,10 @@ namespace Orion.Launcher.World
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             using var world = new OrionWorld(events, log);
+
+            world[0, 0] = new Tile { BlockId = BlockId.None };
+
+            Assert.False(Terraria.Main.tile[0, 0].nactive());
 
             world[0, 0] = new Tile { BlockId = BlockId.Dirt, IsBlockActuated = true };
 
