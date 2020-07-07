@@ -40,9 +40,20 @@ namespace Orion.Launcher.World
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 get => new TileAdapter(ref _world[x, y]);
 
-                // TODO: optimize this to not generate garbage.
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                set => this[x, y].CopyFrom(value);
+                set
+                {
+                    if (value is null)
+                    {
+                        _world[x, y] = default;
+                        return;
+                    }
+
+                    Debug.Assert(value is TileAdapter);
+
+                    var adapter = (TileAdapter)value;
+                    _world[x, y] = *adapter._tile;
+                }
             }
 
             public int Width => Terraria.Main.maxTilesX;

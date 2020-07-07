@@ -30,7 +30,7 @@ namespace Orion.Launcher.World
         // generate a lot of garbage, but this is the best we can really do.
         private sealed unsafe class TileAdapter : OTAPI.Tile.ITile
         {
-            private readonly Tile* _tile;
+            internal readonly Tile* _tile;
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public TileAdapter(ref Tile tile)
