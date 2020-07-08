@@ -17,16 +17,14 @@
 
 using System;
 using System.Buffers;
-using System.Collections;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text;
 using Destructurama.Attributed;
 using Orion.Core.Entities;
 using Orion.Core.Events;
 using Orion.Core.Events.Packets;
+using Orion.Core.Items;
 using Orion.Core.Packets;
 using Orion.Core.Players;
 using Orion.Core.Utils;
@@ -36,7 +34,7 @@ using Serilog;
 namespace Orion.Launcher.Players
 {
     [LogAsScalar]
-    internal sealed class OrionPlayer : OrionEntity<Terraria.Player>, IPlayer
+    internal sealed partial class OrionPlayer : OrionEntity<Terraria.Player>, IPlayer
     {
         private readonly IEventManager _events;
         private readonly ILogger _log;
@@ -52,6 +50,7 @@ namespace Orion.Launcher.Players
 
             Character = new OrionCharacter(terrariaPlayer);
             Buffs = new BuffArray(terrariaPlayer);
+            Inventory = new InventoryArray(terrariaPlayer);
         }
 
         public OrionPlayer(Terraria.Player terrariaPlayer, IEventManager events, ILogger log)
@@ -66,6 +65,8 @@ namespace Orion.Launcher.Players
         }
 
         public ICharacter Character { get; }
+
+        public IArray<Buff> Buffs { get; }
 
         public int Health
         {
@@ -91,7 +92,7 @@ namespace Orion.Launcher.Players
             set => Wrapped.statManaMax = value;
         }
 
-        public IArray<Buff> Buffs { get; }
+        public IArray<ItemStack> Inventory { get; }
 
         public bool IsInPvp
         {
@@ -208,57 +209,6 @@ namespace Orion.Launcher.Players
                     pool.Return(sendBuffer);
                 }
             }
-        }
-
-        private sealed class BuffArray : IArray<Buff>
-        {
-            private readonly Terraria.Player _wrapped;
-
-            public BuffArray(Terraria.Player terrariaPlayer)
-            {
-                Debug.Assert(terrariaPlayer != null);
-
-                _wrapped = terrariaPlayer;
-            }
-
-            public Buff this[int index]
-            {
-                get
-                {
-                    if (index < 0 || index >= Count)
-                    {
-                        throw new IndexOutOfRangeException($"Index out of range (expected: 0 to {Count - 1})");
-                    }
-
-                    var id = (BuffId)_wrapped.buffType[index];
-                    var ticks = _wrapped.buffTime[index];
-                    return ticks > 0 ? new Buff(id, ticks) : default;
-                }
-
-                set
-                {
-                    if (index < 0 || index >= Count)
-                    {
-                        throw new IndexOutOfRangeException($"Index out of range (expected: 0 to {Count - 1})");
-                    }
-
-                    _wrapped.buffType[index] = (int)value.Id;
-                    _wrapped.buffTime[index] = value.Ticks;
-                }
-            }
-
-            public int Count => Terraria.Player.maxBuffs;
-
-            public IEnumerator<Buff> GetEnumerator()
-            {
-                for (var i = 0; i < Count; ++i)
-                {
-                    yield return this[i];
-                }
-            }
-
-            [ExcludeFromCodeCoverage]
-            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         }
     }
 }

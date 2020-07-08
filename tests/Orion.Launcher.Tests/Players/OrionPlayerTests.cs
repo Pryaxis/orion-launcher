@@ -18,9 +18,7 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using System.Linq;
 using Moq;
-using Orion.Core.Entities;
 using Orion.Core.Events;
 using Orion.Core.Events.Packets;
 using Orion.Core.Packets;
@@ -34,7 +32,7 @@ namespace Orion.Launcher.Players
     // These tests depend on Terraria state.
     [Collection("TerrariaTestsCollection")]
     [SuppressMessage("Style", "IDE0017:Simplify object initialization", Justification = "Testing")]
-    public class OrionPlayerTests
+    public partial class OrionPlayerTests
     {
         [Fact]
         public void Name_Get()
@@ -176,97 +174,6 @@ namespace Orion.Launcher.Players
             player.MaxMana = 200;
 
             Assert.Equal(200, terrariaPlayer.statManaMax);
-        }
-
-        [Theory]
-        [InlineData(-1)]
-        [InlineData(100)]
-        public void Buffs_Get_Item_GetIndexOutOfRange_ThrowsIndexOutOfRangeException(int index)
-        {
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            var terrariaPlayer = new Terraria.Player();
-            var player = new OrionPlayer(terrariaPlayer, events, log);
-
-            Assert.Throws<IndexOutOfRangeException>(() => player.Buffs[index]);
-        }
-
-        [Fact]
-        public void Buffs_Get_Item_Get()
-        {
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            var terrariaPlayer = new Terraria.Player();
-            var player = new OrionPlayer(terrariaPlayer, events, log);
-
-            terrariaPlayer.buffType[0] = (int)BuffId.ObsidianSkin;
-            terrariaPlayer.buffTime[0] = 28800;
-
-            Assert.Equal(new Buff(BuffId.ObsidianSkin, TimeSpan.FromMinutes(8)), player.Buffs[0]);
-        }
-
-        [Theory]
-        [InlineData(-1)]
-        [InlineData(0)]
-        public void Buffs_Get_Item_InvalidTime_Get(int buffTime)
-        {
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            var terrariaPlayer = new Terraria.Player();
-            var player = new OrionPlayer(terrariaPlayer, events, log);
-
-            terrariaPlayer.buffType[0] = (int)BuffId.ObsidianSkin;
-            terrariaPlayer.buffTime[0] = buffTime;
-
-            Assert.Equal(default, player.Buffs[0]);
-        }
-
-        [Theory]
-        [InlineData(-1)]
-        [InlineData(100)]
-        public void Buffs_Get_Item_SetIndexOutOfRange_ThrowsIndexOutOfRangeException(int index)
-        {
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            var terrariaPlayer = new Terraria.Player();
-            var player = new OrionPlayer(terrariaPlayer, events, log);
-
-            Assert.Throws<IndexOutOfRangeException>(() => player.Buffs[index] = default);
-        }
-
-        [Fact]
-        public void Buffs_Get_Item_Set()
-        {
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            var terrariaPlayer = new Terraria.Player();
-            var player = new OrionPlayer(terrariaPlayer, events, log);
-
-            player.Buffs[0] = new Buff(BuffId.ObsidianSkin, TimeSpan.FromMinutes(8));
-
-            Assert.Equal(BuffId.ObsidianSkin, (BuffId)terrariaPlayer.buffType[0]);
-            Assert.Equal(28800, terrariaPlayer.buffTime[0]);
-        }
-
-        [Fact]
-        public void Buffs_Get_GetEnumerator()
-        {
-            var events = Mock.Of<IEventManager>();
-            var log = Mock.Of<ILogger>();
-            var terrariaPlayer = new Terraria.Player();
-            var player = new OrionPlayer(terrariaPlayer, events, log);
-
-            for (var i = 0; i < Terraria.Player.maxBuffs; ++i)
-            {
-                terrariaPlayer.buffType[i] = i;
-                terrariaPlayer.buffTime[i] = 60;
-            }
-
-            var buffs = player.Buffs.ToList();
-            for (var i = 0; i < buffs.Count; ++i)
-            {
-                Assert.Equal(new Buff((BuffId)i, 60), buffs[i]);
-            }
         }
 
         [Fact]

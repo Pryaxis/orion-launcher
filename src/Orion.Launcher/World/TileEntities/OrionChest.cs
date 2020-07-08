@@ -16,9 +16,6 @@
 // along with Orion.  If not, see <https://www.gnu.org/licenses/>.
 
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Contracts;
 using Destructurama.Attributed;
@@ -31,7 +28,7 @@ using Orion.Launcher.Utils;
 namespace Orion.Launcher.World.TileEntities
 {
     [LogAsScalar]
-    internal sealed class OrionChest : AnnotatableObject, IChest, IWrapping<Terraria.Chest>
+    internal sealed partial class OrionChest : AnnotatableObject, IChest, IWrapping<Terraria.Chest>
     {
         public OrionChest(int chestIndex, Terraria.Chest? terrariaChest)
         {
@@ -73,70 +70,5 @@ namespace Orion.Launcher.World.TileEntities
 
         [Pure, ExcludeFromCodeCoverage]
         public override string ToString() => this.IsConcrete() ? $"<(index: {Index})>" : "<abstract instance>";
-
-        private sealed class ItemArray : IArray<ItemStack>
-        {
-            private readonly object _lock = new object();
-            private readonly Terraria.Item[] _items;
-
-            public ItemArray(Terraria.Item?[] items)
-            {
-                Debug.Assert(items != null);
-
-                for (var i = 0; i < items.Length; ++i)
-                {
-                    items[i] ??= new Terraria.Item();
-                }
-                _items = items!;
-            }
-
-            public ItemStack this[int index]
-            {
-                get
-                {
-                    if (index < 0 || index >= Count)
-                    {
-                        throw new IndexOutOfRangeException($"Index out of range (expected: 0 to {Count - 1})");
-                    }
-
-                    var item = _items[index];
-
-                    lock (_lock)
-                    {
-                        return new ItemStack((ItemId)item.type, (ItemPrefix)item.prefix, (short)item.stack);
-                    }
-                }
-
-                set
-                {
-                    if (index < 0 || index >= Count)
-                    {
-                        throw new IndexOutOfRangeException($"Index out of range (expected: 0 to {Count - 1})");
-                    }
-
-                    var item = _items[index];
-
-                    lock (_lock)
-                    {
-                        item.type = (int)value.Id;
-                        item.stack = value.StackSize;
-                        item.prefix = (byte)value.Prefix;
-                    }
-                }
-            }
-
-            public int Count => _items.Length;
-
-            public IEnumerator<ItemStack> GetEnumerator()
-            {
-                for (var i = 0; i < Count; ++i)
-                {
-                    yield return this[i];
-                }
-            }
-
-            [ExcludeFromCodeCoverage]
-            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-        }
     }
 }
