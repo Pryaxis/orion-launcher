@@ -74,15 +74,29 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
-        public void Main_tile_Get_type_Set()
+        public void Main_tile_Get_type_SetNonZero()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             using var world = new OrionWorld(events, log);
 
+            Terraria.Main.tile[0, 0].active(true);
             Terraria.Main.tile[0, 0].type = (ushort)(BlockId.Stone - 1);
 
             Assert.Equal(BlockId.Stone, world[0, 0].BlockId);
+        }
+
+        [Fact]
+        public void Main_tile_Get_type_SetZero()
+        {
+            var events = Mock.Of<IEventManager>();
+            var log = Mock.Of<ILogger>();
+            using var world = new OrionWorld(events, log);
+
+            Terraria.Main.tile[0, 0].active(true);
+            Terraria.Main.tile[0, 0].type = (ushort)(BlockId.Dirt - 1);
+
+            Assert.Equal(BlockId.Dirt, world[0, 0].BlockId);
         }
 
         [Fact]
@@ -232,6 +246,19 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
+        public void Main_tile_Get_active_SetFalse_type_SetZero()
+        {
+            var events = Mock.Of<IEventManager>();
+            var log = Mock.Of<ILogger>();
+            using var world = new OrionWorld(events, log);
+
+            Terraria.Main.tile[0, 0].active(false);
+            Terraria.Main.tile[0, 0].type = 0;
+
+            Assert.Equal(BlockId.None, world[0, 0].BlockId);
+        }
+
+        [Fact]
         public void Main_tile_Get_color_Get()
         {
             var events = Mock.Of<IEventManager>();
@@ -324,14 +351,13 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
-        public void Main_tile_Get_halfBrick_SetFalse_NoEffect()
+        public void Main_tile_Get_slope_SetNonZero_halfBrick_SetFalse()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             using var world = new OrionWorld(events, log);
 
-            world[0, 0] = new Tile { BlockShape = BlockShape.TopRight };
-
+            Terraria.Main.tile[0, 0].slope(1);
             Terraria.Main.tile[0, 0].halfBrick(false);
 
             Assert.Equal(BlockShape.TopRight, world[0, 0].BlockShape);
@@ -388,14 +414,13 @@ namespace Orion.Launcher.World
         }
 
         [Fact]
-        public void Main_tile_Get_slope_SetZero_NoEffect()
+        public void Main_tile_Get_halfBrick_SetTrue_slope_SetZero()
         {
             var events = Mock.Of<IEventManager>();
             var log = Mock.Of<ILogger>();
             using var world = new OrionWorld(events, log);
 
-            world[0, 0] = new Tile { BlockShape = BlockShape.Halved };
-
+            Terraria.Main.tile[0, 0].halfBrick(true);
             Terraria.Main.tile[0, 0].slope(0);
 
             Assert.Equal(BlockShape.Halved, world[0, 0].BlockShape);

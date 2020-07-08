@@ -96,7 +96,7 @@ namespace Orion.Launcher.Players
             Assert.Equal(BuffId.ObsidianSkin, (BuffId)terrariaPlayer.buffType[0]);
             Assert.Equal(28800, terrariaPlayer.buffTime[0]);
         }
-        
+
         [Fact]
         public void Buffs_Get_Count_Get()
         {

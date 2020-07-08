@@ -85,7 +85,7 @@ namespace Orion.Launcher.Players
 
             Assert.Same(player2, player);
         }
-        
+
         [Fact]
         public void Count_Get()
         {
@@ -775,7 +775,7 @@ namespace Orion.Launcher.Players
                 Id = 5,
                 Socket = Mock.Of<Terraria.Net.Sockets.ISocket>(s => s.IsConnected())
             };
-            
+
             byte[]? sendData = null;
             Mock.Get(Terraria.Netplay.Clients[5].Socket)
                 .Setup(s => s.AsyncSend(

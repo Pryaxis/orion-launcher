@@ -44,7 +44,24 @@ namespace Orion.Launcher.World
                 get => _tile->BlockId == BlockId.None ? (ushort)0 : (ushort)(_tile->BlockId - 1);
 
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                set => _tile->BlockId = (BlockId)(value + 1);
+                set
+                {
+                    // Because Terraria originally stored active and block ID information separately, we need to be
+                    // careful about replacing active information if Terraria does `type = 0`.
+                    //
+                    // We allow the following transitions:
+                    // - <anything> -> type != 0
+                    // - active -> type = 0
+
+                    if (value != 0)
+                    {
+                        _tile->BlockId = (BlockId)(value + 1);
+                    }
+                    else if (_tile->BlockId != BlockId.None)
+                    {
+                        _tile->BlockId = BlockId.Dirt;
+                    }
+                }
             }
 
             public ushort wall
@@ -140,7 +157,7 @@ namespace Orion.Launcher.World
                 //
                 // We allow the following transitions:
                 // - active -> not active
-                // - no block -> active (as dirt)
+                // - not active -> active (as dirt)
 
                 if (!active)
                 {
@@ -312,8 +329,8 @@ namespace Orion.Launcher.World
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void wallColor(byte wallColor) => _tile->WallColor = (PaintColor)wallColor;
 
-            // The checking liquid flag is implemented using the top bit of the third header. This is done to cut down
-            // on the size of a tile.
+            // The checking liquid flag is implemented using the top bit of the header. This is done to cut down on the
+            // size of a tile.
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public bool checkingLiquid() => (Header & 0x80000000) != 0;
@@ -350,8 +367,8 @@ namespace Orion.Launcher.World
                 }
             }
 
-            // The frame number is implemented using bits 5-6 of the third header. This is done to cut down on the size
-            // of a tile.
+            // The frame number is implemented using bits 29-30 of the header. This is done to cut down on the size of a
+            // tile.
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public byte frameNumber() => (byte)((Header & 0x60000000) >> 29);
@@ -361,7 +378,7 @@ namespace Orion.Launcher.World
             {
                 Debug.Assert(frameNumber <= 0x03);
 
-                Header = (Header & 0x9f000000) | ((uint)frameNumber << 29);
+                Header = (Header & 0x9fffffff) | ((uint)frameNumber << 29);
             }
 
             public void CopyFrom(OTAPI.Tile.ITile from)
@@ -393,7 +410,11 @@ namespace Orion.Launcher.World
             public void ClearEverything() => Unsafe.InitBlockUnaligned((byte*)_tile, 0, 12);
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public void ClearMetadata() => Unsafe.InitBlockUnaligned((byte*)_tile + 4, 0, 8);
+            public void ClearMetadata()
+            {
+                Unsafe.InitBlockUnaligned((byte*)_tile + 4, 0, 8);
+                skipLiquid(false);
+            }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void ClearTile()

@@ -104,7 +104,7 @@ namespace Orion.Launcher.Npcs
 
             Assert.Equal(200, terrariaNpc.lifeMax);
         }
-        
+
         [Fact]
         public void AiValues_Get()
         {
