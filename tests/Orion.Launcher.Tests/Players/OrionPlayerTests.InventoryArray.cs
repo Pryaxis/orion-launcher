@@ -16,9 +16,7 @@
 // along with Orion.  If not, see <https://www.gnu.org/licenses/>.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Moq;
 using Orion.Core.Events;
 using Orion.Core.Items;

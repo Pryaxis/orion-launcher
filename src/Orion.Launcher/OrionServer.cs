@@ -140,15 +140,13 @@ namespace Orion.Launcher
             {
                 _serviceInterfaceTypes.UnionWith(
                     assembly.ExportedTypes
-                        .Where(t => t.IsInterface)
-                        .Where(t => t.GetCustomAttribute<ServiceAttribute>() != null));
+                        .Where(t => t.IsInterface && t.GetCustomAttribute<ServiceAttribute>() != null));
             }
 
             void LoadServiceBindingTypes()
             {
                 foreach (var bindingType in assembly.DefinedTypes
-                    .Where(t => !t.IsAbstract)
-                    .Where(t => t.GetCustomAttribute<BindingAttribute>() != null))
+                    .Where(t => !t.IsAbstract && t.GetCustomAttribute<BindingAttribute>() != null))
                 {
                     foreach (var interfaceType in bindingType
                         .GetInterfaces()
@@ -168,8 +166,7 @@ namespace Orion.Launcher
             void LoadPluginTypes()
             {
                 foreach (var pluginType in assembly.ExportedTypes
-                    .Where(t => !t.IsAbstract)
-                    .Where(t => t.GetCustomAttribute<PluginAttribute>() != null))
+                    .Where(t => !t.IsAbstract && t.GetCustomAttribute<PluginAttribute>() != null))
                 {
                     _pluginTypes.Add(pluginType);
 

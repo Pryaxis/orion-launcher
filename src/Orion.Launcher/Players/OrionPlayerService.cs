@@ -45,6 +45,7 @@ namespace Orion.Launcher.Players
         private static readonly MethodInfo _onReceivePacket =
             typeof(OrionPlayerService)
                 .GetMethod(nameof(OnReceivePacket), BindingFlags.NonPublic | BindingFlags.Instance)!;
+
         private static readonly MethodInfo _onSendPacket =
             typeof(OrionPlayerService)
                 .GetMethod(nameof(OnSendPacket), BindingFlags.NonPublic | BindingFlags.Instance)!;
@@ -275,11 +276,11 @@ namespace Orion.Launcher.Players
             // `UnknownPacket` is a special case since it has no default constructor.
             if (typeof(TPacket) == typeof(UnknownPacket))
             {
-                packet = (TPacket)(object)new UnknownPacket(span.Length - 1, (PacketId)span[0]);
+                return (TPacket)(object)new UnknownPacket(span.Length - 1, (PacketId)span[0]);
             }
             else if (packet is null)
             {
-                packet = (TPacket)Activator.CreateInstance(typeof(TPacket))!;
+                return (TPacket)Activator.CreateInstance(typeof(TPacket))!;
             }
 
             return packet;

@@ -37,9 +37,12 @@ namespace Orion.Launcher.Events
             private readonly SortedSet<Registration> _registrations =
                 new SortedSet<Registration>(
                     Comparer<Registration>.Create((r1, r2) => r1.Priority.CompareTo(r2.Priority)));
+
             private readonly HashSet<AsyncRegistration> _asyncRegistrations = new HashSet<AsyncRegistration>();
+
             private readonly Dictionary<Action<TEvent>, Registration> _handlerToRegistration =
                 new Dictionary<Action<TEvent>, Registration>();
+
             private readonly Dictionary<Func<TEvent, Task>, AsyncRegistration> _handlerToAsyncRegistration =
                 new Dictionary<Func<TEvent, Task>, AsyncRegistration>();
 

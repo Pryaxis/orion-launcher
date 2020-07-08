@@ -93,7 +93,7 @@ namespace Orion.Launcher.World
 
                 AllocateUnmanaged();
 
-                return ref _tiles[y * Width + x];
+                return ref _tiles[(y * Width) + x];
             }
         }
 

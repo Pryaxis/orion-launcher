@@ -86,10 +86,9 @@ namespace Orion.Launcher
                     .CreateLogger()
                     .ForContext("Name", "orion-launcher");
 
-                AppDomain.CurrentDomain.UnhandledException += (sender, eventArgs) =>
-                {
-                    log.Fatal(eventArgs.ExceptionObject as Exception, Resources.UnhandledExceptionMessage);
-                };
+                AppDomain.CurrentDomain.UnhandledException +=
+                    (sender, eventArgs) => log.Fatal(
+                        eventArgs.ExceptionObject as Exception, Resources.UnhandledExceptionMessage);
 
                 return log;
             }
