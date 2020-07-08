@@ -876,24 +876,20 @@ namespace Orion.Launcher.World
             {
                 BlockId = (BlockId)1,
                 WallId = (WallId)2,
-                Liquid = new Liquid(LiquidType.Water, 3),
-                BlockFrameX = 4,
-                BlockFrameY = 5,
-                Header = 6,
-                Header2 = 7,
-                Header3 = 8
+                BlockFrameX = 3,
+                BlockFrameY = 4,
+                Liquid = new Liquid(LiquidType.Water, 5),
+                HasRedWire = true
             };
 
             Terraria.Main.tile[0, 0].CopyFrom(null);
 
             Assert.Equal(BlockId.None, world[0, 0].BlockId);
             Assert.Equal(WallId.None, world[0, 0].WallId);
-            Assert.Equal(default, world[0, 0].Liquid);
             Assert.Equal(0, world[0, 0].BlockFrameX);
             Assert.Equal(0, world[0, 0].BlockFrameY);
-            Assert.Equal(0, world[0, 0].Header);
-            Assert.Equal(0, world[0, 0].Header2);
-            Assert.Equal(0, world[0, 0].Header3);
+            Assert.Equal(default, world[0, 0].Liquid);
+            Assert.False(world[0, 0].HasRedWire);
         }
 
         [Fact]
@@ -907,24 +903,20 @@ namespace Orion.Launcher.World
             {
                 BlockId = BlockId.Stone,
                 WallId = WallId.Dirt,
-                Liquid = new Liquid(LiquidType.Water, 3),
-                BlockFrameX = 4,
-                BlockFrameY = 5,
-                Header = 6,
-                Header2 = 7,
-                Header3 = 8
+                BlockFrameX = 3,
+                BlockFrameY = 4,
+                Liquid = new Liquid(LiquidType.Water, 5),
+                HasRedWire = true
             };
 
             Terraria.Main.tile[0, 1].CopyFrom(Terraria.Main.tile[0, 0]);
 
             Assert.Equal(BlockId.Stone, world[0, 1].BlockId);
             Assert.Equal(WallId.Dirt, world[0, 1].WallId);
-            Assert.Equal(3, world[0, 1].Liquid.Amount);
-            Assert.Equal(4, world[0, 1].BlockFrameX);
-            Assert.Equal(5, world[0, 1].BlockFrameY);
-            Assert.Equal(6, world[0, 1].Header);
-            Assert.Equal(7, world[0, 1].Header2);
-            Assert.Equal(8, world[0, 1].Header3);
+            Assert.Equal(3, world[0, 1].BlockFrameX);
+            Assert.Equal(4, world[0, 1].BlockFrameY);
+            Assert.Equal(new Liquid(LiquidType.Water, 5), world[0, 1].Liquid);
+            Assert.True(world[0, 1].HasRedWire);
         }
 
         [Fact]
@@ -961,24 +953,20 @@ namespace Orion.Launcher.World
             {
                 BlockId = BlockId.Stone,
                 WallId = WallId.Dirt,
-                Liquid = new Liquid(LiquidType.Water, 3),
-                BlockFrameX = 4,
-                BlockFrameY = 5,
-                Header = 6,
-                Header2 = 7,
-                Header3 = 8
+                BlockFrameX = 3,
+                BlockFrameY = 4,
+                Liquid = new Liquid(LiquidType.Water, 5),
+                HasRedWire = true
             };
 
             Terraria.Main.tile[0, 0].ClearEverything();
 
             Assert.Equal(BlockId.None, world[0, 0].BlockId);
             Assert.Equal(WallId.None, world[0, 0].WallId);
-            Assert.Equal(default, world[0, 0].Liquid);
             Assert.Equal(0, world[0, 0].BlockFrameX);
             Assert.Equal(0, world[0, 0].BlockFrameY);
-            Assert.Equal(0, world[0, 0].Header);
-            Assert.Equal(0, world[0, 0].Header2);
-            Assert.Equal(0, world[0, 0].Header3);
+            Assert.Equal(default, world[0, 0].Liquid);
+            Assert.False(world[0, 0].HasRedWire);
         }
 
         [Fact]
@@ -992,24 +980,20 @@ namespace Orion.Launcher.World
             {
                 BlockId = BlockId.Stone,
                 WallId = WallId.Dirt,
-                Liquid = new Liquid(LiquidType.Water, 3),
-                BlockFrameX = 4,
-                BlockFrameY = 5,
-                Header = 6,
-                Header2 = 7,
-                Header3 = 8
+                BlockFrameX = 3,
+                BlockFrameY = 4,
+                Liquid = new Liquid(LiquidType.Water, 5),
+                HasRedWire = true
             };
 
             Terraria.Main.tile[0, 0].ClearMetadata();
 
             Assert.Equal(BlockId.Stone, world[0, 0].BlockId);
             Assert.Equal(WallId.Dirt, world[0, 0].WallId);
-            Assert.Equal(default, world[0, 0].Liquid);
             Assert.Equal(0, world[0, 0].BlockFrameX);
             Assert.Equal(0, world[0, 0].BlockFrameY);
-            Assert.Equal(0, world[0, 0].Header);
-            Assert.Equal(0, world[0, 0].Header2);
-            Assert.Equal(0, world[0, 0].Header3);
+            Assert.Equal(default, world[0, 0].Liquid);
+            Assert.False(world[0, 0].HasRedWire);
         }
 
         [Fact]
@@ -1173,24 +1157,20 @@ namespace Orion.Launcher.World
             {
                 BlockId = BlockId.Stone,
                 WallId = WallId.Dirt,
-                Liquid = new Liquid(LiquidType.Water, 3),
-                BlockFrameX = 4,
-                BlockFrameY = 5,
-                Header = 6,
-                Header2 = 7,
-                Header3 = 8
+                BlockFrameX = 3,
+                BlockFrameY = 4,
+                Liquid = new Liquid(LiquidType.Water, 5),
+                HasRedWire = true
             };
 
             Terraria.Main.tile[0, 0].ResetToType((ushort)(BlockId.Stone - 1));
 
             Assert.Equal(BlockId.Stone, world[0, 0].BlockId);
             Assert.Equal(WallId.Dirt, world[0, 0].WallId);
-            Assert.Equal(default, world[0, 0].Liquid);
             Assert.Equal(0, world[0, 0].BlockFrameX);
             Assert.Equal(0, world[0, 0].BlockFrameY);
-            Assert.Equal(0, world[0, 0].Header);
-            Assert.Equal(0, world[0, 0].Header2);
-            Assert.Equal(0, world[0, 0].Header3);
+            Assert.Equal(default, world[0, 0].Liquid);
+            Assert.False(world[0, 0].HasRedWire);
         }
 
         [Fact]
@@ -1204,24 +1184,20 @@ namespace Orion.Launcher.World
             {
                 BlockId = (BlockId)1,
                 WallId = (WallId)2,
-                Liquid = new Liquid(LiquidType.Water, 3),
-                BlockFrameX = 4,
-                BlockFrameY = 5,
-                Header = 6,
-                Header2 = 7,
-                Header3 = 8
+                BlockFrameX = 3,
+                BlockFrameY = 4,
+                Liquid = new Liquid(LiquidType.Water, 5),
+                HasRedWire = true
             };
 
             Terraria.Main.tile[0, 0] = null;
 
             Assert.Equal(BlockId.None, world[0, 0].BlockId);
             Assert.Equal(WallId.None, world[0, 0].WallId);
-            Assert.Equal(default, world[0, 0].Liquid);
             Assert.Equal(0, world[0, 0].BlockFrameX);
             Assert.Equal(0, world[0, 0].BlockFrameY);
-            Assert.Equal(0, world[0, 0].Header);
-            Assert.Equal(0, world[0, 0].Header2);
-            Assert.Equal(0, world[0, 0].Header3);
+            Assert.Equal(default, world[0, 0].Liquid);
+            Assert.False(world[0, 0].HasRedWire);
         }
 
         [Fact]
@@ -1235,24 +1211,20 @@ namespace Orion.Launcher.World
             {
                 BlockId = BlockId.Stone,
                 WallId = WallId.Dirt,
-                Liquid = new Liquid(LiquidType.Water, 3),
-                BlockFrameX = 4,
-                BlockFrameY = 5,
-                Header = 6,
-                Header2 = 7,
-                Header3 = 8
+                BlockFrameX = 3,
+                BlockFrameY = 4,
+                Liquid = new Liquid(LiquidType.Water, 5),
+                HasRedWire = true
             };
 
             Terraria.Main.tile[0, 1] = Terraria.Main.tile[0, 0];
 
             Assert.Equal(BlockId.Stone, world[0, 1].BlockId);
             Assert.Equal(WallId.Dirt, world[0, 1].WallId);
-            Assert.Equal(3, world[0, 1].Liquid.Amount);
-            Assert.Equal(4, world[0, 1].BlockFrameX);
-            Assert.Equal(5, world[0, 1].BlockFrameY);
-            Assert.Equal(6, world[0, 0].Header);
-            Assert.Equal(7, world[0, 0].Header2);
-            Assert.Equal(8, world[0, 0].Header3);
+            Assert.Equal(3, world[0, 1].BlockFrameX);
+            Assert.Equal(4, world[0, 1].BlockFrameY);
+            Assert.Equal(new Liquid(LiquidType.Water, 5), world[0, 1].Liquid);
+            Assert.True(world[0, 1].HasRedWire);
         }
     }
 }

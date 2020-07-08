@@ -56,15 +56,6 @@ namespace Orion.Launcher.World
                 set => _tile->WallId = (WallId)value;
             }
 
-            public byte liquid
-            {
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                get => *((byte*)_tile + 4);
-
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                set => *((byte*)_tile + 4) = value;
-            }
-
             public short frameX
             {
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -81,6 +72,21 @@ namespace Orion.Launcher.World
 
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 set => _tile->BlockFrameY = value;
+            }
+
+            public byte liquid
+            {
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                get => *((byte*)_tile + 8);
+
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                set => *((byte*)_tile + 8) = value;
+            }
+
+            public uint Header
+            {
+                get => *(uint*)((byte*)_tile + 8);
+                set => *(uint*)((byte*)_tile + 8) = value;
             }
 
             // No-ops since these are never used.
@@ -258,45 +264,45 @@ namespace Orion.Launcher.World
             public bool nactive() => active() && !inActive();
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public byte liquidType() => (byte)((_tile->Header2 & 0xc0) >> 6);
+            public byte liquidType() => (byte)((Header & 0x00c00000) >> 22);
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void liquidType(int liquidType)
             {
                 Debug.Assert(liquidType <= 0x03);
 
-                _tile->Header2 = (byte)((_tile->Header2 & 0x3f) | (liquidType << 6));
+                Header = (Header & 0xff3fffffU) | ((uint)liquidType << 22);
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public bool lava() => (_tile->Header2 & 0x40) != 0;
+            public bool lava() => (Header & 0x00400000) != 0;
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void lava(bool lava)
             {
                 if (lava)
                 {
-                    _tile->Header2 = (byte)((_tile->Header2 & 0x3f) | 0x40);
+                    Header = (Header & 0xff3fffff) | 0x00400000;
                 }
                 else
                 {
-                    _tile->Header2 &= 0xbf;
+                    Header &= 0xffbfffff;
                 }
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public bool honey() => (_tile->Header2 & 0x80) != 0;
+            public bool honey() => (Header & 0x00800000) != 0;
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void honey(bool honey)
             {
                 if (honey)
                 {
-                    _tile->Header2 = (byte)((_tile->Header2 & 0x3f) | 0x80);
+                    Header = (Header & 0xff3fffff) | 0x00800000;
                 }
                 else
                 {
-                    _tile->Header2 &= 0x7f;
+                    Header &= 0xff7fffff;
                 }
             }
 
@@ -310,18 +316,18 @@ namespace Orion.Launcher.World
             // on the size of a tile.
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public bool checkingLiquid() => (_tile->Header3 & 0x80) != 0;
+            public bool checkingLiquid() => (Header & 0x80000000) != 0;
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void checkingLiquid(bool checkingLiquid)
             {
                 if (checkingLiquid)
                 {
-                    _tile->Header3 |= 0x80;
+                    Header |= 0x80000000;
                 }
                 else
                 {
-                    _tile->Header3 &= 0x7f;
+                    Header &= 0x7fffffff;
                 }
             }
 
@@ -348,14 +354,14 @@ namespace Orion.Launcher.World
             // of a tile.
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public byte frameNumber() => (byte)((_tile->Header3 & 0x60) >> 5);
+            public byte frameNumber() => (byte)((Header & 0x60000000) >> 29);
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void frameNumber(byte frameNumber)
             {
                 Debug.Assert(frameNumber <= 0x03);
 
-                _tile->Header3 = (byte)((_tile->Header3 & 0x9f) | (frameNumber << 5));
+                Header = (Header & 0x9f000000) | ((uint)frameNumber << 29);
             }
 
             public void CopyFrom(OTAPI.Tile.ITile from)
@@ -389,7 +395,7 @@ namespace Orion.Launcher.World
             public void ClearEverything() => Unsafe.InitBlockUnaligned((byte*)_tile, 0, 12);
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public void ClearMetadata() => Unsafe.InitBlockUnaligned(((byte*)_tile) + 4, 0, 8);
+            public void ClearMetadata() => Unsafe.InitBlockUnaligned((byte*)_tile + 4, 0, 8);
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void ClearTile()
@@ -405,7 +411,7 @@ namespace Orion.Launcher.World
                 if ((types & Terraria.DataStructures.TileDataType.Tile) != 0)
                 {
                     _tile->BlockId = BlockId.None;
-                    Unsafe.InitBlockUnaligned(((byte*)_tile) + 5, 0, 4);
+                    Unsafe.InitBlockUnaligned(((byte*)_tile) + 4, 0, 4);
                 }
 
                 if ((types & Terraria.DataStructures.TileDataType.TilePaint) != 0)
