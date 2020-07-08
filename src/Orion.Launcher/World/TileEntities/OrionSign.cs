@@ -17,7 +17,6 @@
 
 using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Diagnostics.Contracts;
 using Destructurama.Attributed;
 using Orion.Core.Entities;
 using Orion.Core.World.TileEntities;
@@ -63,7 +62,7 @@ namespace Orion.Launcher.World.TileEntities
 
         public Terraria.Sign Wrapped { get; }
 
-        [Pure, ExcludeFromCodeCoverage]
+        [ExcludeFromCodeCoverage]
         public override string ToString() => this.IsConcrete() ? $"<(index: {Index})>" : "<abstract instance>";
     }
 }

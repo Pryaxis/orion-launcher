@@ -17,7 +17,6 @@
 
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Diagnostics.Contracts;
 using Orion.Core.Entities;
 using Orion.Core.Utils;
 using Orion.Launcher.Utils;
@@ -66,7 +65,7 @@ namespace Orion.Launcher.Entities
 
         public TTerrariaEntity Wrapped { get; }
 
-        [Pure, ExcludeFromCodeCoverage]
+        [ExcludeFromCodeCoverage]
         public override string ToString() => this.IsConcrete() ? $"<{Name} (index: {Index})>" : "<abstract instance>";
     }
 }
