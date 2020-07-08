@@ -43,16 +43,17 @@ namespace Orion.Launcher.World
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 set
                 {
+                    ref var tile = ref _world[x, y];
+
                     if (value is null)
                     {
-                        _world[x, y] = default;
+                        tile = default;
                         return;
                     }
 
                     Debug.Assert(value is TileAdapter);
 
-                    var adapter = (TileAdapter)value;
-                    _world[x, y] = *adapter._tile;
+                    tile = *((TileAdapter)value)._tile;
                 }
             }
 

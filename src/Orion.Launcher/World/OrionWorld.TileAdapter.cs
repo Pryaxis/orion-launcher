@@ -374,8 +374,7 @@ namespace Orion.Launcher.World
 
                 Debug.Assert(from is TileAdapter);
 
-                var adapter = (TileAdapter)from;
-                *_tile = *adapter._tile;
+                *_tile = *((TileAdapter)from)._tile;
             }
 
             public bool isTheSameAs(OTAPI.Tile.ITile compTile)
@@ -387,8 +386,7 @@ namespace Orion.Launcher.World
 
                 Debug.Assert(compTile is TileAdapter);
 
-                var adapter = (TileAdapter)compTile;
-                return _tile->Equals(*adapter._tile);
+                return _tile->Equals(*((TileAdapter)compTile)._tile);
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
