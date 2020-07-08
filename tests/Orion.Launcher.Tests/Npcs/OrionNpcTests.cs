@@ -104,6 +104,40 @@ namespace Orion.Launcher.Npcs
 
             Assert.Equal(200, terrariaNpc.lifeMax);
         }
+        
+        [Fact]
+        public void AiValues_Get()
+        {
+            var terrariaNpc = new Terraria.NPC();
+            terrariaNpc.ai[0] = 1f;
+            terrariaNpc.ai[1] = 2f;
+            terrariaNpc.ai[2] = 3f;
+            terrariaNpc.ai[3] = 4f;
+            var npc = new OrionNpc(terrariaNpc);
+
+            Assert.Equal(4, npc.AiValues.Length);
+            Assert.Equal(1f, npc.AiValues[0]);
+            Assert.Equal(2f, npc.AiValues[1]);
+            Assert.Equal(3f, npc.AiValues[2]);
+            Assert.Equal(4f, npc.AiValues[3]);
+        }
+
+        [Fact]
+        public void AiValues_Set()
+        {
+            var terrariaNpc = new Terraria.NPC();
+            var npc = new OrionNpc(terrariaNpc);
+
+            npc.AiValues[0] = 1f;
+            npc.AiValues[1] = 2f;
+            npc.AiValues[2] = 3f;
+            npc.AiValues[3] = 4f;
+
+            Assert.Equal(1f, terrariaNpc.ai[0]);
+            Assert.Equal(2f, terrariaNpc.ai[1]);
+            Assert.Equal(3f, terrariaNpc.ai[2]);
+            Assert.Equal(4f, terrariaNpc.ai[3]);
+        }
 
         [Fact]
         public void SetId()

@@ -53,6 +53,8 @@ namespace Orion.Launcher.Npcs
             set => Wrapped.lifeMax = value;
         }
 
+        public Span<float> AiValues => Wrapped.ai;
+
         public void SetId(NpcId id)
         {
             Wrapped.SetDefaults((int)id, Wrapped.GetMatchingSpawnParams());
